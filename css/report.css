@@ -1,0 +1,133 @@
+/* =========================
+   Report Form
+========================= */
+
+.form-section {
+    padding: 65px 0 80px;
+    background: #fafafa;
+}
+
+.form-header {
+    max-width: 700px;
+    margin-bottom: 35px;
+}
+
+.form-header h1 {
+    font-size: clamp(34px, 5vw, 50px);
+    line-height: 1.15;
+    margin: 18px 0 12px;
+}
+
+.form-header p {
+    color: #6b7280;
+    font-size: 17px;
+}
+
+.report-form {
+    max-width: 850px;
+}
+
+.form-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.form-card h2 {
+    font-size: 23px;
+    margin-bottom: 6px;
+}
+
+.form-help {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.form-group label span {
+    color: #dc2626;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    padding: 12px 13px;
+    font: inherit;
+    background: #ffffff;
+    color: #1f2933;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #166534;
+}
+
+.form-group select:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.submit-area {
+    text-align: left;
+}
+
+.submit-button {
+    border: none;
+    cursor: pointer;
+    font: inherit;
+}
+
+.submit-note {
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+
+@media (max-width: 650px) {
+
+    .form-section {
+        padding: 45px 0 60px;
+    }
+
+    .form-card {
+        padding: 22px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-header h1 {
+        font-size: 35px;
+    }
+
+}
