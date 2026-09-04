@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>আমাদের এলাকা | নাগরিক সমস্যা রিপোর্ট</title>
+
+    <meta
+        name="description"
+        content="আপনার এলাকার নাগরিক সমস্যা রিপোর্ট করুন এবং এলাকার সমস্যাগুলো সম্পর্কে জানুন।"
+    >
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+
+            <a href="index.html" class="logo">
+                <span class="logo-icon">🇧🇩</span>
+                <span>আমাদের এলাকা</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="active">হোম</a>
+                <a href="reports.html">রিপোর্ট</a>
+                <a href="dashboard.html">ড্যাশবোর্ড</a>
+                <a href="report.html" class="nav-button">
+                    সমস্যা রিপোর্ট করুন
+                </a>
+            </nav>
+
+        </div>
+    </header>
+
+
+    <!-- Main -->
+    <main>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+
+                <div class="hero-content">
+
+                    <span class="hero-label">
+                        🇧🇩 নাগরিক উদ্যোগ
+                    </span>
+
+                    <h1>
+                        আপনার এলাকার<br>
+                        সমস্যা জানান
+                    </h1>
+
+                    <p>
+                        এলাকার নাগরিক সমস্যাগুলো রিপোর্ট করুন।
+                        আপনার দেওয়া তথ্য একটি সুন্দর ও সংগঠিত
+                        ডাটাবেসে সংরক্ষিত হবে।
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="report.html" class="btn btn-primary">
+                            সমস্যা রিপোর্ট করুন
+                        </a>
+
+                        <a href="reports.html" class="btn btn-secondary">
+                            রিপোর্ট দেখুন
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Statistics -->
+        <section class="stats-section">
+
+            <div class="container">
+
+                <div class="section-heading">
+                    <h2>এখন পর্যন্ত</h2>
+                    <p>নাগরিকদের দেওয়া রিপোর্টের সংক্ষিপ্ত চিত্র</p>
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalReports">0</span>
+                        <span class="stat-label">মোট রিপোর্ট</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="pendingReports">0</span>
+                        <span class="stat-label">অমীমাংসিত</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="progressReports">0</span>
+                        <span class="stat-label">কাজ চলছে</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="solvedReports">0</span>
+                        <span class="stat-label">সমাধান হয়েছে</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Categories -->
+        <section class="categories-section">
+
+            <div class="container">
+
+                <div class="section-heading">
+                    <h2>কী ধরনের সমস্যা জানাতে পারবেন?</h2>
+                    <p>আপনার এলাকার যেকোনো নাগরিক সমস্যা আমাদের জানান।</p>
+                </div>
+
+                <div class="category-grid">
+
+                    <div class="category-card">
+                        <span>🛣️</span>
+                        <h3>রাস্তা</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>🚰</span>
+                        <h3>ড্রেন ও জলাবদ্ধতা</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>🗑️</span>
+                        <h3>ময়লা-আবর্জনা</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>💡</span>
+                        <h3>রাস্তার বাতি</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>💧</span>
+                        <h3>পানির সমস্যা</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>🌳</span>
+                        <h3>পরিবেশ</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>🏛️</span>
+                        <h3>সরকারি স্থাপনা</h3>
+                    </div>
+
+                    <div class="category-card">
+                        <span>📌</span>
+                        <h3>অন্যান্য</h3>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CTA -->
+        <section class="cta-section">
+
+            <div class="container">
+
+                <div class="cta-box">
+
+                    <div>
+                        <h2>আপনার এলাকার কোনো সমস্যা আছে?</h2>
+
+                        <p>
+                            কয়েকটি তথ্য দিয়ে সমস্যাটি আমাদের জানান।
+                        </p>
+                    </div>
+
+                    <a href="report.html" class="btn btn-primary">
+                        রিপোর্ট করুন →
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-inner">
+
+            <div>
+                <strong>🇧🇩 আমাদের এলাকা</strong>
+                <p>
+                    নাগরিক সমস্যা জানানো ও তথ্যভিত্তিক
+                    এলাকার চিত্র তৈরির একটি উদ্যোগ।
+                </p>
+            </div>
+
+            <div class="footer-links">
+                <a href="index.html">হোম</a>
+                <a href="reports.html">রিপোর্ট</a>
+                <a href="dashboard.html">ড্যাশবোর্ড</a>
+            </div>
+
+        </div>
+
+        <div class="container footer-bottom">
+            <p>
+                © 2026 আমাদের এলাকা
+            </p>
+        </div>
+
+    </footer>
+
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>
