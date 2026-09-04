@@ -8,38 +8,10 @@ const upazila = document.getElementById("upazila");
 const reportForm = document.getElementById("reportForm");
 
 
-// Temporary district data
-const districts = {
-    "রংপুর": [
-        "রংপুর",
-        "দিনাজপুর",
-        "ঠাকুরগাঁও",
-        "পঞ্চগড়",
-        "নীলফামারী",
-        "লালমনিরহাট",
-        "কুড়িগ্রাম",
-        "গাইবান্ধা"
-    ],
+// =====================================
+// Division Change
+// =====================================
 
-    "ঢাকা": [
-        "ঢাকা",
-        "গাজীপুর",
-        "নারায়ণগঞ্জ",
-        "নরসিংদী",
-        "মানিকগঞ্জ",
-        "মুন্সীগঞ্জ",
-        "ফরিদপুর",
-        "রাজবাড়ী",
-        "গোপালগঞ্জ",
-        "মাদারীপুর",
-        "শরীয়তপুর",
-        "টাঙ্গাইল",
-        "কিশোরগঞ্জ"
-    ]
-};
-
-
-// Division change
 division.addEventListener("change", function () {
 
     const selectedDivision = this.value;
@@ -50,52 +22,82 @@ division.addEventListener("change", function () {
     upazila.innerHTML =
         '<option value="">আগে জেলা নির্বাচন করুন</option>';
 
+    district.disabled = true;
     upazila.disabled = true;
 
+
     if (!selectedDivision) {
-        district.disabled = true;
         return;
     }
 
-    const list = districts[selectedDivision] || [];
 
-    list.forEach(function (item) {
+    const districts =
+        Object.keys(locationData[selectedDivision] || {});
+
+
+    districts.forEach(function (districtName) {
 
         const option = document.createElement("option");
 
-        option.value = item;
-        option.textContent = item;
+        option.value = districtName;
+        option.textContent = districtName;
 
         district.appendChild(option);
 
     });
+
 
     district.disabled = false;
 
 });
 
 
-// District change
+// =====================================
+// District Change
+// =====================================
+
 district.addEventListener("change", function () {
 
+    const selectedDivision = division.value;
     const selectedDistrict = this.value;
+
 
     upazila.innerHTML =
         '<option value="">উপজেলা নির্বাচন করুন</option>';
 
-    if (!selectedDistrict) {
-        upazila.disabled = true;
+    upazila.disabled = true;
+
+
+    if (!selectedDivision || !selectedDistrict) {
         return;
     }
 
-    // উপজেলা database আমরা পরের step-এ সম্পূর্ণ করব
+
+    const upazilas =
+        locationData[selectedDivision][selectedDistrict] || [];
+
+
+    upazilas.forEach(function (upazilaName) {
+
+        const option = document.createElement("option");
+
+        option.value = upazilaName;
+        option.textContent = upazilaName;
+
+        upazila.appendChild(option);
+
+    });
+
 
     upazila.disabled = false;
 
 });
 
 
-// Form submit
+// =====================================
+// Form Submit
+// =====================================
+
 reportForm.addEventListener("submit", function (event) {
 
     event.preventDefault();
