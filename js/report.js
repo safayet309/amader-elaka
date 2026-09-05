@@ -1,205 +1,389 @@
-// =========================================================
-// AMADER ELAKA - REPORT SUBMISSION
-// js/report.js
-// =========================================================
+// ==========================================
+// আমাদের এলাকা — Report Form JavaScript
+// Division → District → Upazila
+// SheetDB + Report ID + Copy Button
+// ==========================================
 
 const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
 
-const divisionSelect = document.getElementById("division");
-const districtSelect = document.getElementById("district");
-const upazilaSelect = document.getElementById("upazila");
-const reportForm = document.getElementById("reportForm");
+document.addEventListener("DOMContentLoaded", function () {
 
+    // ==============================
+    // Get Elements
+    // ==============================
 
-// =========================================================
-// Division → District
-// =========================================================
+    const divisionSelect = document.getElementById("division");
+    const districtSelect = document.getElementById("district");
+    const upazilaSelect = document.getElementById("upazila");
+    const reportForm = document.getElementById("reportForm");
 
-divisionSelect.addEventListener("change", function () {
+    const areaInput = document.getElementById("area");
+    const wardSelect = document.getElementById("ward");
+    const categorySelect = document.getElementById("category");
+    const descriptionInput = document.getElementById("description");
 
-    const division = this.value;
-
-    districtSelect.innerHTML =
-        '<option value="">জেলা নির্বাচন করুন</option>';
-
-    upazilaSelect.innerHTML =
-        '<option value="">উপজেলা নির্বাচন করুন</option>';
-
-    if (!division || !locationData[division]) {
-        return;
-    }
-
-    Object.keys(locationData[division]).forEach(function (district) {
-
-        const option = document.createElement("option");
-
-        option.value = district;
-        option.textContent = district;
-
-        districtSelect.appendChild(option);
-    });
-});
-
-
-// =========================================================
-// District → Upazila
-// =========================================================
-
-districtSelect.addEventListener("change", function () {
-
-    const division = divisionSelect.value;
-    const district = this.value;
-
-    upazilaSelect.innerHTML =
-        '<option value="">উপজেলা নির্বাচন করুন</option>';
+    // ==============================
+    // Safety Check
+    // ==============================
 
     if (
-        !division ||
-        !district ||
-        !locationData[division] ||
-        !locationData[division][district]
+        !divisionSelect ||
+        !districtSelect ||
+        !upazilaSelect ||
+        !reportForm
     ) {
+        console.error("Report form elements not found.");
         return;
     }
 
-    locationData[division][district].forEach(function (upazila) {
+    // ==============================
+    // Initial State
+    // ==============================
 
-        const option = document.createElement("option");
+    districtSelect.disabled = true;
+    upazilaSelect.disabled = true;
 
-        option.value = upazila;
-        option.textContent = upazila;
+    districtSelect.innerHTML =
+        '<option value="">আগে বিভাগ নির্বাচন করুন</option>';
 
-        upazilaSelect.appendChild(option);
+    upazilaSelect.innerHTML =
+        '<option value="">আগে জেলা নির্বাচন করুন</option>';
+
+    // ==============================
+    // Division → District
+    // ==============================
+
+    divisionSelect.addEventListener("change", function () {
+
+        const division = this.value;
+
+        // Reset district
+        districtSelect.innerHTML =
+            '<option value="">জেলা নির্বাচন করুন</option>';
+
+        // Reset upazila
+        upazilaSelect.innerHTML =
+            '<option value="">আগে জেলা নির্বাচন করুন</option>';
+
+        upazilaSelect.disabled = true;
+
+        // No division selected
+        if (!division) {
+            districtSelect.disabled = true;
+            return;
+        }
+
+        // Check location data
+        if (
+            typeof locationData === "undefined" ||
+            !locationData[division]
+        ) {
+            console.error(
+                "Location data not found for division:",
+                division
+            );
+
+            districtSelect.disabled = true;
+            return;
+        }
+
+        const districts = locationData[division];
+
+        // Add districts
+        Object.keys(districts).forEach(function (district) {
+
+            const option = document.createElement("option");
+
+            option.value = district;
+            option.textContent = district;
+
+            districtSelect.appendChild(option);
+        });
+
+        districtSelect.disabled = false;
     });
-});
 
+    // ==============================
+    // District → Upazila
+    // ==============================
 
-// =========================================================
-// Generate Report ID
-// =========================================================
+    districtSelect.addEventListener("change", function () {
 
-function generateReportID() {
+        const division = divisionSelect.value;
+        const district = this.value;
 
-    return (
-        "REP-" +
-        Date.now() +
-        "-" +
-        Math.floor(Math.random() * 1000)
-    );
-}
+        // Reset upazila
+        upazilaSelect.innerHTML =
+            '<option value="">উপজেলা নির্বাচন করুন</option>';
 
+        // No district
+        if (!division || !district) {
+            upazilaSelect.disabled = true;
+            return;
+        }
 
-// =========================================================
-// Escape HTML
-// Security protection
-// =========================================================
+        // Check data
+        if (
+            typeof locationData === "undefined" ||
+            !locationData[division] ||
+            !locationData[division][district]
+        ) {
+            console.error(
+                "Upazila data not found:",
+                division,
+                district
+            );
 
-function escapeHTML(value) {
+            upazilaSelect.disabled = true;
+            return;
+        }
 
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+        const upazilas = locationData[division][district];
 
+        // Add upazilas
+        upazilas.forEach(function (upazila) {
 
-// =========================================================
-// Success Message
-// =========================================================
+            const option = document.createElement("option");
 
-function showSuccessMessage(reportID) {
+            option.value = upazila;
+            option.textContent = upazila;
 
-    // Remove previous success message
-    const oldMessage =
-        document.getElementById("reportSuccessMessage");
+            upazilaSelect.appendChild(option);
+        });
 
-    if (oldMessage) {
-        oldMessage.remove();
+        upazilaSelect.disabled = false;
+    });
+
+    // ==============================
+    // Generate Report ID
+    // ==============================
+
+    function generateReportID() {
+
+        const now = new Date();
+
+        const datePart =
+            now.getFullYear().toString() +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0");
+
+        const timePart =
+            String(now.getHours()).padStart(2, "0") +
+            String(now.getMinutes()).padStart(2, "0") +
+            String(now.getSeconds()).padStart(2, "0");
+
+        const randomPart =
+            Math.floor(100 + Math.random() * 900);
+
+        return "REP-" + datePart + "-" + timePart + "-" + randomPart;
     }
 
+    // ==============================
+    // Escape HTML
+    // ==============================
 
-    const message = document.createElement("div");
+    function escapeHTML(value) {
 
-    message.id = "reportSuccessMessage";
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
+    // ==============================
+    // Success Message
+    // ==============================
 
-    message.innerHTML = `
+    function showSuccessMessage(reportID) {
 
-        <div class="success-icon">
-            ✓
-        </div>
+        // Remove previous messages
+        const oldSuccess =
+            document.getElementById("reportSuccessMessage");
 
+        const oldError =
+            document.getElementById("reportErrorMessage");
 
-        <div class="success-content">
+        if (oldSuccess) oldSuccess.remove();
+        if (oldError) oldError.remove();
 
-            <h3>
-                রিপোর্ট সফলভাবে জমা হয়েছে!
-            </h3>
+        const message = document.createElement("div");
 
-            <p>
-                আপনার রিপোর্টটি আমাদের সিস্টেমে সংরক্ষণ করা হয়েছে।
-            </p>
+        message.id = "reportSuccessMessage";
 
+        message.innerHTML = `
+            <div class="success-icon">
+                ✓
+            </div>
 
-            <div class="report-id-box">
+            <div class="success-content">
 
-                <span class="report-id-label">
-                    রিপোর্ট ID
-                </span>
+                <h3>রিপোর্ট সফলভাবে জমা হয়েছে!</h3>
 
-                <strong
-                    id="generatedReportID"
-                    class="report-id-value"
-                >
-                    ${escapeHTML(reportID)}
-                </strong>
+                <p>
+                    আপনার রিপোর্টটি সফলভাবে সংরক্ষণ করা হয়েছে।
+                    নিচে আপনার Report ID দেওয়া হলো।
+                </p>
 
+                <div class="report-id-box">
 
-                <button
-                    type="button"
-                    id="copyReportID"
-                    class="copy-report-button"
-                >
-                    📋 Copy
-                </button>
+                    <span class="report-id-label">
+                        আপনার Report ID
+                    </span>
+
+                    <div class="report-id-row">
+
+                        <strong
+                            id="generatedReportID"
+                            class="report-id-value"
+                        >
+                            ${escapeHTML(reportID)}
+                        </strong>
+
+                        <button
+                            type="button"
+                            id="copyReportID"
+                            class="copy-report-button"
+                        >
+                            📋 Copy
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
 
-        </div>
+            <button
+                type="button"
+                class="success-close"
+                id="successCloseButton"
+                aria-label="বন্ধ করুন"
+            >
+                ×
+            </button>
+        `;
 
+        // Form-এর আগে message দেখাবে
+        reportForm.parentNode.insertBefore(
+            message,
+            reportForm
+        );
 
-        <button
-            type="button"
-            class="success-close"
-            aria-label="বন্ধ করুন"
-        >
-            ×
-        </button>
+        // ==============================
+        // Copy Button
+        // ==============================
 
-    `;
+        const copyButton =
+            document.getElementById("copyReportID");
 
+        copyButton.addEventListener("click", async function () {
 
-    // Put message before form
-    reportForm.parentNode.insertBefore(
-        message,
-        reportForm
-    );
+            let copied = false;
 
+            // Modern browser
+            if (
+                navigator.clipboard &&
+                window.isSecureContext
+            ) {
+                try {
 
-    // =====================================================
-    // Close Button
-    // =====================================================
+                    await navigator.clipboard.writeText(
+                        reportID
+                    );
 
-    const closeButton =
-        message.querySelector(".success-close");
+                    copied = true;
 
-    closeButton.addEventListener("click", function () {
+                } catch (error) {
 
-        message.style.opacity = "0";
-        message.style.transform =
-            "translateY(-8px)";
+                    console.warn(
+                        "Clipboard API failed:",
+                        error
+                    );
+                }
+            }
+
+            // Fallback
+            if (!copied) {
+
+                const textArea =
+                    document.createElement("textarea");
+
+                textArea.value = reportID;
+
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+
+                document.body.appendChild(textArea);
+
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    copied =
+                        document.execCommand("copy");
+                } catch (error) {
+                    copied = false;
+                }
+
+                textArea.remove();
+            }
+
+            // Button feedback
+            if (copied) {
+
+                copyButton.textContent =
+                    "✓ কপি হয়েছে";
+
+                copyButton.classList.add("copied");
+
+                setTimeout(function () {
+
+                    copyButton.textContent =
+                        "📋 Copy";
+
+                    copyButton.classList.remove(
+                        "copied"
+                    );
+
+                }, 2500);
+
+            } else {
+
+                copyButton.textContent =
+                    "কপি করা যায়নি";
+
+                setTimeout(function () {
+
+                    copyButton.textContent =
+                        "📋 Copy";
+
+                }, 2500);
+            }
+        });
+
+        // ==============================
+        // Close Button
+        // ==============================
+
+        const closeButton =
+            document.getElementById(
+                "successCloseButton"
+            );
+
+        closeButton.addEventListener(
+            "click",
+            function () {
+
+                message.remove();
+            }
+        );
+
+        // ==============================
+        // Auto Hide
+        // ==============================
 
         setTimeout(function () {
 
@@ -207,405 +391,297 @@ function showSuccessMessage(reportID) {
                 message.remove();
             }
 
-        }, 300);
-
-    });
-
-
-    // =====================================================
-    // Copy Report ID
-    // =====================================================
-
-    const copyButton =
-        message.querySelector("#copyReportID");
-
-
-    copyButton.addEventListener("click", async function () {
-
-        try {
-
-            await navigator.clipboard.writeText(reportID);
-
-            copyButton.textContent =
-                "✓ কপি হয়েছে";
-
-            copyButton.classList.add(
-                "copied"
-            );
-
-
-            setTimeout(function () {
-
-                copyButton.textContent =
-                    "📋 Copy";
-
-                copyButton.classList.remove(
-                    "copied"
-                );
-
-            }, 2500);
-
-
-        } catch (error) {
-
-            // Fallback for older browsers
-
-            const tempInput =
-                document.createElement("input");
-
-            tempInput.value = reportID;
-
-            document.body.appendChild(
-                tempInput
-            );
-
-            tempInput.select();
-
-            document.execCommand("copy");
-
-            tempInput.remove();
-
-
-            copyButton.textContent =
-                "✓ কপি হয়েছে";
-
-            copyButton.classList.add(
-                "copied"
-            );
-
-
-            setTimeout(function () {
-
-                copyButton.textContent =
-                    "📋 Copy";
-
-                copyButton.classList.remove(
-                    "copied"
-                );
-
-            }, 2500);
-        }
-    });
-
-
-    // =====================================================
-    // Scroll to Success Message
-    // =====================================================
-
-    setTimeout(function () {
-
-        message.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
-    }, 100);
-
-
-    // =====================================================
-    // Auto Hide
-    // =====================================================
-
-    setTimeout(function () {
-
-        if (
-            message &&
-            message.parentNode
-        ) {
-
-            message.style.opacity = "0";
-
-            message.style.transform =
-                "translateY(-8px)";
-
-
-            setTimeout(function () {
-
-                if (
-                    message &&
-                    message.parentNode
-                ) {
-                    message.remove();
-                }
-
-            }, 300);
-        }
-
-    }, 12000);
-}
-
-
-// =========================================================
-// Error Message
-// =========================================================
-
-function showErrorMessage(text) {
-
-    const oldMessage =
-        document.getElementById("reportErrorMessage");
-
-    if (oldMessage) {
-        oldMessage.remove();
+        }, 12000);
     }
 
+    // ==============================
+    // Error Message
+    // ==============================
 
-    const message = document.createElement("div");
+    function showErrorMessage(messageText) {
 
-    message.id = "reportErrorMessage";
-
-
-    message.innerHTML = `
-
-        <div class="error-icon">
-            !
-        </div>
-
-
-        <div class="error-content">
-
-            <h3>
-                রিপোর্ট জমা দেওয়া যায়নি
-            </h3>
-
-            <p>
-                ${escapeHTML(text)}
-            </p>
-
-        </div>
-
-
-        <button
-            type="button"
-            class="error-close"
-            aria-label="বন্ধ করুন"
-        >
-            ×
-        </button>
-
-    `;
-
-
-    reportForm.parentNode.insertBefore(
-        message,
-        reportForm
-    );
-
-
-    const closeButton =
-        message.querySelector(".error-close");
-
-
-    closeButton.addEventListener(
-        "click",
-        function () {
-
-            message.remove();
-
-        }
-    );
-
-
-    message.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-}
-
-
-// =========================================================
-// Submit Report
-// =========================================================
-
-reportForm.addEventListener(
-    "submit",
-    async function (event) {
-
-        event.preventDefault();
-
-
-        const submitButton =
-            reportForm.querySelector(
-                "button[type='submit']"
+        const oldSuccess =
+            document.getElementById(
+                "reportSuccessMessage"
             );
 
-
-        // =====================================================
-        // Generate ID
-        // =====================================================
-
-        const reportID =
-            generateReportID();
-
-
-        // =====================================================
-        // Collect Form Data
-        // =====================================================
-
-        const formData = {
-
-            ID: reportID,
-
-            Division:
-                divisionSelect.value,
-
-            District:
-                districtSelect.value,
-
-            Upazila:
-                upazilaSelect.value,
-
-            Area:
-                document
-                    .getElementById("area")
-                    .value
-                    .trim(),
-
-            Ward:
-                document
-                    .getElementById("ward")
-                    .value,
-
-            Category:
-                document
-                    .getElementById("category")
-                    .value,
-
-            Description:
-                document
-                    .getElementById("description")
-                    .value
-                    .trim(),
-
-            Date:
-                new Date()
-                    .toISOString()
-                    .split("T")[0],
-
-            Status:
-                "Pending",
-
-            AdminNote:
-                ""
-        };
-
-
-        // =====================================================
-        // Validation
-        // =====================================================
-
-        if (
-            !formData.Division ||
-            !formData.District ||
-            !formData.Upazila ||
-            !formData.Area ||
-            !formData.Ward ||
-            !formData.Category ||
-            !formData.Description
-        ) {
-
-            showErrorMessage(
-                "দয়া করে প্রয়োজনীয় সব তথ্য পূরণ করুন।"
+        const oldError =
+            document.getElementById(
+                "reportErrorMessage"
             );
 
-            return;
-        }
+        if (oldSuccess) oldSuccess.remove();
+        if (oldError) oldError.remove();
 
+        const message =
+            document.createElement("div");
 
-        // =====================================================
-        // Submit to SheetDB
-        // =====================================================
+        message.id = "reportErrorMessage";
 
-        try {
+        message.innerHTML = `
+            <div class="error-icon">
+                !
+            </div>
 
-            submitButton.disabled = true;
+            <div class="error-content">
 
-            submitButton.textContent =
-                "রিপোর্ট জমা হচ্ছে...";
+                <h3>রিপোর্ট জমা দেওয়া যায়নি</h3>
 
+                <p>
+                    ${escapeHTML(messageText)}
+                </p>
 
-            const response =
-                await fetch(API_URL, {
+            </div>
 
-                    method: "POST",
+            <button
+                type="button"
+                class="error-close"
+                aria-label="বন্ধ করুন"
+            >
+                ×
+            </button>
+        `;
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+        reportForm.parentNode.insertBefore(
+            message,
+            reportForm
+        );
 
-                    body: JSON.stringify({
-                        data: formData
-                    })
+        const closeButton =
+            message.querySelector(".error-close");
 
-                });
+        closeButton.addEventListener(
+            "click",
+            function () {
+                message.remove();
+            }
+        );
+    }
 
+    // ==============================
+    // Form Submit
+    // ==============================
 
-            // =================================================
-            // Check Response
-            // =================================================
+    reportForm.addEventListener(
+        "submit",
+        async function (event) {
 
-            if (!response.ok) {
+            event.preventDefault();
 
-                throw new Error(
-                    "Report submission failed"
+            const submitButton =
+                reportForm.querySelector(
+                    "button[type='submit']"
                 );
+
+            // ==============================
+            // Remove old messages
+            // ==============================
+
+            const oldSuccess =
+                document.getElementById(
+                    "reportSuccessMessage"
+                );
+
+            const oldError =
+                document.getElementById(
+                    "reportErrorMessage"
+                );
+
+            if (oldSuccess) oldSuccess.remove();
+            if (oldError) oldError.remove();
+
+            // ==============================
+            // Generate ID
+            // ==============================
+
+            const reportID =
+                generateReportID();
+
+            // ==============================
+            // Form Data
+            // ==============================
+
+            const formData = {
+
+                ID: reportID,
+
+                Division:
+                    divisionSelect.value.trim(),
+
+                District:
+                    districtSelect.value.trim(),
+
+                Upazila:
+                    upazilaSelect.value.trim(),
+
+                Area:
+                    areaInput.value.trim(),
+
+                Ward:
+                    wardSelect.value.trim(),
+
+                Category:
+                    categorySelect.value.trim(),
+
+                Description:
+                    descriptionInput.value.trim(),
+
+                Date:
+                    new Date()
+                        .toISOString()
+                        .split("T")[0],
+
+                Status:
+                    "Pending",
+
+                AdminNote:
+                    ""
+            };
+
+            // ==============================
+            // Validation
+            // ==============================
+
+            if (!formData.Division) {
+                showErrorMessage(
+                    "দয়া করে বিভাগ নির্বাচন করুন।"
+                );
+                divisionSelect.focus();
+                return;
             }
 
+            if (!formData.District) {
+                showErrorMessage(
+                    "দয়া করে জেলা নির্বাচন করুন।"
+                );
+                districtSelect.focus();
+                return;
+            }
 
-            const result =
-                await response.json();
+            if (!formData.Upazila) {
+                showErrorMessage(
+                    "দয়া করে উপজেলা নির্বাচন করুন।"
+                );
+                upazilaSelect.focus();
+                return;
+            }
 
+            if (!formData.Area) {
+                showErrorMessage(
+                    "দয়া করে গ্রাম / এলাকার নাম লিখুন।"
+                );
+                areaInput.focus();
+                return;
+            }
 
-            console.log(
-                "Report submitted successfully:",
-                result
-            );
+            if (!formData.Ward) {
+                showErrorMessage(
+                    "দয়া করে ওয়ার্ড নির্বাচন করুন।"
+                );
+                wardSelect.focus();
+                return;
+            }
 
+            if (!formData.Category) {
+                showErrorMessage(
+                    "দয়া করে সমস্যার ধরন নির্বাচন করুন।"
+                );
+                categorySelect.focus();
+                return;
+            }
 
-            // =================================================
-            // Reset Form
-            // =================================================
+            if (!formData.Description) {
+                showErrorMessage(
+                    "দয়া করে সমস্যার বিস্তারিত লিখুন।"
+                );
+                descriptionInput.focus();
+                return;
+            }
 
-            reportForm.reset();
+            // ==============================
+            // Submit
+            // ==============================
 
+            try {
 
-            districtSelect.innerHTML =
-                '<option value="">জেলা নির্বাচন করুন</option>';
+                submitButton.disabled = true;
 
+                submitButton.textContent =
+                    "জমা হচ্ছে...";
 
-            upazilaSelect.innerHTML =
-                '<option value="">উপজেলা নির্বাচন করুন</option>';
+                const response =
+                    await fetch(API_URL, {
 
+                        method: "POST",
 
-            // =================================================
-            // Show Success Message
-            // =================================================
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-            showSuccessMessage(
-                reportID
-            );
+                        body: JSON.stringify({
+                            data: formData
+                        })
+                    });
 
+                if (!response.ok) {
 
-        } catch (error) {
+                    throw new Error(
+                        "Server response: " +
+                        response.status
+                    );
+                }
 
-            console.error(
-                "Report submission error:",
-                error
-            );
+                const result =
+                    await response.json();
 
+                console.log(
+                    "Report submitted:",
+                    result
+                );
 
-            showErrorMessage(
-                "সাময়িকভাবে রিপোর্ট জমা দেওয়া সম্ভব হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
-            );
+                // ==============================
+                // Reset Form
+                // ==============================
 
+                reportForm.reset();
 
-        } finally {
+                districtSelect.innerHTML =
+                    '<option value="">আগে বিভাগ নির্বাচন করুন</option>';
 
-            submitButton.disabled = false;
+                upazilaSelect.innerHTML =
+                    '<option value="">আগে জেলা নির্বাচন করুন</option>';
 
-            submitButton.textContent =
-                "রিপোর্ট জমা দিন";
+                districtSelect.disabled = true;
+                upazilaSelect.disabled = true;
+
+                // ==============================
+                // Show Success
+                // ==============================
+
+                showSuccessMessage(
+                    reportID
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Report submission error:",
+                    error
+                );
+
+                showErrorMessage(
+                    "সার্ভারে রিপোর্ট জমা দেওয়া সম্ভব হয়নি। আবার চেষ্টা করুন।"
+                );
+
+            } finally {
+
+                submitButton.disabled = false;
+
+                submitButton.textContent =
+                    "রিপোর্ট জমা দিন";
+            }
         }
+    );
 
-    }
-);
+});
