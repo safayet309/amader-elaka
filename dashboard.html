@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>ড্যাশবোর্ড — আমাদের এলাকা</title>
+
+    <link rel="stylesheet"
+        href="css/style.css">
+
+    <link rel="stylesheet"
+        href="css/dashboard.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+
+        <div class="container nav-container">
+
+            <a href="index.html" class="logo">
+                🇧🇩 আমাদের এলাকা
+            </a>
+
+            <nav class="nav">
+
+                <a href="index.html">
+                    হোম
+                </a>
+
+                <a href="report.html">
+                    রিপোর্ট করুন
+                </a>
+
+                <a href="dashboard.html"
+                    class="active">
+                    ড্যাশবোর্ড
+                </a>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+
+        <div class="container">
+
+            <div class="dashboard-header">
+
+                <h1>
+                    এলাকার রিপোর্ট
+                </h1>
+
+                <p>
+                    নাগরিকদের জমা দেওয়া সমস্যাগুলো এখানে দেখা যাবে।
+                </p>
+
+            </div>
+
+
+            <!-- Statistics -->
+
+            <div class="dashboard-stats">
+
+                <div class="stat-card">
+
+                    <span class="stat-number"
+                        id="totalReports">
+                        0
+                    </span>
+
+                    <span class="stat-label">
+                        মোট রিপোর্ট
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-number"
+                        id="pendingReports">
+                        0
+                    </span>
+
+                    <span class="stat-label">
+                        Pending
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-number"
+                        id="progressReports">
+                        0
+                    </span>
+
+                    <span class="stat-label">
+                        কাজ চলছে
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-number"
+                        id="solvedReports">
+                        0
+                    </span>
+
+                    <span class="stat-label">
+                        সমাধান হয়েছে
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Reports -->
+
+            <section class="reports-section">
+
+                <div class="section-header">
+
+                    <h2>
+                        সাম্প্রতিক রিপোর্ট
+                    </h2>
+
+                    <button
+                        id="refreshButton"
+                        class="refresh-btn">
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+
+                <div id="loading"
+                    class="loading">
+
+                    রিপোর্ট লোড হচ্ছে...
+
+                </div>
+
+
+                <div id="reportsContainer"
+                    class="reports-container">
+
+                </div>
+
+
+                <div id="noReports"
+                    class="no-reports"
+                    style="display:none;">
+
+                    এখনো কোনো রিপোর্ট পাওয়া যায়নি।
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+
+    <footer class="footer">
+
+        <div class="container">
+
+            <p>
+                © 2026 আমাদের এলাকা
+            </p>
+
+        </div>
+
+    </footer>
+
+
+    <script src="js/dashboard.js"></script>
+
+</body>
+
+</html>
