@@ -1,20 +1,183 @@
 <!DOCTYPE html>
 <html lang="bn">
-
 <head>
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-    <title>আমাদের এলাকা | নাগরিক সমস্যা রিপোর্ট</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <meta
         name="description"
-        content="আপনার এলাকার নাগরিক সমস্যা রিপোর্ট করুন এবং এলাকার সমস্যাগুলো সম্পর্কে জানুন।"
+        content="আমাদের এলাকা - আপনার এলাকার সমস্যা রিপোর্ট করুন এবং এলাকার রিপোর্ট দেখুন।"
     >
 
+    <title>আমাদের এলাকা - এলাকার সমস্যা রিপোর্ট করুন</title>
+
     <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =========================
+           Premium Home Search
+        ========================= */
+
+        .home-search-section {
+            padding: 25px 0 10px;
+        }
+
+        .home-search-box {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+            transition:
+                box-shadow 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .home-search-box:focus-within {
+            border-color: #2f6b4f;
+            box-shadow: 0 10px 32px rgba(47, 107, 79, 0.14);
+            transform: translateY(-2px);
+        }
+
+        .home-search-icon {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #eef6f1;
+            font-size: 20px;
+        }
+
+        .home-search-input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #1f2933;
+            font: inherit;
+            font-size: 16px;
+        }
+
+        .home-search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .home-search-button {
+            min-height: 42px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 9px;
+            background: #166534;
+            color: #ffffff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .home-search-button:hover {
+            background: #14532d;
+            transform: translateY(-1px);
+        }
+
+        .home-search-button:active {
+            transform: translateY(0);
+        }
+
+        .home-search-help {
+            margin: 9px 0 0;
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .home-search-results {
+            max-width: 760px;
+            margin: 12px auto 0;
+            display: none;
+        }
+
+        .home-search-result {
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+        }
+
+        .home-search-result strong {
+            display: block;
+            color: #166534;
+            margin-bottom: 4px;
+        }
+
+        .home-search-result span {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .home-search-empty {
+            padding: 18px;
+            text-align: center;
+            color: #6b7280;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+
+            .home-search-box {
+                padding: 8px;
+                gap: 7px;
+            }
+
+            .home-search-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .home-search-input {
+                font-size: 14px;
+            }
+
+            .home-search-button {
+                padding: 0 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 420px) {
+
+            .home-search-box {
+                flex-wrap: wrap;
+            }
+
+            .home-search-input {
+                flex: 1;
+            }
+
+            .home-search-button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 
@@ -29,35 +192,34 @@
         <div class="container header-inner">
 
             <a href="index.html" class="logo">
-
-                <span class="logo-icon">
-                    🇧🇩
-                </span>
-
-                <span>
-                    আমাদের এলাকা
-                </span>
-
+                <span class="logo-icon">🏠</span>
+                <span>আমাদের এলাকা</span>
             </a>
 
 
             <nav class="nav">
 
-    <a href="index.html" class="active">
-        হোম
-    </a>
+                <a
+                    href="index.html"
+                    class="active"
+                >
+                    হোম
+                </a>
 
-    <a href="dashboard.html">
-        রিপোর্ট
-    </a>
+                <a href="dashboard.html">
+                    রিপোর্ট
+                </a>
 
-    <a href="dashboard.html">
-        ড্যাশবোর্ড
-    </a>
+                <a href="dashboard.html">
+                    ড্যাশবোর্ড
+                </a>
 
-    <a href="report.html" class="nav-button">
-        সমস্যা রিপোর্ট করুন
-    </a>
+                <a
+                    href="report.html"
+                    class="nav-button"
+                >
+                    সমস্যা রিপোর্ট করুন
+                </a>
 
             </nav>
 
@@ -66,17 +228,11 @@
     </header>
 
 
-
     <!-- =========================
-         Main
+         Hero
     ========================== -->
 
     <main>
-
-
-        <!-- =========================
-             Hero Section
-        ========================== -->
 
         <section class="hero">
 
@@ -84,27 +240,24 @@
 
                 <div class="hero-content">
 
-
-                    <span class="hero-label">
-                        🇧🇩 নাগরিক উদ্যোগ
+                    <span class="hero-badge">
+                        🇧🇩 আপনার এলাকার জন্য
                     </span>
 
-
                     <h1>
-                        আপনার এলাকার<br>
-                        সমস্যা জানান
+                        এলাকার সমস্যা জানান,
+                        <br>
+                        পরিবর্তনে অংশ নিন
                     </h1>
 
-
                     <p>
-                        এলাকার নাগরিক সমস্যাগুলো রিপোর্ট করুন।
-                        আপনার দেওয়া তথ্য একটি সুন্দর ও সংগঠিত
-                        ডাটাবেসে সংরক্ষিত হবে।
+                        আপনার এলাকার রাস্তা, ড্রেন, ময়লা-আবর্জনা,
+                        পানির সমস্যা কিংবা অন্য যেকোনো নাগরিক সমস্যা
+                        সহজেই রিপোর্ট করুন।
                     </p>
 
 
                     <div class="hero-actions">
-
 
                         <a
                             href="report.html"
@@ -113,14 +266,12 @@
                             সমস্যা রিপোর্ট করুন
                         </a>
 
-
                         <a
                             href="dashboard.html"
                             class="btn btn-secondary"
                         >
                             রিপোর্ট দেখুন
                         </a>
-
 
                     </div>
 
@@ -131,6 +282,61 @@
         </section>
 
 
+        <!-- =========================
+             Premium Search
+        ========================== -->
+
+        <section
+            class="home-search-section"
+            aria-label="রিপোর্ট অনুসন্ধান"
+        >
+
+            <div class="container">
+
+                <form
+                    id="homeSearchForm"
+                    class="home-search-box"
+                >
+
+                    <div
+                        class="home-search-icon"
+                        aria-hidden="true"
+                    >
+                        🔎
+                    </div>
+
+                    <input
+                        type="search"
+                        id="homeSearchInput"
+                        class="home-search-input"
+                        placeholder="এলাকা, জেলা, বিষয় বা রিপোর্ট ID দিয়ে খুঁজুন..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        type="submit"
+                        class="home-search-button"
+                    >
+                        খুঁজুন
+                    </button>
+
+                </form>
+
+
+                <p class="home-search-help">
+                    যেমন: ঢাকা, রংপুর, রাস্তা, ড্রেন বা রিপোর্ট ID
+                </p>
+
+
+                <div
+                    id="homeSearchResults"
+                    class="home-search-results"
+                ></div>
+
+            </div>
+
+        </section>
+
 
         <!-- =========================
              Statistics
@@ -140,23 +346,7 @@
 
             <div class="container">
 
-
-                <div class="section-heading">
-
-                    <h2>
-                        এখন পর্যন্ত
-                    </h2>
-
-                    <p>
-                        নাগরিকদের দেওয়া রিপোর্টের সংক্ষিপ্ত চিত্র
-                    </p>
-
-                </div>
-
-
-
                 <div class="stats-grid">
-
 
                     <div class="stat-card">
 
@@ -174,7 +364,6 @@
                     </div>
 
 
-
                     <div class="stat-card">
 
                         <span
@@ -185,11 +374,10 @@
                         </span>
 
                         <span class="stat-label">
-                            অমীমাংসিত
+                            অপেক্ষমাণ
                         </span>
 
                     </div>
-
 
 
                     <div class="stat-card">
@@ -208,7 +396,6 @@
                     </div>
 
 
-
                     <div class="stat-card">
 
                         <span
@@ -224,13 +411,11 @@
 
                     </div>
 
-
                 </div>
 
             </div>
 
         </section>
-
 
 
         <!-- =========================
@@ -241,11 +426,14 @@
 
             <div class="container">
 
-
                 <div class="section-heading">
 
+                    <span class="section-label">
+                        সমস্যা রিপোর্ট
+                    </span>
+
                     <h2>
-                        কী ধরনের সমস্যা জানাতে পারবেন?
+                        কোন ধরনের সমস্যা রিপোর্ট করতে পারবেন?
                     </h2>
 
                     <p>
@@ -255,120 +443,134 @@
                 </div>
 
 
-
                 <div class="category-grid">
 
-
-                    <div class="category-card">
-
-                        <span>
-                            🛣️
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>🛣️</span>
 
                         <h3>
                             রাস্তা
                         </h3>
 
-                    </div>
+                        <p>
+                            ভাঙা বা ক্ষতিগ্রস্ত রাস্তা
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            🚰
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>🌊</span>
 
                         <h3>
                             ড্রেন ও জলাবদ্ধতা
                         </h3>
 
-                    </div>
+                        <p>
+                            বন্ধ ড্রেন ও জলাবদ্ধতা
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            🗑️
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>🗑️</span>
 
                         <h3>
                             ময়লা-আবর্জনা
                         </h3>
 
-                    </div>
+                        <p>
+                            যত্রতত্র ময়লা ও বর্জ্য
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            💡
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>💡</span>
 
                         <h3>
                             রাস্তার বাতি
                         </h3>
 
-                    </div>
+                        <p>
+                            নষ্ট বা বন্ধ স্ট্রিট লাইট
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            💧
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>💧</span>
 
                         <h3>
                             পানির সমস্যা
                         </h3>
 
-                    </div>
+                        <p>
+                            পানি সরবরাহ সংক্রান্ত সমস্যা
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            🌳
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>🌳</span>
 
                         <h3>
                             পরিবেশ
                         </h3>
 
-                    </div>
+                        <p>
+                            পরিবেশ ও গাছপালা সংক্রান্ত সমস্যা
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            🏛️
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>🏛️</span>
 
                         <h3>
                             সরকারি স্থাপনা
                         </h3>
 
-                    </div>
+                        <p>
+                            সরকারি স্থাপনা সংক্রান্ত সমস্যা
+                        </p>
+                    </a>
 
 
-
-                    <div class="category-card">
-
-                        <span>
-                            📌
-                        </span>
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
+                        <span>📌</span>
 
                         <h3>
                             অন্যান্য
                         </h3>
 
-                    </div>
-
+                        <p>
+                            অন্যান্য নাগরিক সমস্যা
+                        </p>
+                    </a>
 
                 </div>
 
@@ -377,27 +579,25 @@
         </section>
 
 
-
         <!-- =========================
-             CTA Section
+             CTA
         ========================== -->
 
         <section class="cta-section">
 
             <div class="container">
 
-
                 <div class="cta-box">
-
 
                     <div>
 
                         <h2>
-                            আপনার এলাকার কোনো সমস্যা আছে?
+                            আপনার এলাকার সমস্যা রিপোর্ট করুন
                         </h2>
 
                         <p>
-                            কয়েকটি তথ্য দিয়ে সমস্যাটি আমাদের জানান।
+                            ছোট একটি রিপোর্টও এলাকার উন্নয়নে
+                            গুরুত্বপূর্ণ ভূমিকা রাখতে পারে।
                         </p>
 
                     </div>
@@ -407,9 +607,8 @@
                         href="report.html"
                         class="btn btn-primary"
                     >
-                        রিপোর্ট করুন →
+                        রিপোর্ট করুন
                     </a>
-
 
                 </div>
 
@@ -417,9 +616,7 @@
 
         </section>
 
-
     </main>
-
 
 
     <!-- =========================
@@ -428,64 +625,340 @@
 
     <footer class="footer">
 
+        <div class="container">
 
-        <div class="container footer-inner">
+            <div class="footer-inner">
+
+                <div>
+
+                    <a
+                        href="index.html"
+                        class="logo"
+                    >
+                        <span class="logo-icon">🏠</span>
+                        <span>আমাদের এলাকা</span>
+                    </a>
+
+                    <p>
+                        নাগরিকদের অংশগ্রহণে এলাকার সমস্যা চিহ্নিত
+                        ও সমাধানের একটি সহজ প্ল্যাটফর্ম।
+                    </p>
+
+                </div>
 
 
-            <div>
+                <div class="footer-links">
 
-                <strong>
-                    🇧🇩 আমাদের এলাকা
-                </strong>
+                    <a href="index.html">
+                        হোম
+                    </a>
 
-                <p>
-                    নাগরিক সমস্যা জানানো ও তথ্যভিত্তিক
-                    এলাকার চিত্র তৈরির একটি উদ্যোগ।
-                </p>
+                    <a href="dashboard.html">
+                        রিপোর্ট
+                    </a>
+
+                    <a href="dashboard.html">
+                        ড্যাশবোর্ড
+                    </a>
+
+                    <a href="report.html">
+                        সমস্যা রিপোর্ট করুন
+                    </a>
+
+                </div>
 
             </div>
 
 
+            <div class="footer-bottom">
 
-            <div class="footer-links">
-
-                <a href="index.html">
-                    হোম
-                </a>
-
-                <a href="dashboard.html">
-                    রিপোর্ট
-                </a>
-
-                <a href="dashboard.html">
-                    ড্যাশবোর্ড
-                </a>
+                © 2026 আমাদের এলাকা —
+                নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
 
             </div>
 
-
         </div>
-
-
-
-        <div class="container footer-bottom">
-
-            <p>
-                © 2026 আমাদের এলাকা
-            </p>
-
-        </div>
-
 
     </footer>
 
 
+    <!-- =========================
+         Home Search JavaScript
+    ========================== -->
 
-    <!-- JavaScript -->
+    <script>
 
+        const HOME_API_URL =
+            "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+
+
+        let homeReports = [];
+
+
+        async function loadHomeSearchReports() {
+
+            try {
+
+                const response =
+                    await fetch(HOME_API_URL);
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load reports"
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                homeReports =
+                    Array.isArray(data)
+                        ? data
+                        : [];
+
+            } catch (error) {
+
+                console.error(
+                    "Home Search Error:",
+                    error
+                );
+
+                homeReports = [];
+
+            }
+
+        }
+
+
+        function escapeHomeSearchHTML(value) {
+
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+
+        function searchHomeReports(searchValue) {
+
+            const resultsBox =
+                document.getElementById(
+                    "homeSearchResults"
+                );
+
+
+            if (!resultsBox) return;
+
+
+            const query =
+                String(searchValue || "")
+                    .trim()
+                    .toLowerCase();
+
+
+            if (!query) {
+
+                resultsBox.innerHTML = "";
+
+                resultsBox.style.display =
+                    "none";
+
+                return;
+
+            }
+
+
+            const results =
+                homeReports
+                    .filter(function (report) {
+
+                        const searchableText = [
+
+                            report.ID,
+                            report.Area,
+                            report.Description,
+                            report.Division,
+                            report.District,
+                            report.Upazila,
+                            report.Category,
+                            report.Status
+
+                        ]
+                            .map(function (value) {
+                                return String(
+                                    value || ""
+                                );
+                            })
+                            .join(" ")
+                            .toLowerCase();
+
+
+                        return searchableText
+                            .includes(query);
+
+                    })
+                    .slice(0, 5);
+
+
+            resultsBox.style.display =
+                "block";
+
+
+            if (!results.length) {
+
+                resultsBox.innerHTML = `
+                    <div class="home-search-empty">
+                        কোনো রিপোর্ট পাওয়া যায়নি।
+                        <br>
+                        <small>
+                            অন্য এলাকা, বিষয় বা রিপোর্ট ID দিয়ে চেষ্টা করুন।
+                        </small>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            resultsBox.innerHTML =
+                results.map(function (report) {
+
+                    const location = [
+
+                        report.Division,
+                        report.District,
+                        report.Upazila,
+                        report.Area
+
+                    ]
+                        .filter(Boolean)
+                        .join(" → ");
+
+
+                    return `
+                        <div class="home-search-result">
+
+                            <strong>
+                                ${escapeHomeSearchHTML(
+                                    report.Category ||
+                                    "অন্যান্য"
+                                )}
+                            </strong>
+
+                            <span>
+                                📍
+                                ${escapeHomeSearchHTML(
+                                    location ||
+                                    "স্থান উল্লেখ নেই"
+                                )}
+                                <br>
+
+                                🆔
+                                ${escapeHomeSearchHTML(
+                                    report.ID ||
+                                    "N/A"
+                                )}
+
+                                &nbsp; | &nbsp;
+
+                                ${escapeHomeSearchHTML(
+                                    report.Status ||
+                                    "Pending"
+                                )}
+                            </span>
+
+                        </div>
+                    `;
+
+                })
+                .join("");
+
+        }
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                loadHomeSearchReports();
+
+
+                const searchForm =
+                    document.getElementById(
+                        "homeSearchForm"
+                    );
+
+
+                const searchInput =
+                    document.getElementById(
+                        "homeSearchInput"
+                    );
+
+
+                if (searchForm && searchInput) {
+
+                    searchForm.addEventListener(
+                        "submit",
+                        function (event) {
+
+                            event.preventDefault();
+
+                            searchHomeReports(
+                                searchInput.value
+                            );
+
+                        }
+                    );
+
+
+                    searchInput.addEventListener(
+                        "input",
+                        function () {
+
+                            if (
+                                searchInput.value.trim()
+                            ) {
+
+                                searchHomeReports(
+                                    searchInput.value
+                                );
+
+                            } else {
+
+                                const resultsBox =
+                                    document.getElementById(
+                                        "homeSearchResults"
+                                    );
+
+                                if (resultsBox) {
+
+                                    resultsBox.innerHTML =
+                                        "";
+
+                                    resultsBox.style.display =
+                                        "none";
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+
+    <!-- Existing Main JavaScript -->
     <script src="js/script.js"></script>
 
-
 </body>
-
 </html>
