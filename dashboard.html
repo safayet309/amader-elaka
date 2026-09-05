@@ -2,50 +2,339 @@
 <html lang="bn">
 
 <head>
+
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>ড্যাশবোর্ড — আমাদের এলাকা</title>
+    <meta
+        name="description"
+        content="আমাদের এলাকার রিপোর্ট ও নাগরিক সমস্যার ড্যাশবোর্ড"
+    >
 
-    <link rel="stylesheet"
-        href="css/style.css">
+    <title>রিপোর্ট ও ড্যাশবোর্ড - আমাদের এলাকা</title>
 
-    <link rel="stylesheet"
-        href="css/dashboard.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <style>
+
+        /* =========================
+           Dashboard Overview
+        ========================= */
+
+        .dashboard-overview {
+            margin-bottom: 35px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .overview-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .overview-card h2 {
+            margin: 0 0 6px;
+            font-size: 21px;
+        }
+
+        .overview-card > p {
+            margin: 0 0 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           Summary List
+        ========================= */
+
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 12px 14px;
+            background: #f8faf9;
+            border: 1px solid #edf0ee;
+            border-radius: 9px;
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .summary-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-name {
+            min-width: 0;
+            color: #374151;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .summary-count {
+            flex-shrink: 0;
+            min-width: 38px;
+            padding: 4px 9px;
+            text-align: center;
+            border-radius: 20px;
+            background: #e8f3ec;
+            color: #166534;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+
+        /* =========================
+           Top Category
+        ========================= */
+
+        .top-category {
+            margin-bottom: 18px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #eef6f1;
+            border: 1px solid #d8e9df;
+        }
+
+        .top-category-label {
+            display: block;
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .top-category-name {
+            display: block;
+            color: #166534;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .top-category-count {
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           Location Search
+        ========================= */
+
+        .location-summary {
+            margin-top: 20px;
+        }
+
+        .location-search {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .location-search input {
+            flex: 1;
+            min-width: 0;
+            padding: 11px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            font: inherit;
+        }
+
+        .location-search input:focus {
+            border-color: #2f6b4f;
+        }
+
+        .location-search button {
+            flex-shrink: 0;
+            border: none;
+            border-radius: 8px;
+            padding: 0 17px;
+            background: #2f6b4f;
+            color: #ffffff;
+            font: inherit;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .location-search button:hover {
+            transform: translateY(-2px);
+        }
+
+
+        /* =========================
+           Selected Location Result
+        ========================= */
+
+        .location-result {
+            display: none;
+            padding: 16px;
+            border-radius: 10px;
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+        }
+
+        .location-result.show {
+            display: block;
+        }
+
+        .location-result h3 {
+            margin: 0 0 5px;
+            color: #166534;
+        }
+
+        .location-total {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .location-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .location-category {
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+        }
+
+        .location-category strong {
+            color: #166534;
+        }
+
+
+        /* =========================
+           Report Search
+        ========================= */
+
+        .report-search-area {
+            margin-bottom: 20px;
+        }
+
+        .report-search-area input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            font: inherit;
+        }
+
+        .report-search-area input:focus {
+            border-color: #2f6b4f;
+        }
+
+
+        /* =========================
+           Mobile
+        ========================= */
+
+        @media (max-width: 800px) {
+
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+        @media (max-width: 500px) {
+
+            .overview-card {
+                padding: 20px;
+            }
+
+            .location-search {
+                flex-direction: column;
+            }
+
+            .location-search button {
+                min-height: 42px;
+            }
+
+        }
+
+    </style>
+
 </head>
+
 
 <body>
 
-    <!-- Header -->
+
+    <!-- =========================
+         Header
+    ========================== -->
+
     <header class="header">
 
-        <div class="container nav-container">
+        <div class="container header-inner">
 
-            <a href="index.html" class="logo">
-                🇧🇩 আমাদের এলাকা
+
+            <a
+                href="index.html"
+                class="logo"
+            >
+
+                <span class="logo-icon">
+                    🏠
+                </span>
+
+                <span>
+                    আমাদের এলাকা
+                </span>
+
             </a>
+
 
             <nav class="nav">
 
-    <a href="index.html">
-        হোম
-    </a>
+                <a href="index.html">
+                    হোম
+                </a>
 
-    <a href="dashboard.html">
-        রিপোর্ট
-    </a>
+                <a
+                    href="dashboard.html#reports"
+                    class="active"
+                >
+                    রিপোর্ট
+                </a>
 
-    <a href="dashboard.html"
-        class="active">
-        ড্যাশবোর্ড
-    </a>
+                <a href="dashboard.html">
+                    ড্যাশবোর্ড
+                </a>
 
-    <a href="report.html"
-        class="nav-button">
-        সমস্যা রিপোর্ট করুন
-    </a>
+                <a
+                    href="report.html"
+                    class="nav-button"
+                >
+                    সমস্যা রিপোর্ট করুন
+                </a>
 
             </nav>
 
@@ -54,10 +343,19 @@
     </header>
 
 
-    <!-- Dashboard -->
+
+    <!-- =========================
+         Main Dashboard
+    ========================== -->
+
     <main class="dashboard">
 
         <div class="container">
+
+
+            <!-- =========================
+                 Dashboard Header
+            ========================== -->
 
             <div class="dashboard-header">
 
@@ -66,20 +364,27 @@
                 </h1>
 
                 <p>
-                    নাগরিকদের জমা দেওয়া সমস্যাগুলো এখানে দেখা যাবে।
+                    বাংলাদেশজুড়ে নাগরিক সমস্যার রিপোর্ট,
+                    অবস্থান ও বিষয়ভিত্তিক তথ্য দেখুন।
                 </p>
 
             </div>
 
 
-            <!-- Statistics -->
 
-            <div class="dashboard-stats">
+            <!-- =========================
+                 Statistics
+            ========================== -->
+
+            <section class="dashboard-stats">
+
 
                 <div class="stat-card">
 
-                    <span class="stat-number"
-                        id="totalReports">
+                    <span
+                        class="stat-number"
+                        id="totalReports"
+                    >
                         0
                     </span>
 
@@ -92,13 +397,15 @@
 
                 <div class="stat-card">
 
-                    <span class="stat-number"
-                        id="pendingReports">
+                    <span
+                        class="stat-number"
+                        id="pendingReports"
+                    >
                         0
                     </span>
 
                     <span class="stat-label">
-                        Pending
+                        অপেক্ষমাণ
                     </span>
 
                 </div>
@@ -106,8 +413,10 @@
 
                 <div class="stat-card">
 
-                    <span class="stat-number"
-                        id="progressReports">
+                    <span
+                        class="stat-number"
+                        id="progressReports"
+                    >
                         0
                     </span>
 
@@ -120,8 +429,10 @@
 
                 <div class="stat-card">
 
-                    <span class="stat-number"
-                        id="solvedReports">
+                    <span
+                        class="stat-number"
+                        id="solvedReports"
+                    >
                         0
                     </span>
 
@@ -131,103 +442,1098 @@
 
                 </div>
 
-            </div>
+
+            </section>
 
 
-            <!-- Reports -->
 
-            <section class="reports-section">
+            <!-- =========================
+                 Bangladesh Overview
+            ========================== -->
 
-                <div class="section-header">
+            <section class="dashboard-overview">
 
-                    <h2>
-                        সাম্প্রতিক রিপোর্ট
-                    </h2>
-
-                    <button
-                        id="refreshButton"
-                        class="refresh-btn">
-                        🔄 Refresh
-                    </button>
-
-                </div>
-
-                <!-- Filters -->
-
-<div class="filters">
-
-    <input
-        type="text"
-        id="searchInput"
-        placeholder="🔎 এলাকা বা সমস্যার বিবরণ খুঁজুন..."
-    >
-
-    <select id="divisionFilter">
-        <option value="">সব বিভাগ</option>
-    </select>
-
-    <select id="categoryFilter">
-        <option value="">সব সমস্যা</option>
-    </select>
-
-    <select id="statusFilter">
-        <option value="">সব Status</option>
-    </select>
-
-    <button
-        id="resetFilters"
-        class="reset-btn">
-        Reset
-    </button>
-
-</div>
+                <div class="overview-grid">
 
 
-                <div id="loading"
-                    class="loading">
+                    <!-- =========================
+                         Category Summary
+                    ========================== -->
 
-                    রিপোর্ট লোড হচ্ছে...
+                    <div class="overview-card">
 
-                </div>
+                        <h2>
+                            🏷️ বিষয়ভিত্তিক রিপোর্ট
+                        </h2>
+
+                        <p>
+                            কোন ধরনের সমস্যা সবচেয়ে বেশি রিপোর্ট হচ্ছে।
+                        </p>
 
 
-                <div id="reportsContainer"
-                    class="reports-container">
+                        <div
+                            id="topCategory"
+                            class="top-category"
+                        >
 
-                </div>
+                            <span class="top-category-label">
+                                সবচেয়ে বেশি রিপোর্ট
+                            </span>
+
+                            <span
+                                id="topCategoryName"
+                                class="top-category-name"
+                            >
+                                তথ্য লোড হচ্ছে...
+                            </span>
+
+                            <span
+                                id="topCategoryCount"
+                                class="top-category-count"
+                            >
+                                —
+                            </span>
+
+                        </div>
 
 
-                <div id="noReports"
-                    class="no-reports"
-                    style="display:none;">
+                        <div
+                            id="categorySummary"
+                            class="summary-list"
+                        >
 
-                    এখনো কোনো রিপোর্ট পাওয়া যায়নি।
+                            <div class="summary-item">
+
+                                <span class="summary-name">
+                                    তথ্য লোড হচ্ছে...
+                                </span>
+
+                                <span class="summary-count">
+                                    —
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =========================
+                         Location Summary
+                    ========================== -->
+
+                    <div class="overview-card">
+
+                        <h2>
+                            📍 এলাকাভিত্তিক রিপোর্ট
+                        </h2>
+
+                        <p>
+                            কোন বিভাগে কতটি রিপোর্ট রয়েছে।
+                        </p>
+
+
+                        <div class="summary-list">
+
+                            <div
+                                id="divisionSummary"
+                            >
+
+                                <div class="summary-item">
+
+                                    <span class="summary-name">
+                                        তথ্য লোড হচ্ছে...
+                                    </span>
+
+                                    <span class="summary-count">
+                                        —
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="location-summary">
+
+                            <div class="location-search">
+
+                                <input
+                                    type="search"
+                                    id="locationSearch"
+                                    placeholder="বিভাগ, জেলা বা উপজেলা লিখুন..."
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    id="locationSearchButton"
+                                >
+                                    খুঁজুন
+                                </button>
+
+                            </div>
+
+
+                            <div
+                                id="locationResult"
+                                class="location-result"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
 
                 </div>
 
             </section>
+
+
+
+            <!-- =========================
+                 Reports
+            ========================== -->
+
+            <section
+                id="reports"
+                class="reports-section"
+            >
+
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            সাম্প্রতিক রিপোর্ট
+                        </h2>
+
+                        <p
+                            style="
+                                margin:5px 0 0;
+                                color:#6b7280;
+                                font-size:14px;
+                            "
+                        >
+                            একটি রিপোর্টে ক্লিক করলে বিস্তারিত তথ্য দেখতে পারবেন।
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="refreshButton"
+                        class="refresh-btn"
+                    >
+                        ↻ রিফ্রেশ
+                    </button>
+
+                </div>
+
+
+
+                <!-- =========================
+                     Search
+                ========================== -->
+
+                <div class="report-search-area">
+
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="রিপোর্ট, এলাকা, জেলা, বিষয় বা রিপোর্ট ID দিয়ে খুঁজুন..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+
+                <!-- =========================
+                     Filters
+                ========================== -->
+
+                <div
+                    class="dashboard-filters"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                        repeat(3, minmax(0, 1fr));
+                        gap:12px;
+                        margin-bottom:18px;
+                    "
+                >
+
+                    <select
+                        id="divisionFilter"
+                        style="
+                            width:100%;
+                            padding:11px 12px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            background:#fff;
+                            font:inherit;
+                        "
+                    >
+
+                        <option value="">
+                            সব বিভাগ
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="categoryFilter"
+                        style="
+                            width:100%;
+                            padding:11px 12px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            background:#fff;
+                            font:inherit;
+                        "
+                    >
+
+                        <option value="">
+                            সব বিষয়
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="statusFilter"
+                        style="
+                            width:100%;
+                            padding:11px 12px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            background:#fff;
+                            font:inherit;
+                        "
+                    >
+
+                        <option value="">
+                            সব স্ট্যাটাস
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- =========================
+                     Reset
+                ========================== -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:flex-end;
+                        margin-bottom:18px;
+                    "
+                >
+
+                    <button
+                        type="button"
+                        id="resetFilters"
+                        style="
+                            border:1px solid #d1d5db;
+                            background:#fff;
+                            color:#374151;
+                            padding:9px 15px;
+                            border-radius:7px;
+                            cursor:pointer;
+                            font:inherit;
+                        "
+                    >
+                        ফিল্টার রিসেট
+                    </button>
+
+                </div>
+
+
+
+                <!-- =========================
+                     Loading
+                ========================== -->
+
+                <div
+                    id="loading"
+                    class="loading"
+                >
+                    রিপোর্ট লোড হচ্ছে...
+                </div>
+
+
+
+                <!-- =========================
+                     Reports Container
+                ========================== -->
+
+                <div
+                    id="reportsContainer"
+                    class="reports-container"
+                ></div>
+
+
+
+                <!-- =========================
+                     No Reports
+                ========================== -->
+
+                <div
+                    id="noReports"
+                    class="no-reports"
+                    style="display:none;"
+                >
+
+                    <h3>
+                        কোনো রিপোর্ট পাওয়া যায়নি
+                    </h3>
+
+                    <p>
+                        Search বা filter পরিবর্তন করে আবার চেষ্টা করুন।
+                    </p>
+
+                </div>
+
+
+            </section>
+
 
         </div>
 
     </main>
 
 
-    <!-- Footer -->
+
+    <!-- =========================
+         Footer
+    ========================== -->
 
     <footer class="footer">
 
         <div class="container">
 
-            <p>
-                © 2026 আমাদের এলাকা
-            </p>
+            <div class="footer-inner">
+
+
+                <div>
+
+                    <a
+                        href="index.html"
+                        class="logo"
+                    >
+
+                        <span class="logo-icon">
+                            🏠
+                        </span>
+
+                        <span>
+                            আমাদের এলাকা
+                        </span>
+
+                    </a>
+
+
+                    <p>
+                        নাগরিকদের অংশগ্রহণে এলাকার সমস্যা
+                        চিহ্নিত ও সমাধানের একটি সহজ প্ল্যাটফর্ম।
+                    </p>
+
+                </div>
+
+
+                <div class="footer-links">
+
+                    <a href="index.html">
+                        হোম
+                    </a>
+
+                    <a href="dashboard.html#reports">
+                        রিপোর্ট
+                    </a>
+
+                    <a href="dashboard.html">
+                        ড্যাশবোর্ড
+                    </a>
+
+                    <a href="report.html">
+                        সমস্যা রিপোর্ট করুন
+                    </a>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                © 2026 আমাদের এলাকা —
+                নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
+
+            </div>
 
         </div>
 
     </footer>
 
 
+
+    <!-- =========================
+         Dashboard Summary Script
+    ========================== -->
+
+    <script>
+
+        const SUMMARY_API_URL =
+            "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+
+
+        let summaryReports = [];
+
+
+        /* =========================
+           Load Summary Data
+        ========================== */
+
+        async function loadDashboardSummary() {
+
+            try {
+
+                const response =
+                    await fetch(SUMMARY_API_URL);
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load summary"
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                summaryReports =
+                    Array.isArray(data)
+                        ? data
+                        : [];
+
+
+                renderCategorySummary(
+                    summaryReports
+                );
+
+                renderDivisionSummary(
+                    summaryReports
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Summary Error:",
+                    error
+                );
+
+                renderSummaryError();
+
+            }
+
+        }
+
+
+        /* =========================
+           Category Summary
+        ========================== */
+
+        function renderCategorySummary(reports) {
+
+            const container =
+                document.getElementById(
+                    "categorySummary"
+                );
+
+            const topName =
+                document.getElementById(
+                    "topCategoryName"
+                );
+
+            const topCount =
+                document.getElementById(
+                    "topCategoryCount"
+                );
+
+
+            if (!container) return;
+
+
+            const categoryMap = {};
+
+
+            reports.forEach(function (report) {
+
+                const category =
+                    String(
+                        report.Category ||
+                        "অন্যান্য"
+                    ).trim();
+
+
+                categoryMap[category] =
+                    (categoryMap[category] || 0) + 1;
+
+            });
+
+
+            const categories =
+                Object.entries(categoryMap)
+                    .sort(function (a, b) {
+                        return b[1] - a[1];
+                    });
+
+
+            container.innerHTML = "";
+
+
+            if (!categories.length) {
+
+                container.innerHTML = `
+                    <div class="summary-item">
+                        <span class="summary-name">
+                            এখনো কোনো রিপোর্ট নেই
+                        </span>
+                        <span class="summary-count">
+                            0
+                        </span>
+                    </div>
+                `;
+
+                if (topName) {
+                    topName.textContent =
+                        "কোনো তথ্য নেই";
+                }
+
+                if (topCount) {
+                    topCount.textContent = "0 রিপোর্ট";
+                }
+
+                return;
+
+            }
+
+
+            const highest =
+                categories[0];
+
+
+            if (topName) {
+                topName.textContent =
+                    highest[0];
+            }
+
+
+            if (topCount) {
+
+                topCount.textContent =
+                    highest[1] + "টি রিপোর্ট";
+
+            }
+
+
+            categories.forEach(
+                function (item) {
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+                    row.className =
+                        "summary-item";
+
+
+                    row.innerHTML = `
+
+                        <span class="summary-name">
+                            ${escapeSummaryHTML(
+                                item[0]
+                            )}
+                        </span>
+
+                        <span class="summary-count">
+                            ${item[1]}
+                        </span>
+
+                    `;
+
+
+                    container.appendChild(row);
+
+                }
+            );
+
+        }
+
+
+        /* =========================
+           Division Summary
+        ========================== */
+
+        function renderDivisionSummary(reports) {
+
+            const container =
+                document.getElementById(
+                    "divisionSummary"
+                );
+
+
+            if (!container) return;
+
+
+            const divisionMap = {};
+
+
+            reports.forEach(function (report) {
+
+                const division =
+                    String(
+                        report.Division ||
+                        "অজানা"
+                    ).trim();
+
+
+                divisionMap[division] =
+                    (divisionMap[division] || 0) + 1;
+
+            });
+
+
+            const divisions =
+                Object.entries(divisionMap)
+                    .sort(function (a, b) {
+                        return b[1] - a[1];
+                    });
+
+
+            container.innerHTML = "";
+
+
+            if (!divisions.length) {
+
+                container.innerHTML = `
+                    <div class="summary-item">
+
+                        <span class="summary-name">
+                            এখনো কোনো রিপোর্ট নেই
+                        </span>
+
+                        <span class="summary-count">
+                            0
+                        </span>
+
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            divisions.forEach(
+                function (item) {
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+                    row.className =
+                        "summary-item";
+
+
+                    row.innerHTML = `
+
+                        <span class="summary-name">
+                            📍 ${escapeSummaryHTML(
+                                item[0]
+                            )}
+                        </span>
+
+                        <span class="summary-count">
+                            ${item[1]}
+                        </span>
+
+                    `;
+
+
+                    container.appendChild(row);
+
+                }
+            );
+
+        }
+
+
+        /* =========================
+           Location Search
+        ========================== */
+
+        function searchLocation() {
+
+            const input =
+                document.getElementById(
+                    "locationSearch"
+                );
+
+            const result =
+                document.getElementById(
+                    "locationResult"
+                );
+
+
+            if (!input || !result) return;
+
+
+            const query =
+                input.value
+                    .trim()
+                    .toLowerCase();
+
+
+            if (!query) {
+
+                result.classList.remove(
+                    "show"
+                );
+
+                result.innerHTML = "";
+
+                return;
+
+            }
+
+
+            const matched =
+                summaryReports.filter(
+                    function (report) {
+
+                        const text = [
+
+                            report.Division,
+                            report.District,
+                            report.Upazila,
+                            report.Area
+
+                        ]
+                            .map(function (value) {
+
+                                return String(
+                                    value || ""
+                                ).toLowerCase();
+
+                            })
+                            .join(" ");
+
+
+                        return text.includes(
+                            query
+                        );
+
+                    }
+                );
+
+
+            const categoryMap = {};
+
+
+            matched.forEach(function (report) {
+
+                const category =
+                    String(
+                        report.Category ||
+                        "অন্যান্য"
+                    ).trim();
+
+
+                categoryMap[category] =
+                    (categoryMap[category] || 0) + 1;
+
+            });
+
+
+            const categories =
+                Object.entries(categoryMap)
+                    .sort(function (a, b) {
+                        return b[1] - a[1];
+                    });
+
+
+            result.classList.add("show");
+
+
+            if (!matched.length) {
+
+                result.innerHTML = `
+
+                    <h3>
+                        কোনো রিপোর্ট পাওয়া যায়নি
+                    </h3>
+
+                    <p class="location-total">
+                        “${escapeSummaryHTML(
+                            input.value
+                        )}” এলাকায় এখনো কোনো রিপোর্ট পাওয়া যায়নি।
+                    </p>
+
+                `;
+
+                return;
+
+            }
+
+
+            const locationName =
+                matched[0].District ||
+                matched[0].Division ||
+                input.value;
+
+
+            result.innerHTML = `
+
+                <h3>
+                    📍 ${escapeSummaryHTML(
+                        locationName
+                    )}
+                </h3>
+
+                <div class="location-total">
+
+                    মোট
+                    <strong>
+                        ${matched.length}
+                    </strong>
+                    টি রিপোর্ট পাওয়া গেছে।
+
+                </div>
+
+
+                <strong>
+                    বিষয়ভিত্তিক রিপোর্ট:
+                </strong>
+
+
+                <div class="location-categories">
+
+                    ${
+                        categories
+                            .map(function (item) {
+
+                                return `
+                                    <span class="location-category">
+
+                                        ${escapeSummaryHTML(
+                                            item[0]
+                                        )}
+
+                                        :
+
+                                        <strong>
+                                            ${item[1]}
+                                        </strong>
+
+                                    </span>
+                                `;
+
+                            })
+                            .join("")
+                    }
+
+                </div>
+
+            `;
+
+        }
+
+
+        /* =========================
+           Escape HTML
+        ========================== */
+
+        function escapeSummaryHTML(value) {
+
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+
+        /* =========================
+           Summary Error
+        ========================== */
+
+        function renderSummaryError() {
+
+            const category =
+                document.getElementById(
+                    "categorySummary"
+                );
+
+            const division =
+                document.getElementById(
+                    "divisionSummary"
+                );
+
+
+            if (category) {
+
+                category.innerHTML = `
+                    <div class="summary-item">
+
+                        <span class="summary-name">
+                            তথ্য লোড করা যায়নি
+                        </span>
+
+                        <span class="summary-count">
+                            —
+                        </span>
+
+                    </div>
+                `;
+
+            }
+
+
+            if (division) {
+
+                division.innerHTML = `
+                    <div class="summary-item">
+
+                        <span class="summary-name">
+                            তথ্য লোড করা যায়নি
+                        </span>
+
+                        <span class="summary-count">
+                            —
+                        </span>
+
+                    </div>
+                `;
+
+            }
+
+        }
+
+
+        /* =========================
+           Location Search Events
+        ========================== */
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                loadDashboardSummary();
+
+
+                const locationInput =
+                    document.getElementById(
+                        "locationSearch"
+                    );
+
+
+                const locationButton =
+                    document.getElementById(
+                        "locationSearchButton"
+                    );
+
+
+                if (
+                    locationInput &&
+                    locationButton
+                ) {
+
+                    locationButton.addEventListener(
+                        "click",
+                        searchLocation
+                    );
+
+
+                    locationInput.addEventListener(
+                        "keydown",
+                        function (event) {
+
+                            if (
+                                event.key === "Enter"
+                            ) {
+
+                                event.preventDefault();
+
+                                searchLocation();
+
+                            }
+
+                        }
+                    );
+
+
+                    locationInput.addEventListener(
+                        "input",
+                        function () {
+
+                            if (
+                                locationInput.value.trim()
+                            ) {
+
+                                searchLocation();
+
+                            } else {
+
+                                const result =
+                                    document.getElementById(
+                                        "locationResult"
+                                    );
+
+                                if (result) {
+
+                                    result.classList.remove(
+                                        "show"
+                                    );
+
+                                    result.innerHTML =
+                                        "";
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+
+
+    <!-- Existing Dashboard JavaScript -->
     <script src="js/dashboard.js"></script>
+
 
 </body>
 
