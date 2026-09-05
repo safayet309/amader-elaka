@@ -8,18 +8,13 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
 
-    <title>
-        সমস্যা রিপোর্ট করুন | আমাদের এলাকা
-    </title>
+    <title>সমস্যা রিপোর্ট করুন | আমাদের এলাকা</title>
 
-    <link rel="stylesheet"
-        href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 
-    <link rel="stylesheet"
-        href="css/report.css">
+    <link rel="stylesheet" href="css/report.css">
 
 </head>
-
 
 <body>
 
@@ -32,9 +27,7 @@
 
     <div class="container header-inner">
 
-
-        <a href="index.html"
-            class="logo">
+        <a href="index.html" class="logo">
 
             <span class="logo-icon">
                 🇧🇩
@@ -47,30 +40,29 @@
         </a>
 
 
-     <nav class="nav">
+        <nav class="nav">
 
-    <a href="index.html">
-        হোম
-    </a>
+            <a href="index.html">
+                হোম
+            </a>
 
-    <a href="dashboard.html">
-        রিপোর্ট
-    </a>
+            <a href="dashboard.html">
+                রিপোর্ট
+            </a>
 
-    <a href="dashboard.html">
-        ড্যাশবোর্ড
-    </a>
+            <a href="dashboard.html">
+                ড্যাশবোর্ড
+            </a>
 
-    <a href="report.html" class="nav-button">
-        সমস্যা রিপোর্ট করুন
-    </a>
+            <a href="report.html" class="nav-button">
+                সমস্যা রিপোর্ট করুন
+            </a>
 
-</nav>
+        </nav>
 
     </div>
 
 </header>
-
 
 
 <!-- =========================
@@ -78,7 +70,6 @@
 ========================= -->
 
 <main>
-
 
     <section class="form-section">
 
@@ -93,11 +84,9 @@
                     📝 নাগরিক রিপোর্ট
                 </span>
 
-
                 <h1>
                     আপনার এলাকার সমস্যা জানান
                 </h1>
-
 
                 <p>
                     সমস্যাটি সম্পর্কে সঠিক তথ্য দিন।
@@ -105,7 +94,6 @@
                 </p>
 
             </div>
-
 
 
             <!-- =========================
@@ -124,16 +112,13 @@
 
                 <div class="form-card">
 
-
                     <h2>
                         📍 সমস্যার স্থান
                     </h2>
 
-
                     <p class="form-help">
                         যেখানে সমস্যাটি হয়েছে সেই স্থান নির্বাচন করুন।
                     </p>
-
 
 
                     <div class="form-grid">
@@ -147,9 +132,9 @@
                                 বিভাগ <span>*</span>
                             </label>
 
-
                             <select
                                 id="division"
+                                name="division"
                                 required
                             >
 
@@ -157,42 +142,41 @@
                                     বিভাগ নির্বাচন করুন
                                 </option>
 
-                                <option>
+                                <option value="ঢাকা">
                                     ঢাকা
                                 </option>
 
-                                <option>
+                                <option value="চট্টগ্রাম">
                                     চট্টগ্রাম
                                 </option>
 
-                                <option>
+                                <option value="রাজশাহী">
                                     রাজশাহী
                                 </option>
 
-                                <option>
+                                <option value="খুলনা">
                                     খুলনা
                                 </option>
 
-                                <option>
+                                <option value="বরিশাল">
                                     বরিশাল
                                 </option>
 
-                                <option>
+                                <option value="সিলেট">
                                     সিলেট
                                 </option>
 
-                                <option>
+                                <option value="রংপুর">
                                     রংপুর
                                 </option>
 
-                                <option>
+                                <option value="ময়মনসিংহ">
                                     ময়মনসিংহ
                                 </option>
 
                             </select>
 
                         </div>
-
 
 
                         <!-- District -->
@@ -203,9 +187,9 @@
                                 জেলা <span>*</span>
                             </label>
 
-
                             <select
                                 id="district"
+                                name="district"
                                 required
                                 disabled
                             >
@@ -219,7 +203,6 @@
                         </div>
 
 
-
                         <!-- Upazila -->
 
                         <div class="form-group">
@@ -228,9 +211,9 @@
                                 উপজেলা <span>*</span>
                             </label>
 
-
                             <select
                                 id="upazila"
+                                name="upazila"
                                 required
                                 disabled
                             >
@@ -244,7 +227,6 @@
                         </div>
 
 
-
                         <!-- Area -->
 
                         <div class="form-group">
@@ -253,16 +235,16 @@
                                 গ্রাম / এলাকা <span>*</span>
                             </label>
 
-
                             <input
                                 type="text"
                                 id="area"
+                                name="area"
                                 placeholder="গ্রাম বা এলাকার নাম"
+                                autocomplete="address-level3"
                                 required
                             >
 
                         </div>
-
 
 
                         <!-- Ward -->
@@ -273,9 +255,9 @@
                                 ওয়ার্ড <span>*</span>
                             </label>
 
-
                             <select
                                 id="ward"
+                                name="ward"
                                 required
                             >
 
@@ -283,25 +265,23 @@
                                     ওয়ার্ড নির্বাচন করুন
                                 </option>
 
-                                <option>১</option>
-                                <option>২</option>
-                                <option>৩</option>
-                                <option>৪</option>
-                                <option>৫</option>
-                                <option>৬</option>
-                                <option>৭</option>
-                                <option>৮</option>
-                                <option>৯</option>
+                                <option value="১">১</option>
+                                <option value="২">২</option>
+                                <option value="৩">৩</option>
+                                <option value="৪">৪</option>
+                                <option value="৫">৫</option>
+                                <option value="৬">৬</option>
+                                <option value="৭">৭</option>
+                                <option value="৮">৮</option>
+                                <option value="৯">৯</option>
 
                             </select>
 
                         </div>
 
-
                     </div>
 
                 </div>
-
 
 
                 <!-- =========================
@@ -310,11 +290,9 @@
 
                 <div class="form-card">
 
-
                     <h2>
                         ⚠️ সমস্যার তথ্য
                     </h2>
-
 
 
                     <!-- Category -->
@@ -325,9 +303,9 @@
                             সমস্যার ধরন <span>*</span>
                         </label>
 
-
                         <select
                             id="category"
+                            name="category"
                             required
                         >
 
@@ -335,50 +313,49 @@
                                 সমস্যার ধরন নির্বাচন করুন
                             </option>
 
-                            <option>
+                            <option value="রাস্তা ভাঙা">
                                 রাস্তা ভাঙা
                             </option>
 
-                            <option>
+                            <option value="ড্রেন বন্ধ">
                                 ড্রেন বন্ধ
                             </option>
 
-                            <option>
+                            <option value="ময়লা আবর্জনা">
                                 ময়লা আবর্জনা
                             </option>
 
-                            <option>
+                            <option value="জলাবদ্ধতা">
                                 জলাবদ্ধতা
                             </option>
 
-                            <option>
+                            <option value="রাস্তার বাতি">
                                 রাস্তার বাতি
                             </option>
 
-                            <option>
+                            <option value="পানির সমস্যা">
                                 পানির সমস্যা
                             </option>
 
-                            <option>
+                            <option value="ফুটপাত/দখল">
                                 ফুটপাত/দখল
                             </option>
 
-                            <option>
+                            <option value="পরিবেশ/গাছ">
                                 পরিবেশ/গাছ
                             </option>
 
-                            <option>
+                            <option value="সরকারি স্থাপনা">
                                 সরকারি স্থাপনা
                             </option>
 
-                            <option>
+                            <option value="অন্যান্য">
                                 অন্যান্য
                             </option>
 
                         </select>
 
                     </div>
-
 
 
                     <!-- Description -->
@@ -389,9 +366,9 @@
                             সমস্যার বিস্তারিত <span>*</span>
                         </label>
 
-
                         <textarea
                             id="description"
+                            name="description"
                             rows="6"
                             placeholder="সমস্যাটি কোথায় এবং কী ধরনের সমস্যা হয়েছে তা লিখুন..."
                             required
@@ -399,9 +376,7 @@
 
                     </div>
 
-
                 </div>
-
 
 
                 <!-- =========================
@@ -410,7 +385,6 @@
 
                 <div class="submit-area">
 
-
                     <button
                         type="submit"
                         class="btn btn-primary submit-button"
@@ -418,25 +392,20 @@
                         রিপোর্ট জমা দিন
                     </button>
 
-
                     <p class="submit-note">
                         * চিহ্নিত তথ্যগুলো অবশ্যই পূরণ করতে হবে।
                     </p>
-
 
                 </div>
 
 
             </form>
 
-
         </div>
 
     </section>
 
-
 </main>
-
 
 
 <!-- =========================
@@ -445,16 +414,13 @@
 
 <footer class="footer">
 
-
     <div class="container footer-inner">
-
 
         <div>
 
             <strong>
                 🇧🇩 আমাদের এলাকা
             </strong>
-
 
             <p>
                 নাগরিক সমস্যা জানানো ও তথ্যভিত্তিক
@@ -463,9 +429,7 @@
 
         </div>
 
-
     </div>
-
 
 
     <div class="container footer-bottom">
@@ -476,18 +440,18 @@
 
     </div>
 
-
 </footer>
-
 
 
 <!-- =========================
      JavaScript
 ========================= -->
 
-<script src="js/location-data.js"></script>
+<!-- location data আগে -->
+<script src="js/location-data.js?v=3"></script>
 
-<script src="js/report.js"></script>
+<!-- report JavaScript পরে -->
+<script src="js/report.js?v=3"></script>
 
 
 </body>
