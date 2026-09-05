@@ -12,9 +12,24 @@ const solvedReports = document.getElementById("solvedReports");
 const refreshButton = document.getElementById("refreshButton");
 
 
-// =========================
+// ================================
+// Filter Elements
+// ================================
+
+const searchInput = document.getElementById("searchInput");
+const divisionFilter = document.getElementById("divisionFilter");
+const categoryFilter = document.getElementById("categoryFilter");
+const statusFilter = document.getElementById("statusFilter");
+const resetFilters = document.getElementById("resetFilters");
+
+
+// All reports will be stored here
+let allReports = [];
+
+
+// ================================
 // Load Reports
-// =========================
+// ================================
 
 async function loadReports() {
 
@@ -34,9 +49,13 @@ async function loadReports() {
 
         console.log("Reports:", reports);
 
-        updateStatistics(reports);
+        allReports = reports;
 
-        displayReports(reports);
+        updateStatistics(allReports);
+
+        createFilterOptions(allReports);
+
+        displayReports(allReports);
 
     } catch (error) {
 
@@ -58,9 +77,9 @@ async function loadReports() {
 }
 
 
-// =========================
-// Update Statistics
-// =========================
+// ================================
+// Statistics
+// ================================
 
 function updateStatistics(reports) {
 
@@ -89,27 +108,206 @@ function updateStatistics(reports) {
 }
 
 
-// =========================
+// ================================
+// Create Filter Options
+// ================================
+
+function createFilterOptions(reports) {
+
+    // Save currently selected values
+    const selectedDivision = divisionFilter.value;
+    const selectedCategory = categoryFilter.value;
+    const selectedStatus = statusFilter.value;
+
+
+    // Clear old options
+    divisionFilter.innerHTML =
+        '<option value="">সব বিভাগ</option>';
+
+    categoryFilter.innerHTML =
+        '<option value="">সব সমস্যা</option>';
+
+    statusFilter.innerHTML =
+        '<option value="">সব Status</option>';
+
+
+    // Unique values
+    const divisions = [
+        ...new Set(
+            reports
+                .map(report => report.Division)
+                .filter(Boolean)
+        )
+    ];
+
+    const categories = [
+        ...new Set(
+            reports
+                .map(report => report.Category)
+                .filter(Boolean)
+        )
+    ];
+
+    const statuses = [
+        ...new Set(
+            reports
+                .map(report => report.Status)
+                .filter(Boolean)
+        )
+    ];
+
+
+    // Division options
+    divisions.sort().forEach(function (division) {
+
+        const option = document.createElement("option");
+
+        option.value = division;
+        option.textContent = division;
+
+        divisionFilter.appendChild(option);
+
+    });
+
+
+    // Category options
+    categories.sort().forEach(function (category) {
+
+        const option = document.createElement("option");
+
+        option.value = category;
+        option.textContent = category;
+
+        categoryFilter.appendChild(option);
+
+    });
+
+
+    // Status options
+    statuses.sort().forEach(function (status) {
+
+        const option = document.createElement("option");
+
+        option.value = status;
+        option.textContent = status;
+
+        statusFilter.appendChild(option);
+
+    });
+
+
+    // Restore selected values
+    divisionFilter.value = selectedDivision;
+    categoryFilter.value = selectedCategory;
+    statusFilter.value = selectedStatus;
+}
+
+
+// ================================
+// Apply Filters
+// ================================
+
+function applyFilters() {
+
+    const searchText =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    const selectedDivision =
+        divisionFilter.value;
+
+    const selectedCategory =
+        categoryFilter.value;
+
+    const selectedStatus =
+        statusFilter.value;
+
+
+    const filteredReports =
+        allReports.filter(function (report) {
+
+
+            // Search
+            const searchableText = (
+
+                (report.Area || "") + " " +
+                (report.Description || "") + " " +
+                (report.Division || "") + " " +
+                (report.District || "") + " " +
+                (report.Upazila || "") + " " +
+                (report.Category || "")
+
+            ).toLowerCase();
+
+
+            const matchesSearch =
+                !searchText ||
+                searchableText.includes(searchText);
+
+
+            // Division
+            const matchesDivision =
+                !selectedDivision ||
+                report.Division === selectedDivision;
+
+
+            // Category
+            const matchesCategory =
+                !selectedCategory ||
+                report.Category === selectedCategory;
+
+
+            // Status
+            const matchesStatus =
+                !selectedStatus ||
+                report.Status === selectedStatus;
+
+
+            return (
+                matchesSearch &&
+                matchesDivision &&
+                matchesCategory &&
+                matchesStatus
+            );
+
+        });
+
+
+    displayReports(filteredReports);
+}
+
+
+// ================================
 // Display Reports
-// =========================
+// ================================
 
 function displayReports(reports) {
+
+    reportsContainer.innerHTML = "";
+
+    noReports.style.display = "none";
+
 
     if (!reports || reports.length === 0) {
 
         noReports.style.display = "block";
 
+        noReports.textContent =
+            "এই ফিল্টারে কোনো রিপোর্ট পাওয়া যায়নি।";
+
         return;
     }
 
 
-    // Newest reports first
-    reports.reverse();
+    // Newest first
+    const sortedReports = [...reports].reverse();
 
 
-    reports.forEach(function (report) {
+    sortedReports.forEach(function (report) {
 
-        const card = document.createElement("div");
+        const card =
+            document.createElement("div");
 
         card.className = "report-card";
 
@@ -121,42 +319,83 @@ function displayReports(reports) {
                 <div>
 
                     <div class="report-category">
-                        ${escapeHTML(report.Category || "অন্যান্য")}
+                        ${escapeHTML(
+                            report.Category || "অন্যান্য"
+                        )}
                     </div>
 
                     <div class="report-id">
-                        ID: ${escapeHTML(report.ID || "N/A")}
+                        ID:
+                        ${escapeHTML(
+                            report.ID || "N/A"
+                        )}
                     </div>
 
                 </div>
 
+
                 <span class="report-status">
-                    ${escapeHTML(report.Status || "Pending")}
+                    ${escapeHTML(
+                        report.Status || "Pending"
+                    )}
                 </span>
 
             </div>
 
 
             <div class="report-location">
+
                 📍
-                ${escapeHTML(report.Division || "")}
+
+                ${escapeHTML(
+                    report.Division || ""
+                )}
+
                 →
-                ${escapeHTML(report.District || "")}
+
+                ${escapeHTML(
+                    report.District || ""
+                )}
+
                 →
-                ${escapeHTML(report.Upazila || "")}
+
+                ${escapeHTML(
+                    report.Upazila || ""
+                )}
+
                 →
-                ${escapeHTML(report.Area || "")}
-                ${report.Ward ? "→ ওয়ার্ড " + escapeHTML(report.Ward) : ""}
+
+                ${escapeHTML(
+                    report.Area || ""
+                )}
+
+                ${
+                    report.Ward
+                    ? "→ ওয়ার্ড " +
+                      escapeHTML(report.Ward)
+                    : ""
+                }
+
             </div>
 
 
             <div class="report-description">
-                ${escapeHTML(report.Description || "")}
+
+                ${escapeHTML(
+                    report.Description || ""
+                )}
+
             </div>
 
 
             <div class="report-date">
-                📅 ${escapeHTML(report.Date || "")}
+
+                📅
+
+                ${escapeHTML(
+                    report.Date || ""
+                )}
+
             </div>
 
         `;
@@ -168,9 +407,9 @@ function displayReports(reports) {
 }
 
 
-// =========================
+// ================================
 // HTML Security
-// =========================
+// ================================
 
 function escapeHTML(value) {
 
@@ -183,9 +422,71 @@ function escapeHTML(value) {
 }
 
 
-// =========================
-// Refresh Button
-// =========================
+// ================================
+// Search Event
+// ================================
+
+searchInput.addEventListener(
+    "input",
+    applyFilters
+);
+
+
+// ================================
+// Division Filter
+// ================================
+
+divisionFilter.addEventListener(
+    "change",
+    applyFilters
+);
+
+
+// ================================
+// Category Filter
+// ================================
+
+categoryFilter.addEventListener(
+    "change",
+    applyFilters
+);
+
+
+// ================================
+// Status Filter
+// ================================
+
+statusFilter.addEventListener(
+    "change",
+    applyFilters
+);
+
+
+// ================================
+// Reset Filters
+// ================================
+
+resetFilters.addEventListener(
+    "click",
+    function () {
+
+        searchInput.value = "";
+
+        divisionFilter.value = "";
+
+        categoryFilter.value = "";
+
+        statusFilter.value = "";
+
+        displayReports(allReports);
+
+    }
+);
+
+
+// ================================
+// Refresh
+// ================================
 
 refreshButton.addEventListener(
     "click",
@@ -193,8 +494,8 @@ refreshButton.addEventListener(
 );
 
 
-// =========================
-// Initial Load
-// =========================
+// ================================
+// Start
+// ================================
 
 loadReports();
