@@ -1,118 +1,263 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>সমস্যা রিপোর্ট করুন | আমাদের এলাকা</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/report.css">
+    <title>
+        সমস্যা রিপোর্ট করুন | আমাদের এলাকা
+    </title>
+
+    <link rel="stylesheet"
+        href="css/style.css">
+
+    <link rel="stylesheet"
+        href="css/report.css">
+
 </head>
+
 
 <body>
 
+
+<!-- =========================
+     Header
+========================= -->
+
 <header class="header">
+
     <div class="container header-inner">
 
-        <a href="index.html" class="logo">
-            <span class="logo-icon">🇧🇩</span>
-            <span>আমাদের এলাকা</span>
+
+        <a href="index.html"
+            class="logo">
+
+            <span class="logo-icon">
+                🇧🇩
+            </span>
+
+            <span>
+                আমাদের এলাকা
+            </span>
+
         </a>
 
+
         <nav class="nav">
-            <a href="index.html">হোম</a>
-            <a href="reports.html">রিপোর্ট</a>
-            <a href="dashboard.html">ড্যাশবোর্ড</a>
+
+            <a href="index.html">
+                হোম
+            </a>
+
+
+            <!-- FIXED -->
+            <a href="dashboard.html">
+                রিপোর্ট
+            </a>
+
+
+            <a href="dashboard.html">
+                ড্যাশবোর্ড
+            </a>
+
+
+            <a href="report.html"
+                class="nav-button">
+                সমস্যা রিপোর্ট করুন
+            </a>
+
         </nav>
 
     </div>
+
 </header>
 
 
+
+<!-- =========================
+     Main
+========================= -->
+
 <main>
+
 
     <section class="form-section">
 
         <div class="container">
 
-            <div class="form-header">
-                <span class="hero-label">📝 নাগরিক রিপোর্ট</span>
 
-                <h1>আপনার এলাকার সমস্যা জানান</h1>
+            <!-- Form Header -->
+
+            <div class="form-header">
+
+                <span class="hero-label">
+                    📝 নাগরিক রিপোর্ট
+                </span>
+
+
+                <h1>
+                    আপনার এলাকার সমস্যা জানান
+                </h1>
+
 
                 <p>
                     সমস্যাটি সম্পর্কে সঠিক তথ্য দিন।
                     আপনার দেওয়া তথ্য যাচাই করে তালিকাভুক্ত করা হবে।
                 </p>
+
             </div>
 
 
-            <form id="reportForm" class="report-form">
+
+            <!-- =========================
+                 Report Form
+            ========================== -->
+
+            <form
+                id="reportForm"
+                class="report-form"
+            >
 
 
-                <!-- Location -->
+                <!-- =========================
+                     Location
+                ========================== -->
 
                 <div class="form-card">
 
-                    <h2>📍 সমস্যার স্থান</h2>
+
+                    <h2>
+                        📍 সমস্যার স্থান
+                    </h2>
+
 
                     <p class="form-help">
                         যেখানে সমস্যাটি হয়েছে সেই স্থান নির্বাচন করুন।
                     </p>
 
 
+
                     <div class="form-grid">
 
+
+                        <!-- Division -->
+
                         <div class="form-group">
+
                             <label for="division">
                                 বিভাগ <span>*</span>
                             </label>
 
-                            <select id="division" required>
-                                <option value="">বিভাগ নির্বাচন করুন</option>
-                                <option>ঢাকা</option>
-                                <option>চট্টগ্রাম</option>
-                                <option>রাজশাহী</option>
-                                <option>খুলনা</option>
-                                <option>বরিশাল</option>
-                                <option>সিলেট</option>
-                                <option>রংপুর</option>
-                                <option>ময়মনসিংহ</option>
+
+                            <select
+                                id="division"
+                                required
+                            >
+
+                                <option value="">
+                                    বিভাগ নির্বাচন করুন
+                                </option>
+
+                                <option>
+                                    ঢাকা
+                                </option>
+
+                                <option>
+                                    চট্টগ্রাম
+                                </option>
+
+                                <option>
+                                    রাজশাহী
+                                </option>
+
+                                <option>
+                                    খুলনা
+                                </option>
+
+                                <option>
+                                    বরিশাল
+                                </option>
+
+                                <option>
+                                    সিলেট
+                                </option>
+
+                                <option>
+                                    রংপুর
+                                </option>
+
+                                <option>
+                                    ময়মনসিংহ
+                                </option>
+
                             </select>
+
                         </div>
 
 
+
+                        <!-- District -->
+
                         <div class="form-group">
+
                             <label for="district">
                                 জেলা <span>*</span>
                             </label>
 
-                            <select id="district" required disabled>
+
+                            <select
+                                id="district"
+                                required
+                                disabled
+                            >
+
                                 <option value="">
                                     আগে বিভাগ নির্বাচন করুন
                                 </option>
+
                             </select>
+
                         </div>
 
 
+
+                        <!-- Upazila -->
+
                         <div class="form-group">
+
                             <label for="upazila">
                                 উপজেলা <span>*</span>
                             </label>
 
-                            <select id="upazila" required disabled>
+
+                            <select
+                                id="upazila"
+                                required
+                                disabled
+                            >
+
                                 <option value="">
                                     আগে জেলা নির্বাচন করুন
                                 </option>
+
                             </select>
+
                         </div>
 
 
+
+                        <!-- Area -->
+
                         <div class="form-group">
+
                             <label for="area">
                                 গ্রাম / এলাকা <span>*</span>
                             </label>
+
 
                             <input
                                 type="text"
@@ -120,16 +265,28 @@
                                 placeholder="গ্রাম বা এলাকার নাম"
                                 required
                             >
+
                         </div>
 
 
+
+                        <!-- Ward -->
+
                         <div class="form-group">
+
                             <label for="ward">
                                 ওয়ার্ড <span>*</span>
                             </label>
 
-                            <select id="ward" required>
-                                <option value="">ওয়ার্ড নির্বাচন করুন</option>
+
+                            <select
+                                id="ward"
+                                required
+                            >
+
+                                <option value="">
+                                    ওয়ার্ড নির্বাচন করুন
+                                </option>
 
                                 <option>১</option>
                                 <option>২</option>
@@ -140,19 +297,32 @@
                                 <option>৭</option>
                                 <option>৮</option>
                                 <option>৯</option>
+
                             </select>
+
                         </div>
+
 
                     </div>
 
                 </div>
 
 
-                <!-- Problem -->
+
+                <!-- =========================
+                     Problem Information
+                ========================== -->
 
                 <div class="form-card">
 
-                    <h2>⚠️ সমস্যার তথ্য</h2>
+
+                    <h2>
+                        ⚠️ সমস্যার তথ্য
+                    </h2>
+
+
+
+                    <!-- Category -->
 
                     <div class="form-group">
 
@@ -160,33 +330,70 @@
                             সমস্যার ধরন <span>*</span>
                         </label>
 
-                        <select id="category" required>
+
+                        <select
+                            id="category"
+                            required
+                        >
 
                             <option value="">
                                 সমস্যার ধরন নির্বাচন করুন
                             </option>
 
-                            <option>রাস্তা ভাঙা</option>
-                            <option>ড্রেন বন্ধ</option>
-                            <option>ময়লা আবর্জনা</option>
-                            <option>জলাবদ্ধতা</option>
-                            <option>রাস্তার বাতি</option>
-                            <option>পানির সমস্যা</option>
-                            <option>ফুটপাত/দখল</option>
-                            <option>পরিবেশ/গাছ</option>
-                            <option>সরকারি স্থাপনা</option>
-                            <option>অন্যান্য</option>
+                            <option>
+                                রাস্তা ভাঙা
+                            </option>
+
+                            <option>
+                                ড্রেন বন্ধ
+                            </option>
+
+                            <option>
+                                ময়লা আবর্জনা
+                            </option>
+
+                            <option>
+                                জলাবদ্ধতা
+                            </option>
+
+                            <option>
+                                রাস্তার বাতি
+                            </option>
+
+                            <option>
+                                পানির সমস্যা
+                            </option>
+
+                            <option>
+                                ফুটপাত/দখল
+                            </option>
+
+                            <option>
+                                পরিবেশ/গাছ
+                            </option>
+
+                            <option>
+                                সরকারি স্থাপনা
+                            </option>
+
+                            <option>
+                                অন্যান্য
+                            </option>
 
                         </select>
 
                     </div>
 
 
+
+                    <!-- Description -->
+
                     <div class="form-group">
 
                         <label for="description">
                             সমস্যার বিস্তারিত <span>*</span>
                         </label>
+
 
                         <textarea
                             id="description"
@@ -197,12 +404,17 @@
 
                     </div>
 
+
                 </div>
 
 
-                <!-- Submit -->
+
+                <!-- =========================
+                     Submit
+                ========================== -->
 
                 <div class="submit-area">
+
 
                     <button
                         type="submit"
@@ -211,46 +423,78 @@
                         রিপোর্ট জমা দিন
                     </button>
 
+
                     <p class="submit-note">
                         * চিহ্নিত তথ্যগুলো অবশ্যই পূরণ করতে হবে।
                     </p>
+
 
                 </div>
 
 
             </form>
 
+
         </div>
 
     </section>
 
+
 </main>
 
 
+
+<!-- =========================
+     Footer
+========================= -->
+
 <footer class="footer">
+
 
     <div class="container footer-inner">
 
+
         <div>
-            <strong>🇧🇩 আমাদের এলাকা</strong>
+
+            <strong>
+                🇧🇩 আমাদের এলাকা
+            </strong>
+
 
             <p>
                 নাগরিক সমস্যা জানানো ও তথ্যভিত্তিক
                 এলাকার চিত্র তৈরির একটি উদ্যোগ।
             </p>
+
         </div>
 
+
     </div>
+
+
 
     <div class="container footer-bottom">
 
-        <p>© 2026 আমাদের এলাকা</p>
+        <p>
+            © 2026 আমাদের এলাকা
+        </p>
 
     </div>
 
+
 </footer>
 
+
+
+<!-- =========================
+     JavaScript
+========================= -->
+
 <script src="js/location-data.js"></script>
+
 <script src="js/report.js"></script>
+
+
 </body>
+
 </html>
