@@ -1,143 +1,86 @@
-const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+ const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
 const CATEGORY_SHEET = "Categories";
 
-let locationDataReady = false;
+const CATEGORY_CACHE_KEY = "amaderElaka_categories_cache";
+const CATEGORY_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
 
-document.addEventListener("DOMContentLoaded", () => {
-    initializeReportForm();
-});
+document.addEventListener("DOMContentLoaded", initializeReportForm);
 
 async function initializeReportForm() {
-
     const division = document.getElementById("division");
     const district = document.getElementById("district");
     const upazila = document.getElementById("upazila");
     const reportForm = document.getElementById("reportForm");
     const category = document.getElementById("category");
 
-    if (!division || !district || !upazila || !reportForm) {
-        return;
-    }
+    if (!division || !district || !upazila || !reportForm) return;
 
     district.disabled = true;
     upazila.disabled = true;
 
-    setupLocationDropdowns(
-        division,
-        district,
-        upazila
-    );
+    setupLocationDropdowns(division, district, upazila);
 
-    if (category) {
-        await loadCategories(category);
-    }
+    if (category) await loadCategories(category);
 
-    reportForm.addEventListener(
-        "submit",
-        handleReportSubmit
-    );
+    reportForm.addEventListener("submit", handleReportSubmit);
 }
 
 /* =========================
    LOCATION
 ========================= */
 
-function setupLocationDropdowns(
-    division,
-    district,
-    upazila
-) {
-
+function setupLocationDropdowns(division, district, upazila) {
     division.addEventListener("change", () => {
-
         const selectedDivision = division.value;
 
-        district.innerHTML =
-            '<option value="">জেলা নির্বাচন করুন</option>';
-
-        upazila.innerHTML =
-            '<option value="">আগে জেলা নির্বাচন করুন</option>';
-
+        district.innerHTML = '<option value="">জেলা নির্বাচন করুন</option>';
+        upazila.innerHTML = '<option value="">আগে জেলা নির্বাচন করুন</option>';
         district.disabled = true;
         upazila.disabled = true;
 
-        if (
-            !selectedDivision ||
-            typeof locationData === "undefined"
-        ) {
-            return;
-        }
+        if (!selectedDivision || typeof locationData === "undefined") return;
 
-        const districts =
-            locationData[selectedDivision];
-
-        if (!districts) {
-            return;
-        }
+        const districts = locationData[selectedDivision];
+        if (!districts) return;
 
         Object.keys(districts).forEach(districtName => {
-
-            const option =
-                document.createElement("option");
-
+            const option = document.createElement("option");
             option.value = districtName;
             option.textContent = districtName;
-
             district.appendChild(option);
-
         });
 
         district.disabled = false;
-
     });
 
     district.addEventListener("change", () => {
+        const selectedDivision = division.value;
+        const selectedDistrict = district.value;
 
-        const selectedDivision =
-            division.value;
-
-        const selectedDistrict =
-            district.value;
-
-        upazila.innerHTML =
-            '<option value="">উপজেলা নির্বাচন করুন</option>';
-
+        upazila.innerHTML = '<option value="">উপজেলা নির্বাচন করুন</option>';
         upazila.disabled = true;
 
         if (
             !selectedDivision ||
             !selectedDistrict ||
             typeof locationData === "undefined"
-        ) {
-            return;
-        }
+        ) return;
 
         const upazilas =
-            locationData[selectedDivision]?.[
-                selectedDistrict
-            ];
+            locationData[selectedDivision]?.[selectedDistrict];
 
-        if (!Array.isArray(upazilas)) {
-            return;
-        }
+        if (!Array.isArray(upazilas)) return;
 
         upazilas.forEach(upazilaName => {
-
-            const option =
-                document.createElement("option");
-
+            const option = document.createElement("option");
             option.value = upazilaName;
             option.textContent = upazilaName;
-
             upazila.appendChild(option);
-
         });
 
         upazila.disabled = false;
-
     });
-
-    locationDataReady = true;
 }
 
 /* =========================
@@ -145,70 +88,118 @@ function setupLocationDropdowns(
 ========================= */
 
 async function loadCategories(selectElement) {
-
     selectElement.innerHTML =
         '<option value="">ক্যাটাগরি লোড হচ্ছে...</option>';
 
-    try {
+    const cachedCategories = getCachedCategories();
 
+    if (cachedCategories) {
+        renderCategories(selectElement, cachedCategories);
+        return;
+    }
+
+    try {
         const response = await fetch(
             `${API_URL}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`
         );
 
-        if (!response.ok) {
-            throw new Error("Category API failed");
-        }
+        if (!response.ok) throw new Error("Category API failed");
 
         const data = await response.json();
 
-        const activeCategories =
-            Array.isArray(data)
-                ? data.filter(item =>
-                    String(item.Active || "")
-                        .trim()
-                        .toLowerCase() === "true"
-                )
-                : [];
+        const activeCategories = Array.isArray(data)
+            ? data.filter(item =>
+                String(item.Active || "")
+                    .trim()
+                    .toLowerCase() === "true"
+            )
+            : [];
 
-        selectElement.innerHTML =
-            '<option value="">সমস্যার ধরন নির্বাচন করুন</option>';
-
-        if (!activeCategories.length) {
-
-            selectElement.innerHTML =
-                '<option value="">কোনো ক্যাটাগরি পাওয়া যায়নি</option>';
-
-            return;
-        }
-
-        activeCategories.forEach(item => {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                String(item.Name || "").trim();
-
-            option.textContent =
-                `${item.Icon || "📌"} ${item.Name || ""}`;
-
-            selectElement.appendChild(option);
-
-        });
+        saveCachedCategories(activeCategories);
+        renderCategories(selectElement, activeCategories);
 
     } catch (error) {
+        console.error("Category loading error:", error);
 
-        console.error(
-            "Category loading error:",
-            error
-        );
+        const oldCategories = getCachedCategories(true);
 
+        if (oldCategories) {
+            renderCategories(selectElement, oldCategories);
+        } else {
+            selectElement.innerHTML =
+                '<option value="">ক্যাটাগরি লোড করা যায়নি</option>';
+
+            showErrorMessage(
+                "ক্যাটাগরি লোড করা যায়নি। পেজটি Refresh করে আবার চেষ্টা করুন।"
+            );
+        }
+    }
+}
+
+function renderCategories(selectElement, categories) {
+    selectElement.innerHTML =
+        '<option value="">সমস্যার ধরন নির্বাচন করুন</option>';
+
+    if (!categories.length) {
         selectElement.innerHTML =
-            '<option value="">ক্যাটাগরি লোড করা যায়নি</option>';
+            '<option value="">কোনো ক্যাটাগরি পাওয়া যায়নি</option>';
+        return;
+    }
 
-        showErrorMessage(
-            "ক্যাটাগরি লোড করা যায়নি। পেজটি Refresh করে আবার চেষ্টা করুন।"
+    categories.forEach(item => {
+        const option = document.createElement("option");
+
+        option.value = String(item.Name || "").trim();
+        option.textContent =
+            `${item.Icon || "📌"} ${item.Name || ""}`;
+
+        selectElement.appendChild(option);
+    });
+}
+
+function getCachedCategories(ignoreExpiry = false) {
+    try {
+        const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+        if (!cached) return null;
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.categories) ||
+            !data.time
+        ) return null;
+
+        const age = Date.now() - Number(data.time);
+
+        if (!ignoreExpiry && age > CATEGORY_CACHE_TIME) return null;
+
+        return data.categories;
+    } catch (error) {
+        console.error("Category Cache Read Error:", error);
+        return null;
+    }
+}
+
+function saveCachedCategories(categories) {
+    try {
+        localStorage.setItem(
+            CATEGORY_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                categories
+            })
         );
+    } catch (error) {
+        console.error("Category Cache Save Error:", error);
+    }
+}
+
+function clearCategoryCache() {
+    try {
+        localStorage.removeItem(CATEGORY_CACHE_KEY);
+    } catch (error) {
+        console.error("Category Cache Clear Error:", error);
     }
 }
 
@@ -217,34 +208,18 @@ async function loadCategories(selectElement) {
 ========================= */
 
 async function handleReportSubmit(event) {
-
     event.preventDefault();
 
     const form = event.target;
 
-    const division =
-        document.getElementById("division");
-
-    const district =
-        document.getElementById("district");
-
-    const upazila =
-        document.getElementById("upazila");
-
-    const area =
-        document.getElementById("area");
-
-    const ward =
-        document.getElementById("ward");
-
-    const category =
-        document.getElementById("category");
-
-    const description =
-        document.getElementById("description");
-
-    const submitButton =
-        form.querySelector(".submit-button");
+    const division = document.getElementById("division");
+    const district = document.getElementById("district");
+    const upazila = document.getElementById("upazila");
+    const area = document.getElementById("area");
+    const ward = document.getElementById("ward");
+    const category = document.getElementById("category");
+    const description = document.getElementById("description");
+    const submitButton = form.querySelector(".submit-button");
 
     if (
         !division.value ||
@@ -255,90 +230,52 @@ async function handleReportSubmit(event) {
         !category.value ||
         !description.value.trim()
     ) {
-
         showErrorMessage(
             "দয়া করে সব প্রয়োজনীয় তথ্য পূরণ করুন।"
         );
-
         return;
     }
 
-    const reportID =
-        generateReportID();
+    const reportID = generateReportID();
 
     const formData = {
-
         ID: reportID,
-
-        Division:
-            division.value.trim(),
-
-        District:
-            district.value.trim(),
-
-        Upazila:
-            upazila.value.trim(),
-
-        Area:
-            area.value.trim(),
-
-        Ward:
-            ward.value.trim(),
-
-        Category:
-            category.value.trim(),
-
-        Description:
-            description.value.trim(),
-
-        Date:
-            new Date()
-                .toISOString()
-                .split("T")[0],
-
-        Status:
-            "Pending",
-
-        AdminNote:
-            ""
-
+        Division: division.value.trim(),
+        District: district.value.trim(),
+        Upazila: upazila.value.trim(),
+        Area: area.value.trim(),
+        Ward: ward.value.trim(),
+        Category: category.value.trim(),
+        Description: description.value.trim(),
+        Date: new Date().toISOString().split("T")[0],
+        Status: "Pending",
+        AdminNote: ""
     };
 
     if (submitButton) {
-
         submitButton.disabled = true;
-
-        submitButton.textContent =
-            "জমা দেওয়া হচ্ছে...";
-
+        submitButton.textContent = "জমা দেওয়া হচ্ছে...";
     }
 
     try {
-
-        const response = await fetch(
-            API_URL,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    data: [formData]
-                })
-            }
-        );
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                data: [formData]
+            })
+        });
 
         if (!response.ok) {
-
-            throw new Error(
-                `HTTP ${response.status}`
-            );
+            throw new Error(`HTTP ${response.status}`);
         }
 
         await response.json();
+
+        // নতুন রিপোর্টের জন্য পুরনো report cache বাদ
+        clearReportCache();
 
         showSuccessMessage(reportID);
 
@@ -353,29 +290,32 @@ async function handleReportSubmit(event) {
         district.disabled = true;
         upazila.disabled = true;
 
-        await loadCategories(category);
+        // Category আবার API থেকে load করা হবে না।
+        // Cached category select-এ আগের মতোই থাকবে।
 
     } catch (error) {
-
-        console.error(
-            "Report submit error:",
-            error
-        );
+        console.error("Report submit error:", error);
 
         showErrorMessage(
             "রিপোর্ট জমা দেওয়া যায়নি। আবার চেষ্টা করুন।"
         );
-
     } finally {
-
         if (submitButton) {
-
             submitButton.disabled = false;
-
-            submitButton.textContent =
-                "রিপোর্ট জমা দিন";
-
+            submitButton.textContent = "রিপোর্ট জমা দিন";
         }
+    }
+}
+
+/* =========================
+   CACHE
+========================= */
+
+function clearReportCache() {
+    try {
+        localStorage.removeItem(REPORT_CACHE_KEY);
+    } catch (error) {
+        console.error("Report Cache Clear Error:", error);
     }
 }
 
@@ -384,36 +324,16 @@ async function handleReportSubmit(event) {
 ========================= */
 
 function generateReportID() {
-
     const now = new Date();
 
-    const year =
-        now.getFullYear();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hour = String(now.getHours()).padStart(2, "0");
+    const minute = String(now.getMinutes()).padStart(2, "0");
+    const second = String(now.getSeconds()).padStart(2, "0");
 
-    const month =
-        String(now.getMonth() + 1)
-            .padStart(2, "0");
-
-    const day =
-        String(now.getDate())
-            .padStart(2, "0");
-
-    const hour =
-        String(now.getHours())
-            .padStart(2, "0");
-
-    const minute =
-        String(now.getMinutes())
-            .padStart(2, "0");
-
-    const second =
-        String(now.getSeconds())
-            .padStart(2, "0");
-
-    const random =
-        Math.floor(
-            100 + Math.random() * 900
-        );
+    const random = Math.floor(100 + Math.random() * 900);
 
     return `REP-${year}${month}${day}-${hour}${minute}${second}-${random}`;
 }
@@ -423,36 +343,24 @@ function generateReportID() {
 ========================= */
 
 function showSuccessMessage(reportID) {
-
     removeExistingMessage();
 
-    const message =
-        document.createElement("div");
+    const message = document.createElement("div");
 
-    message.className =
-        "report-success-message";
+    message.className = "report-success-message";
 
     message.innerHTML = `
         <div class="success-icon">✓</div>
-
         <div class="success-content">
             <h3>রিপোর্ট সফলভাবে জমা হয়েছে!</h3>
-
-            <p>
-                আপনার রিপোর্টটি সংরক্ষণ করা হয়েছে।
-            </p>
+            <p>আপনার রিপোর্টটি সংরক্ষণ করা হয়েছে।</p>
 
             <div class="report-id-box">
                 <span>Report ID</span>
-
                 <strong id="generatedReportID">
                     ${escapeHTML(reportID)}
                 </strong>
-
-                <button
-                    type="button"
-                    id="copyReportID"
-                >
+                <button type="button" id="copyReportID">
                     Copy
                 </button>
             </div>
@@ -467,75 +375,43 @@ function showSuccessMessage(reportID) {
         </div>
     `;
 
-    const form =
-        document.getElementById("reportForm");
+    const form = document.getElementById("reportForm");
 
     if (form) {
-        form.parentNode.insertBefore(
-            message,
-            form
-        );
+        form.parentNode.insertBefore(message, form);
     } else {
         document.body.prepend(message);
     }
 
-    const copyButton =
-        document.getElementById("copyReportID");
-
+    const copyButton = document.getElementById("copyReportID");
     const closeButton =
-        document.getElementById(
-            "closeSuccessMessage"
-        );
+        document.getElementById("closeSuccessMessage");
 
     if (copyButton) {
+        copyButton.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(reportID);
+                copyButton.textContent = "Copied ✓";
 
-        copyButton.addEventListener(
-            "click",
-            async () => {
+                setTimeout(() => {
+                    copyButton.textContent = "Copy";
+                }, 1800);
 
-                try {
-
-                    await navigator.clipboard.writeText(
-                        reportID
-                    );
-
-                    copyButton.textContent =
-                        "Copied ✓";
-
-                    setTimeout(() => {
-
-                        copyButton.textContent =
-                            "Copy";
-
-                    }, 1800);
-
-                } catch {
-
-                    fallbackCopy(reportID);
-
-                    copyButton.textContent =
-                        "Copied ✓";
-                }
+            } catch {
+                fallbackCopy(reportID);
+                copyButton.textContent = "Copied ✓";
             }
-        );
+        });
     }
 
     if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            () => {
-                message.remove();
-            }
-        );
+        closeButton.addEventListener("click", () => {
+            message.remove();
+        });
     }
 
     setTimeout(() => {
-
-        if (message.parentNode) {
-            message.remove();
-        }
-
+        if (message.parentNode) message.remove();
     }, 12000);
 }
 
@@ -544,46 +420,30 @@ function showSuccessMessage(reportID) {
 ========================= */
 
 function showErrorMessage(text) {
-
     removeExistingMessage();
 
-    const message =
-        document.createElement("div");
+    const message = document.createElement("div");
 
-    message.className =
-        "report-error-message";
+    message.className = "report-error-message";
 
     message.innerHTML = `
         <div class="error-icon">!</div>
-
         <div>
             <strong>দুঃখিত!</strong>
             <p>${escapeHTML(text)}</p>
         </div>
     `;
 
-    const form =
-        document.getElementById("reportForm");
+    const form = document.getElementById("reportForm");
 
     if (form) {
-
-        form.parentNode.insertBefore(
-            message,
-            form
-        );
-
+        form.parentNode.insertBefore(message, form);
     } else {
-
         document.body.prepend(message);
-
     }
 
     setTimeout(() => {
-
-        if (message.parentNode) {
-            message.remove();
-        }
-
+        if (message.parentNode) message.remove();
     }, 7000);
 }
 
@@ -592,20 +452,13 @@ function showErrorMessage(text) {
 ========================= */
 
 function fallbackCopy(text) {
-
-    const textarea =
-        document.createElement("textarea");
+    const textarea = document.createElement("textarea");
 
     textarea.value = text;
-
-    textarea.style.position =
-        "fixed";
-
+    textarea.style.position = "fixed";
     textarea.style.opacity = "0";
 
-    document.body.appendChild(
-        textarea
-    );
+    document.body.appendChild(textarea);
 
     textarea.select();
 
@@ -623,7 +476,6 @@ function fallbackCopy(text) {
 ========================= */
 
 function escapeHTML(value) {
-
     return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -633,12 +485,9 @@ function escapeHTML(value) {
 }
 
 function removeExistingMessage() {
-
     document
         .querySelectorAll(
             ".report-success-message, .report-error-message"
         )
-        .forEach(element => {
-            element.remove();
-        });
-}
+        .forEach(element => element.remove());
+        }
