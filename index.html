@@ -1,16 +1,18 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="আমাদের এলাকা - আপনার এলাকার সমস্যা রিপোর্ট করুন এবং এলাকার রিপোর্ট দেখুন।">
     <title>আমাদের এলাকা - এলাকার সমস্যা রিপোর্ট করুন</title>
+
     <link rel="stylesheet" href="css/style.css">
 
     <style>
         /* =========================
            Premium Home Search
         ========================= */
+
         .home-search-section {
             padding: 25px 0 10px;
         }
@@ -26,7 +28,10 @@
             border: 1px solid #e5e7eb;
             border-radius: 14px;
             box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
-            transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+            transition:
+                box-shadow 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.25s ease;
         }
 
         .home-search-box:focus-within {
@@ -72,7 +77,9 @@
             font: inherit;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease;
         }
 
         .home-search-button:hover {
@@ -125,11 +132,13 @@
             border-radius: 10px;
         }
 
+
         /* =========================
            Home Image Slider
         ========================= */
+
         .home-slider-section {
-            padding: 18px 0 10px;
+            padding: 18px 0 0;
         }
 
         .home-slider {
@@ -155,19 +164,39 @@
             display: block;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+            transform: translateX(100%);
+            transition:
+                transform 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+                opacity 0.8s ease;
+            z-index: 1;
         }
 
         .home-slide.active {
             opacity: 1;
             visibility: visible;
+            transform: translateX(0);
+            z-index: 3;
+        }
+
+        .home-slide.previous {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-100%);
+            z-index: 2;
+        }
+
+        .home-slide.next-ready {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(100%);
+            z-index: 2;
         }
 
         .home-slider-dots {
             position: absolute;
             left: 50%;
             bottom: 14px;
-            z-index: 5;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 7px;
@@ -186,7 +215,9 @@
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.6);
             cursor: pointer;
-            transition: width 0.25s ease, background 0.25s ease;
+            transition:
+                width 0.25s ease,
+                background 0.25s ease;
         }
 
         .home-slider-dot.active {
@@ -199,17 +230,69 @@
         .home-slider-empty {
             position: absolute;
             inset: 0;
+            z-index: 20;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: #6b7280;
             font-size: 14px;
+            background: #eef2f0;
         }
 
+
+        /* =========================
+           Demo Moving Notice
+        ========================= */
+
+        .demo-marquee-section {
+            width: 100%;
+            overflow: hidden;
+            background: #fff7f7;
+            border-top: 1px solid #fee2e2;
+            border-bottom: 1px solid #fee2e2;
+            margin-top: 10px;
+        }
+
+        .demo-marquee {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .demo-marquee-track {
+            display: inline-flex;
+            width: max-content;
+            animation: demoMarqueeRight 22s linear infinite;
+        }
+
+        .demo-marquee-text {
+            display: inline-block;
+            padding: 10px 25px;
+            color: #dc2626;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        @keyframes demoMarqueeRight {
+            0% {
+                transform: translateX(-50%);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+
+        /* =========================
+           Responsive
+        ========================= */
+
         @media (max-width: 768px) {
+
             .home-slider-section {
-                padding: 14px 0 8px;
+                padding: 14px 0 0;
             }
 
             .home-slider {
@@ -223,7 +306,35 @@
             }
         }
 
+        @media (max-width: 600px) {
+
+            .home-search-box {
+                padding: 8px;
+                gap: 7px;
+            }
+
+            .home-search-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .home-search-input {
+                font-size: 14px;
+            }
+
+            .home-search-button {
+                padding: 0 14px;
+                font-size: 14px;
+            }
+
+            .demo-marquee-text {
+                font-size: 13px;
+                padding: 9px 20px;
+            }
+        }
+
         @media (max-width: 480px) {
+
             .home-slider {
                 aspect-ratio: 16 / 9;
                 min-height: 150px;
@@ -246,28 +357,8 @@
             }
         }
 
-        @media (max-width: 600px) {
-            .home-search-box {
-                padding: 8px;
-                gap: 7px;
-            }
-
-            .home-search-icon {
-                width: 38px;
-                height: 38px;
-            }
-
-            .home-search-input {
-                font-size: 14px;
-            }
-
-            .home-search-button {
-                padding: 0 14px;
-                font-size: 14px;
-            }
-        }
-
         @media (max-width: 420px) {
+
             .home-search-box {
                 flex-wrap: wrap;
             }
@@ -280,23 +371,42 @@
                 width: 100%;
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .home-slide {
+                transition: none;
+            }
+
+            .demo-marquee-track {
+                animation: none;
+            }
+        }
     </style>
 </head>
+
 
 <body>
 
     <!-- =========================
          Header
     ========================== -->
+
     <header class="header">
+
         <div class="container header-inner">
+
             <a href="index.html" class="logo">
                 <span class="logo-icon">🏠</span>
                 <span>আমাদের এলাকা</span>
             </a>
 
             <nav class="nav">
-                <a href="index.html" class="active">
+
+                <a
+                    href="index.html"
+                    class="active"
+                >
                     হোম
                 </a>
 
@@ -308,26 +418,43 @@
                     ড্যাশবোর্ড
                 </a>
 
-                <a href="report.html" class="nav-button">
+                <a
+                    href="report.html"
+                    class="nav-button"
+                >
                     সমস্যা রিপোর্ট করুন
                 </a>
+
             </nav>
+
         </div>
+
     </header>
 
+
     <main>
+
 
         <!-- =========================
              Auto Image Slider
         ========================== -->
-        <section class="home-slider-section" aria-label="ছবির স্লাইডার">
+
+        <section
+            class="home-slider-section"
+            aria-label="ছবির স্লাইডার"
+        >
+
             <div class="container">
+
                 <div
                     class="home-slider"
                     id="homeSlider"
-                    aria-label="আমাদের এলাকার ছবি"
                 >
-                    <div class="home-slider-loading" id="homeSliderLoading">
+
+                    <div
+                        class="home-slider-loading"
+                        id="homeSliderLoading"
+                    >
                         ছবি লোড হচ্ছে...
                     </div>
 
@@ -336,15 +463,53 @@
                         id="homeSliderDots"
                         style="display:none;"
                     ></div>
+
                 </div>
+
             </div>
+
         </section>
+
+
+        <!-- =========================
+             Demo Moving Text
+        ========================== -->
+
+        <section
+            class="demo-marquee-section"
+            aria-label="ডেমো সাইট নোটিশ"
+        >
+
+            <div class="demo-marquee">
+
+                <div class="demo-marquee-track">
+
+                    <span class="demo-marquee-text">
+                        এটা একটি ডেমো সাইট • আপনার এলাকার সমস্যা রিপোর্ট করুন • নাগরিক সেবায় অংশ নিন • এলাকার উন্নয়নে সহযোগিতা করুন •
+                    </span>
+
+                    <span
+                        class="demo-marquee-text"
+                        aria-hidden="true"
+                    >
+                        এটা একটি ডেমো সাইট • আপনার এলাকার সমস্যা রিপোর্ট করুন • নাগরিক সেবায় অংশ নিন • এলাকার উন্নয়নে সহযোগিতা করুন •
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
 
         <!-- =========================
              Hero
         ========================== -->
+
         <section class="hero">
+
             <div class="container">
+
                 <div class="hero-content">
 
                     <span class="hero-badge">
@@ -365,26 +530,38 @@
 
                     <div class="hero-actions">
 
-                        <a href="report.html" class="btn btn-primary">
+                        <a
+                            href="report.html"
+                            class="btn btn-primary"
+                        >
                             সমস্যা রিপোর্ট করুন
                         </a>
 
-                        <a href="dashboard.html" class="btn btn-secondary">
+                        <a
+                            href="dashboard.html"
+                            class="btn btn-secondary"
+                        >
                             রিপোর্ট দেখুন
                         </a>
 
                     </div>
+
                 </div>
+
             </div>
+
         </section>
+
 
         <!-- =========================
              Premium Search
         ========================== -->
+
         <section
             class="home-search-section"
             aria-label="রিপোর্ট অনুসন্ধান"
         >
+
             <div class="container">
 
                 <form
@@ -426,17 +603,22 @@
                 ></div>
 
             </div>
+
         </section>
+
 
         <!-- =========================
              Statistics
         ========================== -->
+
         <section class="stats-section">
+
             <div class="container">
 
                 <div class="stats-grid">
 
                     <div class="stat-card">
+
                         <span
                             class="stat-number"
                             id="totalReports"
@@ -447,9 +629,12 @@
                         <span class="stat-label">
                             মোট রিপোর্ট
                         </span>
+
                     </div>
 
+
                     <div class="stat-card">
+
                         <span
                             class="stat-number"
                             id="pendingReports"
@@ -460,9 +645,12 @@
                         <span class="stat-label">
                             অপেক্ষমাণ
                         </span>
+
                     </div>
 
+
                     <div class="stat-card">
+
                         <span
                             class="stat-number"
                             id="progressReports"
@@ -473,9 +661,12 @@
                         <span class="stat-label">
                             কাজ চলছে
                         </span>
+
                     </div>
 
+
                     <div class="stat-card">
+
                         <span
                             class="stat-number"
                             id="solvedReports"
@@ -486,16 +677,22 @@
                         <span class="stat-label">
                             সমাধান হয়েছে
                         </span>
+
                     </div>
 
                 </div>
+
             </div>
+
         </section>
+
 
         <!-- =========================
              Categories
         ========================== -->
+
         <section class="categories-section">
+
             <div class="container">
 
                 <div class="section-heading">
@@ -514,69 +711,155 @@
 
                 </div>
 
+
                 <div class="category-grid">
 
-                    <a href="report.html" class="category-card">
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>🛣️</span>
-                        <h3>রাস্তা</h3>
-                        <p>ভাঙা বা ক্ষতিগ্রস্ত রাস্তা</p>
+
+                        <h3>
+                            রাস্তা
+                        </h3>
+
+                        <p>
+                            ভাঙা বা ক্ষতিগ্রস্ত রাস্তা
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>🌊</span>
-                        <h3>ড্রেন ও জলাবদ্ধতা</h3>
-                        <p>বন্ধ ড্রেন ও জলাবদ্ধতা</p>
+
+                        <h3>
+                            ড্রেন ও জলাবদ্ধতা
+                        </h3>
+
+                        <p>
+                            বন্ধ ড্রেন ও জলাবদ্ধতা
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>🗑️</span>
-                        <h3>ময়লা-আবর্জনা</h3>
-                        <p>যত্রতত্র ময়লা ও বর্জ্য</p>
+
+                        <h3>
+                            ময়লা-আবর্জনা
+                        </h3>
+
+                        <p>
+                            যত্রতত্র ময়লা ও বর্জ্য
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>💡</span>
-                        <h3>রাস্তার বাতি</h3>
-                        <p>নষ্ট বা বন্ধ স্ট্রিট লাইট</p>
+
+                        <h3>
+                            রাস্তার বাতি
+                        </h3>
+
+                        <p>
+                            নষ্ট বা বন্ধ স্ট্রিট লাইট
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>💧</span>
-                        <h3>পানির সমস্যা</h3>
-                        <p>পানি সরবরাহ সংক্রান্ত সমস্যা</p>
+
+                        <h3>
+                            পানির সমস্যা
+                        </h3>
+
+                        <p>
+                            পানি সরবরাহ সংক্রান্ত সমস্যা
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>🌳</span>
-                        <h3>পরিবেশ</h3>
-                        <p>পরিবেশ ও গাছপালা সংক্রান্ত সমস্যা</p>
+
+                        <h3>
+                            পরিবেশ
+                        </h3>
+
+                        <p>
+                            পরিবেশ ও গাছপালা সংক্রান্ত সমস্যা
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>🏛️</span>
-                        <h3>সরকারি স্থাপনা</h3>
-                        <p>সরকারি স্থাপনা সংক্রান্ত সমস্যা</p>
+
+                        <h3>
+                            সরকারি স্থাপনা
+                        </h3>
+
+                        <p>
+                            সরকারি স্থাপনা সংক্রান্ত সমস্যা
+                        </p>
                     </a>
 
-                    <a href="report.html" class="category-card">
+
+                    <a
+                        href="report.html"
+                        class="category-card"
+                    >
                         <span>📌</span>
-                        <h3>অন্যান্য</h3>
-                        <p>অন্যান্য নাগরিক সমস্যা</p>
+
+                        <h3>
+                            অন্যান্য
+                        </h3>
+
+                        <p>
+                            অন্যান্য নাগরিক সমস্যা
+                        </p>
                     </a>
 
                 </div>
+
             </div>
+
         </section>
+
 
         <!-- =========================
              CTA
         ========================== -->
+
         <section class="cta-section">
+
             <div class="container">
 
                 <div class="cta-box">
 
                     <div>
+
                         <h2>
                             আপনার এলাকার সমস্যা রিপোর্ট করুন
                         </h2>
@@ -585,30 +868,42 @@
                             ছোট একটি রিপোর্টও এলাকার উন্নয়নে
                             গুরুত্বপূর্ণ ভূমিকা রাখতে পারে।
                         </p>
+
                     </div>
 
-                    <a href="report.html" class="btn btn-primary">
+
+                    <a
+                        href="report.html"
+                        class="btn btn-primary"
+                    >
                         রিপোর্ট করুন
                     </a>
 
                 </div>
 
             </div>
+
         </section>
 
     </main>
 
+
     <!-- =========================
          Footer
     ========================== -->
+
     <footer class="footer">
+
         <div class="container">
 
             <div class="footer-inner">
 
                 <div>
 
-                    <a href="index.html" class="logo">
+                    <a
+                        href="index.html"
+                        class="logo"
+                    >
                         <span class="logo-icon">🏠</span>
                         <span>আমাদের এলাকা</span>
                     </a>
@@ -619,6 +914,7 @@
                     </p>
 
                 </div>
+
 
                 <div class="footer-links">
 
@@ -642,88 +938,161 @@
 
             </div>
 
+
             <div class="footer-bottom">
+
                 © 2026 আমাদের এলাকা —
                 নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
+
             </div>
 
         </div>
+
     </footer>
 
+
     <!-- =========================
-         Home Image Slider
-         Automatically finds slide1.webp,
-         slide2.webp, slide3.webp...
+         Auto Image Slider JavaScript
+         Checks only slide1.webp
+         to slide15.webp
     ========================== -->
+
     <script>
-        const SLIDER_FOLDER = "images/slider/";
-        const SLIDE_INTERVAL = 4000;
+
+        const SLIDER_FOLDER =
+            "images/slider/";
+
+        const MAX_SLIDES = 15;
+
+        const SLIDE_INTERVAL =
+            3000;
+
+        const SLIDE_DURATION =
+            800;
+
 
         let homeSlides = [];
+
         let homeCurrentSlide = 0;
+
         let homeSliderTimer = null;
 
-        function createSliderImage(index) {
+        let homeSliderInitialized = false;
+
+
+        function checkSliderImage(index) {
+
             return new Promise(function(resolve) {
-                const image = new Image();
 
-                image.onload = function() {
-                    resolve({
-                        index: index,
-                        src: SLIDER_FOLDER + "slide" + index + ".webp"
-                    });
-                };
+                const image =
+                    new Image();
 
-                image.onerror = function() {
-                    resolve(null);
-                };
+                image.onload =
+                    function() {
+
+                        resolve({
+                            index: index,
+                            src:
+                                SLIDER_FOLDER +
+                                "slide" +
+                                index +
+                                ".webp"
+                        });
+
+                    };
+
+                image.onerror =
+                    function() {
+
+                        resolve(null);
+
+                    };
 
                 image.src =
                     SLIDER_FOLDER +
                     "slide" +
                     index +
                     ".webp";
+
             });
+
         }
 
+
         async function loadHomeSlider() {
+
             const slider =
-                document.getElementById("homeSlider");
+                document.getElementById(
+                    "homeSlider"
+                );
 
             const loading =
-                document.getElementById("homeSliderLoading");
+                document.getElementById(
+                    "homeSliderLoading"
+                );
 
             const dots =
-                document.getElementById("homeSliderDots");
+                document.getElementById(
+                    "homeSliderDots"
+                );
 
-            if (!slider) return;
 
-            const foundSlides = [];
-
-            /*
-             * Check up to 100 slide files.
-             * Only .webp files are accepted.
-             * slide1.png will automatically be ignored.
-             */
-            for (let i = 1; i <= 100; i++) {
-                const result =
-                    await createSliderImage(i);
-
-                if (result) {
-                    foundSlides.push(result);
-                }
+            if (!slider) {
+                return;
             }
 
-            homeSlides = foundSlides;
+
+            /*
+             * Check only 1-15.
+             *
+             * All checks happen together,
+             * not one after another.
+             *
+             * Therefore there is no
+             * 1 -> 2 -> 3 -> ... -> 100
+             * waiting process.
+             */
+
+            const checks = [];
+
+            for (
+                let i = 1;
+                i <= MAX_SLIDES;
+                i++
+            ) {
+
+                checks.push(
+                    checkSliderImage(i)
+                );
+
+            }
+
+
+            const results =
+                await Promise.all(checks);
+
+
+            homeSlides =
+                results
+                    .filter(Boolean)
+                    .sort(
+                        function(a, b) {
+                            return a.index - b.index;
+                        }
+                    );
+
 
             if (loading) {
                 loading.remove();
             }
 
+
             if (!homeSlides.length) {
 
                 const empty =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
 
                 empty.className =
                     "home-slider-empty";
@@ -736,34 +1105,65 @@
                 return;
             }
 
-            homeSlides.forEach(function(slide, index) {
 
-                const image =
-                    document.createElement("img");
+            /*
+             * Create images.
+             */
 
-                image.className =
-                    "home-slide" +
-                    (index === 0 ? " active" : "");
+            homeSlides.forEach(
+                function(slide, index) {
 
-                image.src = slide.src;
+                    const image =
+                        document.createElement(
+                            "img"
+                        );
 
-                image.alt =
-                    "আমাদের এলাকা Slide " +
-                    (index + 1);
+                    image.className =
+                        "home-slide" +
+                        (
+                            index === 0
+                                ? " active"
+                                : ""
+                        );
 
-                image.loading =
-                    index === 0
-                        ? "eager"
-                        : "lazy";
+                    image.src =
+                        slide.src;
 
-                image.decoding = "async";
+                    image.alt =
+                        "আমাদের এলাকা Slide " +
+                        (index + 1);
 
-                slider.insertBefore(
-                    image,
-                    dots
-                );
+                    image.decoding =
+                        "async";
 
-            });
+                    /*
+                     * First image loads immediately.
+                     * Other images are already checked
+                     * above, so browser can display
+                     * them quickly during transitions.
+                     */
+
+                    if (index === 0) {
+                        image.loading =
+                            "eager";
+                    } else {
+                        image.loading =
+                            "lazy";
+                    }
+
+
+                    slider.insertBefore(
+                        image,
+                        dots
+                    );
+
+                }
+            );
+
+
+            /*
+             * Create dots.
+             */
 
             if (dots) {
 
@@ -773,15 +1173,20 @@
                     function(slide, index) {
 
                         const dot =
-                            document.createElement("button");
+                            document.createElement(
+                                "button"
+                            );
 
-                        dot.type = "button";
+                        dot.type =
+                            "button";
 
                         dot.className =
                             "home-slider-dot" +
-                            (index === 0
-                                ? " active"
-                                : "");
+                            (
+                                index === 0
+                                    ? " active"
+                                    : ""
+                            );
 
                         dot.setAttribute(
                             "aria-label",
@@ -792,24 +1197,44 @@
                         dot.addEventListener(
                             "click",
                             function() {
-                                showHomeSlide(index);
+
+                                showHomeSlide(
+                                    index
+                                );
+
                                 startHomeSlider();
+
                             }
                         );
 
-                        dots.appendChild(dot);
+                        dots.appendChild(
+                            dot
+                        );
+
                     }
                 );
 
-                dots.style.display = "flex";
+                dots.style.display =
+                    "flex";
             }
+
+
+            homeSliderInitialized =
+                true;
+
 
             if (homeSlides.length > 1) {
+
                 startHomeSlider();
+
             }
+
         }
 
-        function showHomeSlide(index) {
+
+        function showHomeSlide(
+            nextIndex
+        ) {
 
             const slides =
                 document.querySelectorAll(
@@ -821,42 +1246,128 @@
                     ".home-slider-dot"
                 );
 
-            if (!slides.length) return;
 
-            homeCurrentSlide =
-                (index + slides.length) %
+            if (
+                !slides.length ||
+                slides.length <= 1
+            ) {
+                return;
+            }
+
+
+            const oldIndex =
+                homeCurrentSlide;
+
+
+            const newIndex =
+                (
+                    nextIndex +
+                    slides.length
+                ) %
                 slides.length;
 
-            slides.forEach(
-                function(slide, slideIndex) {
 
-                    slide.classList.toggle(
-                        "active",
-                        slideIndex === homeCurrentSlide
-                    );
+            if (
+                oldIndex === newIndex
+            ) {
+                return;
+            }
 
-                }
+
+            const currentSlide =
+                slides[oldIndex];
+
+            const nextSlide =
+                slides[newIndex];
+
+
+            /*
+             * Current image goes left.
+             */
+
+            currentSlide.classList.remove(
+                "active"
             );
 
+            currentSlide.classList.add(
+                "previous"
+            );
+
+
+            /*
+             * Next image starts from right.
+             */
+
+            nextSlide.classList.add(
+                "next-ready"
+            );
+
+
+            /*
+             * Force browser to register
+             * starting position before
+             * moving it into place.
+             */
+
+            void nextSlide.offsetWidth;
+
+
+            nextSlide.classList.remove(
+                "next-ready"
+            );
+
+            nextSlide.classList.add(
+                "active"
+            );
+
+
             dots.forEach(
-                function(dot, dotIndex) {
+                function(dot, index) {
 
                     dot.classList.toggle(
                         "active",
-                        dotIndex === homeCurrentSlide
+                        index === newIndex
                     );
 
                 }
             );
+
+
+            homeCurrentSlide =
+                newIndex;
+
+
+            /*
+             * Clean old slide after
+             * animation completes.
+             */
+
+            setTimeout(
+                function() {
+
+                    currentSlide.classList.remove(
+                        "previous"
+                    );
+
+                },
+                SLIDE_DURATION
+            );
+
         }
+
 
         function startHomeSlider() {
 
             stopHomeSlider();
 
-            if (homeSlides.length <= 1) {
+
+            if (
+                !homeSliderInitialized ||
+                homeSlides.length <= 1
+            ) {
                 return;
             }
+
 
             homeSliderTimer =
                 setInterval(
@@ -869,7 +1380,9 @@
                     },
                     SLIDE_INTERVAL
                 );
+
         }
+
 
         function stopHomeSlider() {
 
@@ -879,32 +1392,46 @@
                     homeSliderTimer
                 );
 
-                homeSliderTimer = null;
+                homeSliderTimer =
+                    null;
+
             }
+
         }
+
 
         document.addEventListener(
             "DOMContentLoaded",
             function() {
+
                 loadHomeSlider();
+
             }
         );
+
     </script>
+
 
     <!-- =========================
          Home Search JavaScript
     ========================== -->
+
     <script>
+
         const HOME_API_URL =
             "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+
 
         const HOME_REPORT_CACHE_KEY =
             "amaderElaka_reports_cache";
 
+
         const HOME_REPORT_CACHE_TIME =
             60 * 1000;
 
+
         let homeReports = [];
+
 
         function getHomeCachedReports(
             ignoreExpiry = false
@@ -917,31 +1444,43 @@
                         HOME_REPORT_CACHE_KEY
                     );
 
+
                 if (!cached) {
                     return null;
                 }
 
+
                 const data =
                     JSON.parse(cached);
 
+
                 if (
                     !data ||
-                    !Array.isArray(data.reports) ||
+                    !Array.isArray(
+                        data.reports
+                    ) ||
                     !data.time
                 ) {
+
                     return null;
+
                 }
+
 
                 const age =
                     Date.now() -
                     Number(data.time);
 
+
                 if (
                     !ignoreExpiry &&
                     age > HOME_REPORT_CACHE_TIME
                 ) {
+
                     return null;
+
                 }
+
 
                 return data.reports;
 
@@ -953,17 +1492,23 @@
                 );
 
                 return null;
+
             }
+
         }
+
 
         async function loadHomeSearchReports() {
 
             /*
-             * First use the same cache used
-             * by the main website.
+             * Use existing shared cache first.
+             * This avoids an unnecessary SheetDB
+             * request on Home Page.
              */
+
             const cachedReports =
                 getHomeCachedReports();
+
 
             if (cachedReports) {
 
@@ -971,31 +1516,41 @@
                     cachedReports;
 
                 return;
+
             }
+
 
             try {
 
                 const response =
-                    await fetch(HOME_API_URL);
+                    await fetch(
+                        HOME_API_URL
+                    );
+
 
                 if (!response.ok) {
+
                     throw new Error(
                         "Failed to load reports"
                     );
+
                 }
+
 
                 const data =
                     await response.json();
+
 
                 homeReports =
                     Array.isArray(data)
                         ? data
                         : [];
 
+
                 /*
-                 * Save fresh data to the same
-                 * cache used by script.js.
+                 * Save to shared cache.
                  */
+
                 try {
 
                     localStorage.setItem(
@@ -1022,85 +1577,137 @@
                     error
                 );
 
+
                 /*
-                 * If API fails, use old cache.
+                 * Use old cache if API
+                 * is temporarily unavailable.
                  */
+
                 const oldReports =
-                    getHomeCachedReports(true);
+                    getHomeCachedReports(
+                        true
+                    );
+
 
                 homeReports =
                     oldReports || [];
 
             }
+
         }
 
-        function escapeHomeSearchHTML(value) {
 
-            return String(value || "")
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function escapeHomeSearchHTML(
+            value
+        ) {
+
+            return String(
+                value || ""
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
         }
 
-        function searchHomeReports(searchValue) {
+
+        function searchHomeReports(
+            searchValue
+        ) {
 
             const resultsBox =
                 document.getElementById(
                     "homeSearchResults"
                 );
 
-            if (!resultsBox) return;
+
+            if (!resultsBox) {
+                return;
+            }
+
 
             const query =
-                String(searchValue || "")
+                String(
+                    searchValue || ""
+                )
                     .trim()
                     .toLowerCase();
 
+
             if (!query) {
 
-                resultsBox.innerHTML = "";
+                resultsBox.innerHTML =
+                    "";
 
                 resultsBox.style.display =
                     "none";
 
                 return;
+
             }
+
 
             const results =
                 homeReports
-                    .filter(function(report) {
+                    .filter(
+                        function(report) {
 
-                        const searchableText = [
+                            const searchableText = [
 
-                            report.ID,
-                            report.Area,
-                            report.Description,
-                            report.Division,
-                            report.District,
-                            report.Upazila,
-                            report.Category,
-                            report.Status,
-                            report.AdminNote
+                                report.ID,
+                                report.Area,
+                                report.Description,
+                                report.Division,
+                                report.District,
+                                report.Upazila,
+                                report.Category,
+                                report.Status,
+                                report.AdminNote
 
-                        ]
-                            .map(function(value) {
-                                return String(
-                                    value || ""
+                            ]
+                                .map(
+                                    function(value) {
+
+                                        return String(
+                                            value || ""
+                                        );
+
+                                    }
+                                )
+                                .join(" ")
+                                .toLowerCase();
+
+
+                            return searchableText
+                                .includes(
+                                    query
                                 );
-                            })
-                            .join(" ")
-                            .toLowerCase();
 
-                        return searchableText
-                            .includes(query);
-
-                    })
+                        }
+                    )
                     .slice(0, 5);
+
 
             resultsBox.style.display =
                 "block";
+
 
             if (!results.length) {
 
@@ -1115,62 +1722,69 @@
                 `;
 
                 return;
+
             }
+
 
             resultsBox.innerHTML =
                 results
-                    .map(function(report) {
+                    .map(
+                        function(report) {
 
-                        const location = [
+                            const location = [
 
-                            report.Division,
-                            report.District,
-                            report.Upazila,
-                            report.Area
+                                report.Division,
+                                report.District,
+                                report.Upazila,
+                                report.Area
 
-                        ]
-                            .filter(Boolean)
-                            .join(" → ");
+                            ]
+                                .filter(Boolean)
+                                .join(" → ");
 
-                        return `
-                            <div class="home-search-result">
 
-                                <strong>
-                                    ${escapeHomeSearchHTML(
-                                        report.Category ||
-                                        "অন্যান্য"
-                                    )}
-                                </strong>
+                            return `
+                                <div class="home-search-result">
 
-                                <span>
-                                    📍
-                                    ${escapeHomeSearchHTML(
-                                        location ||
-                                        "স্থান উল্লেখ নেই"
-                                    )}
+                                    <strong>
+                                        ${escapeHomeSearchHTML(
+                                            report.Category ||
+                                            "অন্যান্য"
+                                        )}
+                                    </strong>
 
-                                    <br>
+                                    <span>
+                                        📍
+                                        ${escapeHomeSearchHTML(
+                                            location ||
+                                            "স্থান উল্লেখ নেই"
+                                        )}
 
-                                    🆔
-                                    ${escapeHomeSearchHTML(
-                                        report.ID ||
-                                        "N/A"
-                                    )}
+                                        <br>
 
-                                    &nbsp; | &nbsp;
+                                        🆔
+                                        ${escapeHomeSearchHTML(
+                                            report.ID ||
+                                            "N/A"
+                                        )}
 
-                                    ${escapeHomeSearchHTML(
-                                        report.Status ||
-                                        "Pending"
-                                    )}
-                                </span>
+                                        &nbsp; | &nbsp;
 
-                            </div>
-                        `;
+                                        ${escapeHomeSearchHTML(
+                                            report.Status ||
+                                            "Pending"
+                                        )}
+                                    </span>
 
-                    })
+                                </div>
+                            `;
+
+                        }
+                    )
                     .join("");
+
         }
+
 
         document.addEventListener(
             "DOMContentLoaded",
@@ -1178,15 +1792,18 @@
 
                 loadHomeSearchReports();
 
+
                 const searchForm =
                     document.getElementById(
                         "homeSearchForm"
                     );
 
+
                 const searchInput =
                     document.getElementById(
                         "homeSearchInput"
                     );
+
 
                 if (
                     searchForm &&
@@ -1199,13 +1816,15 @@
 
                             event.preventDefault();
 
-                            /*
-                             * If data is not ready yet,
-                             * try loading it before search.
-                             */
-                            if (!homeReports.length) {
+
+                            if (
+                                !homeReports.length
+                            ) {
+
                                 await loadHomeSearchReports();
+
                             }
+
 
                             searchHomeReports(
                                 searchInput.value
@@ -1213,6 +1832,7 @@
 
                         }
                     );
+
 
                     searchInput.addEventListener(
                         "input",
@@ -1233,6 +1853,7 @@
                                         "homeSearchResults"
                                     );
 
+
                                 if (resultsBox) {
 
                                     resultsBox.innerHTML =
@@ -1240,16 +1861,26 @@
 
                                     resultsBox.style.display =
                                         "none";
+
                                 }
+
                             }
+
                         }
                     );
+
                 }
+
             }
         );
+
     </script>
 
-    <!-- Existing Main JavaScript -->
+
+    <!-- =========================
+         Existing Main JavaScript
+    ========================== -->
+
     <script src="js/script.js"></script>
 
 </body>
