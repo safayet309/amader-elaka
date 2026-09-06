@@ -3,7 +3,8 @@
 // =====================================
 
 const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
-
+const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
+const REPORT_CACHE_TIME = 60 * 1000; // 1 minute
 
 // =====================================
 // DOM Elements
@@ -28,12 +29,11 @@ const refreshButton = document.getElementById("refreshButton");
 
 let allReports = [];
 
-
 // =====================================
 // Load Reports
 // =====================================
 
-async function loadReports() {
+async function loadReports(forceRefresh = false) {
 
     try {
 
@@ -49,6 +49,30 @@ async function loadReports() {
             noReports.style.display = "none";
         }
 
+        // =====================================
+        // Use Cache First
+        // =====================================
+
+        if (!forceRefresh) {
+
+            const cachedReports = getCachedReports();
+
+            if (cachedReports) {
+
+                allReports = cachedReports;
+
+                updateStatistics(allReports);
+                createFilterOptions(allReports);
+                displayReports(allReports);
+
+                return;
+            }
+        }
+
+        // =====================================
+        // Fresh API Request
+        // =====================================
+
         const response = await fetch(API_URL);
 
         if (!response.ok) {
@@ -59,6 +83,9 @@ async function loadReports() {
 
         allReports = Array.isArray(data) ? data : [];
 
+        // Save fresh data
+        saveCachedReports(allReports);
+
         updateStatistics(allReports);
         createFilterOptions(allReports);
         displayReports(allReports);
@@ -67,17 +94,31 @@ async function loadReports() {
 
         console.error("Dashboard Error:", error);
 
-        allReports = [];
+        // Try cache if API fails
+        const cachedReports = getCachedReports(true);
 
-        updateStatistics([]);
+        if (cachedReports) {
 
-        if (reportsContainer) {
-            reportsContainer.innerHTML = `
-                <div class="no-reports">
-                    <h3>রিপোর্ট লোড করা যায়নি</h3>
-                    <p>ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</p>
-                </div>
-            `;
+            allReports = cachedReports;
+
+            updateStatistics(allReports);
+            createFilterOptions(allReports);
+            displayReports(allReports);
+
+        } else {
+
+            allReports = [];
+
+            updateStatistics([]);
+
+            if (reportsContainer) {
+                reportsContainer.innerHTML = `
+                    <div class="no-reports">
+                        <h3>রিপোর্ট লোড করা যায়নি</h3>
+                        <p>ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</p>
+                    </div>
+                `;
+            }
         }
 
     } finally {
@@ -85,10 +126,102 @@ async function loadReports() {
         if (loading) {
             loading.style.display = "none";
         }
-
     }
 }
 
+// =====================================
+// Get Cached Reports
+// =====================================
+
+function getCachedReports(ignoreExpiry = false) {
+
+    try {
+
+        const cached =
+            localStorage.getItem(REPORT_CACHE_KEY);
+
+        if (!cached) {
+            return null;
+        }
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.reports) ||
+            !data.time
+        ) {
+            return null;
+        }
+
+        const age =
+            Date.now() - Number(data.time);
+
+        if (
+            !ignoreExpiry &&
+            age > REPORT_CACHE_TIME
+        ) {
+            return null;
+        }
+
+        return data.reports;
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Read Error:",
+            error
+        );
+
+        return null;
+    }
+}
+
+// =====================================
+// Save Reports to Cache
+// =====================================
+
+function saveCachedReports(reports) {
+
+    try {
+
+        localStorage.setItem(
+            REPORT_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                reports: reports
+            })
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Save Error:",
+            error
+        );
+    }
+}
+
+// =====================================
+// Clear Cache
+// =====================================
+
+function clearReportCache() {
+
+    try {
+
+        localStorage.removeItem(
+            REPORT_CACHE_KEY
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Clear Error:",
+            error
+        );
+    }
+}
 
 // =====================================
 // Statistics
@@ -106,37 +239,52 @@ function updateStatistics(reports) {
 
     }).length;
 
-
     const progress = reports.filter(function (report) {
 
-        const status = String(report.Status || "").trim();
+        const status =
+            String(report.Status || "").trim();
 
         return (
             status === "কাজ চলছে" ||
-            status.toLowerCase() === "in progress"
+            status.toLowerCase() === "in progress" ||
+            status.toLowerCase() === "progress"
         );
 
     }).length;
 
-
     const solved = reports.filter(function (report) {
 
-        const status = String(report.Status || "").trim();
+        const status =
+            String(report.Status || "").trim();
 
         return (
             status === "সমাধান হয়েছে" ||
+            status === "সমাধান হয়েছে" ||
             status.toLowerCase() === "solved"
         );
 
     }).length;
 
+    animateNumber(
+        totalReports,
+        total
+    );
 
-    animateNumber(totalReports, total);
-    animateNumber(pendingReports, pending);
-    animateNumber(progressReports, progress);
-    animateNumber(solvedReports, solved);
+    animateNumber(
+        pendingReports,
+        pending
+    );
+
+    animateNumber(
+        progressReports,
+        progress
+    );
+
+    animateNumber(
+        solvedReports,
+        solved
+    );
 }
-
 
 // =====================================
 // Number Animation
@@ -146,39 +294,52 @@ function animateNumber(element, target) {
 
     if (!element) return;
 
-    const start = Number(element.textContent) || 0;
+    const start =
+        Number(element.textContent) || 0;
 
     if (start === target) {
+
         element.textContent = target;
+
         return;
     }
 
     const duration = 500;
-    const startTime = performance.now();
+
+    const startTime =
+        performance.now();
 
     function update(currentTime) {
 
-        const progress = Math.min(
-            (currentTime - startTime) / duration,
-            1
-        );
+        const progress =
+            Math.min(
+                (currentTime - startTime) /
+                    duration,
+                1
+            );
 
-        const value = Math.floor(
-            start + (target - start) * progress
-        );
+        const value =
+            Math.floor(
+                start +
+                (target - start) *
+                    progress
+            );
 
         element.textContent = value;
 
         if (progress < 1) {
+
             requestAnimationFrame(update);
+
         } else {
-            element.textContent = target;
+
+            element.textContent =
+                target;
         }
     }
 
     requestAnimationFrame(update);
 }
-
 
 // =====================================
 // Filter Options
@@ -186,42 +347,58 @@ function animateNumber(element, target) {
 
 function createFilterOptions(reports) {
 
-    if (!divisionFilter || !categoryFilter || !statusFilter) {
+    if (
+        !divisionFilter ||
+        !categoryFilter ||
+        !statusFilter
+    ) {
         return;
     }
-
 
     const divisions = [
         ...new Set(
             reports
-                .map(report => String(report.Division || "").trim())
+                .map(report =>
+                    String(
+                        report.Division || ""
+                    ).trim()
+                )
                 .filter(Boolean)
         )
     ];
-
 
     const categories = [
         ...new Set(
             reports
-                .map(report => String(report.Category || "").trim())
+                .map(report =>
+                    String(
+                        report.Category || ""
+                    ).trim()
+                )
                 .filter(Boolean)
         )
     ];
-
 
     const statuses = [
         ...new Set(
             reports
-                .map(report => String(report.Status || "").trim())
+                .map(report =>
+                    String(
+                        report.Status || ""
+                    ).trim()
+                )
                 .filter(Boolean)
         )
     ];
 
+    const currentDivision =
+        divisionFilter.value;
 
-    const currentDivision = divisionFilter.value;
-    const currentCategory = categoryFilter.value;
-    const currentStatus = statusFilter.value;
+    const currentCategory =
+        categoryFilter.value;
 
+    const currentStatus =
+        statusFilter.value;
 
     divisionFilter.innerHTML =
         '<option value="">সব বিভাগ</option>';
@@ -232,56 +409,60 @@ function createFilterOptions(reports) {
     statusFilter.innerHTML =
         '<option value="">সব স্ট্যাটাস</option>';
 
-
     divisions.forEach(function (division) {
 
-        const option = document.createElement("option");
+        const option =
+            document.createElement("option");
 
         option.value = division;
         option.textContent = division;
 
-        divisionFilter.appendChild(option);
-
+        divisionFilter.appendChild(
+            option
+        );
     });
-
 
     categories.forEach(function (category) {
 
-        const option = document.createElement("option");
+        const option =
+            document.createElement("option");
 
         option.value = category;
         option.textContent = category;
 
-        categoryFilter.appendChild(option);
-
+        categoryFilter.appendChild(
+            option
+        );
     });
-
 
     statuses.forEach(function (status) {
 
-        const option = document.createElement("option");
+        const option =
+            document.createElement("option");
 
         option.value = status;
         option.textContent = status;
 
-        statusFilter.appendChild(option);
-
+        statusFilter.appendChild(
+            option
+        );
     });
 
-
     if (divisions.includes(currentDivision)) {
-        divisionFilter.value = currentDivision;
+        divisionFilter.value =
+            currentDivision;
     }
 
     if (categories.includes(currentCategory)) {
-        categoryFilter.value = currentCategory;
+        categoryFilter.value =
+            currentCategory;
     }
 
     if (statuses.includes(currentStatus)) {
-        statusFilter.value = currentStatus;
+        statusFilter.value =
+            currentStatus;
     }
 }
-
 
 // =====================================
 // Apply Filters
@@ -290,72 +471,80 @@ function createFilterOptions(reports) {
 function applyFilters() {
 
     const searchValue = searchInput
-        ? searchInput.value.trim().toLowerCase()
+        ? searchInput.value
+            .trim()
+            .toLowerCase()
         : "";
 
-    const selectedDivision = divisionFilter
-        ? divisionFilter.value
-        : "";
+    const selectedDivision =
+        divisionFilter
+            ? divisionFilter.value
+            : "";
 
-    const selectedCategory = categoryFilter
-        ? categoryFilter.value
-        : "";
+    const selectedCategory =
+        categoryFilter
+            ? categoryFilter.value
+            : "";
 
-    const selectedStatus = statusFilter
-        ? statusFilter.value
-        : "";
+    const selectedStatus =
+        statusFilter
+            ? statusFilter.value
+            : "";
 
+    const filteredReports =
+        allReports.filter(function (report) {
 
-    const filteredReports = allReports.filter(function (report) {
+            const searchableText = [
+                report.ID,
+                report.Area,
+                report.Description,
+                report.Division,
+                report.District,
+                report.Upazila,
+                report.Category,
+                report.Status,
+                report.Ward,
+                report.AdminNote
+            ]
+                .map(value =>
+                    String(value || "")
+                )
+                .join(" ")
+                .toLowerCase();
 
-        const searchableText = [
-            report.ID,
-            report.Area,
-            report.Description,
-            report.Division,
-            report.District,
-            report.Upazila,
-            report.Category,
-            report.Status
-        ]
-            .map(value => String(value || ""))
-            .join(" ")
-            .toLowerCase();
+            const matchesSearch =
+                !searchValue ||
+                searchableText.includes(
+                    searchValue
+                );
 
+            const matchesDivision =
+                !selectedDivision ||
+                report.Division ===
+                    selectedDivision;
 
-        const matchesSearch =
-            !searchValue ||
-            searchableText.includes(searchValue);
+            const matchesCategory =
+                !selectedCategory ||
+                report.Category ===
+                    selectedCategory;
 
+            const matchesStatus =
+                !selectedStatus ||
+                report.Status ===
+                    selectedStatus;
 
-        const matchesDivision =
-            !selectedDivision ||
-            report.Division === selectedDivision;
+            return (
+                matchesSearch &&
+                matchesDivision &&
+                matchesCategory &&
+                matchesStatus
+            );
+        });
 
-
-        const matchesCategory =
-            !selectedCategory ||
-            report.Category === selectedCategory;
-
-
-        const matchesStatus =
-            !selectedStatus ||
-            report.Status === selectedStatus;
-
-
-        return (
-            matchesSearch &&
-            matchesDivision &&
-            matchesCategory &&
-            matchesStatus
-        );
-
-    });
-
-
-    displayReports(filteredReports);
+    displayReports(
+        filteredReports
+    );
 }
-
 
 // =====================================
 // Display Reports
@@ -363,15 +552,19 @@ function applyFilters() {
 
 function displayReports(reports) {
 
-    if (!reportsContainer) return;
+    if (!reportsContainer) {
+        return;
+    }
 
     reportsContainer.innerHTML = "";
-
 
     if (!reports.length) {
 
         if (noReports) {
-            noReports.style.display = "block";
+
+            noReports.style.display =
+                "block";
+
         } else {
 
             reportsContainer.innerHTML = `
@@ -380,29 +573,32 @@ function displayReports(reports) {
                     <p>আপনার দেওয়া ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন।</p>
                 </div>
             `;
-
         }
 
         return;
     }
 
-
     if (noReports) {
-        noReports.style.display = "none";
+        noReports.style.display =
+            "none";
     }
 
-
     // Latest reports first
-    const sortedReports = [...reports].reverse();
-
+    const sortedReports =
+        [...reports].reverse();
 
     sortedReports.forEach(function (report) {
 
-        const card = document.createElement("article");
+        const card =
+            document.createElement("article");
 
-        card.className = "report-card";
+        card.className =
+            "report-card";
 
-        card.setAttribute("tabindex", "0");
+        card.setAttribute(
+            "tabindex",
+            "0"
+        );
 
         card.innerHTML = `
 
@@ -411,100 +607,169 @@ function displayReports(reports) {
                 <div>
 
                     <div class="report-category">
-                        ${escapeHTML(report.Category || "অন্যান্য")}
+                        ${escapeHTML(
+                            report.Category ||
+                            "অন্যান্য"
+                        )}
                     </div>
 
                     <div class="report-id">
-                        রিপোর্ট ID: ${escapeHTML(report.ID || "N/A")}
+                        রিপোর্ট ID:
+                        ${escapeHTML(
+                            report.ID ||
+                            "N/A"
+                        )}
                     </div>
 
                 </div>
 
                 <span class="report-status">
-                    ${escapeHTML(report.Status || "Pending")}
+                    ${escapeHTML(
+                        report.Status ||
+                        "Pending"
+                    )}
                 </span>
 
             </div>
 
-
             <div class="report-location">
-                📍 ${escapeHTML(report.Division || "")}
-                ${report.District ? " → " + escapeHTML(report.District) : ""}
-                ${report.Upazila ? " → " + escapeHTML(report.Upazila) : ""}
-                ${report.Area ? " → " + escapeHTML(report.Area) : ""}
-            </div>
+                📍
+                ${escapeHTML(
+                    report.Division ||
+                    ""
+                )}
 
+                ${
+                    report.District
+                        ? " → " +
+                          escapeHTML(
+                              report.District
+                          )
+                        : ""
+                }
+
+                ${
+                    report.Upazila
+                        ? " → " +
+                          escapeHTML(
+                              report.Upazila
+                          )
+                        : ""
+                }
+
+                ${
+                    report.Area
+                        ? " → " +
+                          escapeHTML(
+                              report.Area
+                          )
+                        : ""
+                }
+            </div>
 
             <div class="report-description">
                 ${escapeHTML(
-                    shortenText(report.Description || "কোনো বিবরণ নেই", 150)
+                    shortenText(
+                        report.Description ||
+                            "কোনো বিবরণ নেই",
+                        150
+                    )
                 )}
             </div>
 
-
             <div class="report-date">
-                📅 ${escapeHTML(report.Date || "তারিখ নেই")}
+                📅
+                ${escapeHTML(
+                    report.Date ||
+                    "তারিখ নেই"
+                )}
             </div>
-
         `;
 
-
         // Click → Details
-        card.addEventListener("click", function () {
-            showReportDetails(report);
-        });
-
+        card.addEventListener(
+            "click",
+            function () {
+                showReportDetails(
+                    report
+                );
+            }
+        );
 
         // Keyboard accessibility
-        card.addEventListener("keydown", function (event) {
+        card.addEventListener(
+            "keydown",
+            function (event) {
 
-            if (event.key === "Enter" || event.key === " ") {
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
 
-                event.preventDefault();
+                    event.preventDefault();
 
-                showReportDetails(report);
+                    showReportDetails(
+                        report
+                    );
+                }
             }
+        );
 
-        });
-
-
-        reportsContainer.appendChild(card);
-
+        reportsContainer.appendChild(
+            card
+        );
     });
 }
-
 
 // =====================================
 // Shorten Description
 // =====================================
 
-function shortenText(text, maxLength) {
+function shortenText(
+    text,
+    maxLength
+) {
 
-    if (text.length <= maxLength) {
+    if (
+        text.length <=
+        maxLength
+    ) {
         return text;
     }
 
-    return text.substring(0, maxLength) + "...";
+    return (
+        text.substring(
+            0,
+            maxLength
+        ) + "..."
+    );
 }
-
 
 // =====================================
 // Report Details Modal
 // =====================================
 
-function showReportDetails(report) {
+function showReportDetails(
+    report
+) {
 
-    let modal = document.getElementById("reportDetailsModal");
-
+    let modal =
+        document.getElementById(
+            "reportDetailsModal"
+        );
 
     if (!modal) {
 
-        modal = document.createElement("div");
+        modal =
+            document.createElement(
+                "div"
+            );
 
-        modal.id = "reportDetailsModal";
+        modal.id =
+            "reportDetailsModal";
 
-        modal.className = "report-modal";
-
+        modal.className =
+            "report-modal";
 
         modal.innerHTML = `
 
@@ -523,136 +788,193 @@ function showReportDetails(report) {
                 <div id="reportModalContent"></div>
 
             </div>
-
         `;
 
-
-        document.body.appendChild(modal);
-
+        document.body.appendChild(
+            modal
+        );
 
         const closeButton =
-            modal.querySelector(".report-modal-close");
+            modal.querySelector(
+                ".report-modal-close"
+            );
 
         const overlay =
-            modal.querySelector(".report-modal-overlay");
+            modal.querySelector(
+                ".report-modal-overlay"
+            );
 
+        closeButton.addEventListener(
+            "click",
+            closeReportModal
+        );
 
-        closeButton.addEventListener("click", closeReportModal);
+        overlay.addEventListener(
+            "click",
+            closeReportModal
+        );
 
-        overlay.addEventListener("click", closeReportModal);
+        document.addEventListener(
+            "keydown",
+            function (event) {
 
-
-        document.addEventListener("keydown", function (event) {
-
-            if (
-                event.key === "Escape" &&
-                modal.classList.contains("show")
-            ) {
-                closeReportModal();
+                if (
+                    event.key === "Escape" &&
+                    modal.classList.contains(
+                        "show"
+                    )
+                ) {
+                    closeReportModal();
+                }
             }
-
-        });
-
+        );
     }
 
-
     const modalContent =
-        document.getElementById("reportModalContent");
-
+        document.getElementById(
+            "reportModalContent"
+        );
 
     modalContent.innerHTML = `
 
         <div class="modal-category">
-            ${escapeHTML(report.Category || "অন্যান্য")}
+            ${escapeHTML(
+                report.Category ||
+                "অন্যান্য"
+            )}
         </div>
 
-        <h2>রিপোর্টের বিস্তারিত</h2>
-
+        <h2>
+            রিপোর্টের বিস্তারিত
+        </h2>
 
         <div class="modal-info">
 
             <div>
                 <strong>রিপোর্ট ID</strong>
-                <span>${escapeHTML(report.ID || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.ID ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>স্ট্যাটাস</strong>
-                <span>${escapeHTML(report.Status || "Pending")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Status ||
+                        "Pending"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>বিভাগ</strong>
-                <span>${escapeHTML(report.Division || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Division ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>জেলা</strong>
-                <span>${escapeHTML(report.District || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.District ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>উপজেলা</strong>
-                <span>${escapeHTML(report.Upazila || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Upazila ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>এলাকা</strong>
-                <span>${escapeHTML(report.Area || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Area ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>ওয়ার্ড</strong>
-                <span>${escapeHTML(report.Ward || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Ward ||
+                        "N/A"
+                    )}
+                </span>
             </div>
-
 
             <div>
                 <strong>তারিখ</strong>
-                <span>${escapeHTML(report.Date || "N/A")}</span>
+                <span>
+                    ${escapeHTML(
+                        report.Date ||
+                        "N/A"
+                    )}
+                </span>
             </div>
 
         </div>
 
-
         <div class="modal-description">
 
-            <strong>সমস্যার বিস্তারিত</strong>
+            <strong>
+                সমস্যার বিস্তারিত
+            </strong>
 
             <p>
                 ${escapeHTML(
-                    report.Description || "কোনো বিবরণ দেওয়া হয়নি।"
+                    report.Description ||
+                    "কোনো বিবরণ দেওয়া হয়নি।"
                 )}
             </p>
 
         </div>
 
-
         ${
             report.AdminNote
                 ? `
                     <div class="modal-description">
-                        <strong>কর্তৃপক্ষের মন্তব্য</strong>
-                        <p>${escapeHTML(report.AdminNote)}</p>
+
+                        <strong>
+                            কর্তৃপক্ষের মন্তব্য
+                        </strong>
+
+                        <p>
+                            ${escapeHTML(
+                                report.AdminNote
+                            )}
+                        </p>
+
                     </div>
                   `
                 : ""
         }
-
     `;
 
+    modal.classList.add(
+        "show"
+    );
 
-    modal.classList.add("show");
-
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+        "hidden";
 }
-
 
 // =====================================
 // Close Modal
@@ -661,53 +983,88 @@ function showReportDetails(report) {
 function closeReportModal() {
 
     const modal =
-        document.getElementById("reportDetailsModal");
+        document.getElementById(
+            "reportDetailsModal"
+        );
 
+    if (!modal) {
+        return;
+    }
 
-    if (!modal) return;
+    modal.classList.remove(
+        "show"
+    );
 
-    modal.classList.remove("show");
-
-    document.body.style.overflow = "";
-
+    document.body.style.overflow =
+        "";
 }
-
 
 // =====================================
 // Escape HTML
 // =====================================
 
-function escapeHTML(value) {
+function escapeHTML(
+    value
+) {
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 }
-
 
 // =====================================
 // Search / Filter Events
 // =====================================
 
 if (searchInput) {
-    searchInput.addEventListener("input", applyFilters);
+
+    searchInput.addEventListener(
+        "input",
+        applyFilters
+    );
 }
 
 if (divisionFilter) {
-    divisionFilter.addEventListener("change", applyFilters);
+
+    divisionFilter.addEventListener(
+        "change",
+        applyFilters
+    );
 }
 
 if (categoryFilter) {
-    categoryFilter.addEventListener("change", applyFilters);
+
+    categoryFilter.addEventListener(
+        "change",
+        applyFilters
+    );
 }
 
 if (statusFilter) {
-    statusFilter.addEventListener("change", applyFilters);
-}
 
+    statusFilter.addEventListener(
+        "change",
+        applyFilters
+    );
+}
 
 // =====================================
 // Reset Filters
@@ -715,30 +1072,32 @@ if (statusFilter) {
 
 if (resetFilters) {
 
-    resetFilters.addEventListener("click", function () {
+    resetFilters.addEventListener(
+        "click",
+        function () {
 
-        if (searchInput) {
-            searchInput.value = "";
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            if (divisionFilter) {
+                divisionFilter.value = "";
+            }
+
+            if (categoryFilter) {
+                categoryFilter.value = "";
+            }
+
+            if (statusFilter) {
+                statusFilter.value = "";
+            }
+
+            displayReports(
+                allReports
+            );
         }
-
-        if (divisionFilter) {
-            divisionFilter.value = "";
-        }
-
-        if (categoryFilter) {
-            categoryFilter.value = "";
-        }
-
-        if (statusFilter) {
-            statusFilter.value = "";
-        }
-
-        displayReports(allReports);
-
-    });
-
+    );
 }
-
 
 // =====================================
 // Refresh
@@ -746,34 +1105,44 @@ if (resetFilters) {
 
 if (refreshButton) {
 
-    refreshButton.addEventListener("click", function () {
+    refreshButton.addEventListener(
+        "click",
+        function () {
 
-        refreshButton.disabled = true;
+            refreshButton.disabled =
+                true;
 
-        const oldText = refreshButton.textContent;
+            const oldText =
+                refreshButton.textContent;
 
-        refreshButton.textContent = "লোড হচ্ছে...";
+            refreshButton.textContent =
+                "লোড হচ্ছে...";
 
+            // Force fresh API request
+            loadReports(true)
+                .finally(
+                    function () {
 
-        loadReports().finally(function () {
+                        refreshButton.disabled =
+                            false;
 
-            refreshButton.disabled = false;
-
-            refreshButton.textContent = oldText;
-
-        });
-
-    });
-
+                        refreshButton.textContent =
+                            oldText;
+                    }
+                );
+        }
+    );
 }
-
 
 // =====================================
 // Start Dashboard
 // =====================================
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    loadReports();
+        loadReports(false);
 
-});
+    }
+); 
