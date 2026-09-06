@@ -1,5 +1,11 @@
-const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+ const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
 const CATEGORY_SHEET = "Categories";
+
+const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
+const REPORT_CACHE_TIME = 60 * 1000;
+
+const CATEGORY_CACHE_KEY = "amaderElaka_categories_cache";
+const CATEGORY_CACHE_TIME = 10 * 60 * 1000;
 
 let allReports = [];
 let categories = [];
@@ -25,6 +31,7 @@ function setupNavigation() {
             switchSection(item.dataset.section);
         });
     });
+
     document.querySelectorAll("[data-section-target]").forEach(button => {
         button.addEventListener("click", () => {
             switchSection(button.dataset.sectionTarget);
@@ -34,11 +41,16 @@ function setupNavigation() {
 
 function switchSection(section) {
     document.querySelectorAll(".admin-nav-item").forEach(item => {
-        item.classList.toggle("active", item.dataset.section === section);
+        item.classList.toggle(
+            "active",
+            item.dataset.section === section
+        );
     });
+
     document.querySelectorAll(".admin-section").forEach(element => {
         element.classList.remove("active");
     });
+
     const target = document.getElementById(`${section}Section`);
     if (target) target.classList.add("active");
 
@@ -61,17 +73,139 @@ function switchSection(section) {
     }
 }
 
-/* REPORTS */
-async function loadReports() {
+/* =========================
+   REPORT CACHE
+========================= */
+
+function getCachedReports(ignoreExpiry = false) {
+    try {
+        const cached = localStorage.getItem(REPORT_CACHE_KEY);
+        if (!cached) return null;
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.reports) ||
+            !data.time
+        ) return null;
+
+        const age = Date.now() - Number(data.time);
+
+        if (!ignoreExpiry && age > REPORT_CACHE_TIME) {
+            return null;
+        }
+
+        return data.reports;
+    } catch (error) {
+        console.error("Report Cache Read Error:", error);
+        return null;
+    }
+}
+
+function saveCachedReports(reports) {
+    try {
+        localStorage.setItem(
+            REPORT_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                reports
+            })
+        );
+    } catch (error) {
+        console.error("Report Cache Save Error:", error);
+    }
+}
+
+function clearReportCache() {
+    try {
+        localStorage.removeItem(REPORT_CACHE_KEY);
+    } catch (error) {
+        console.error("Report Cache Clear Error:", error);
+    }
+}
+
+/* =========================
+   CATEGORY CACHE
+========================= */
+
+function getCachedCategories(ignoreExpiry = false) {
+    try {
+        const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+        if (!cached) return null;
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.categories) ||
+            !data.time
+        ) return null;
+
+        const age = Date.now() - Number(data.time);
+
+        if (!ignoreExpiry && age > CATEGORY_CACHE_TIME) {
+            return null;
+        }
+
+        return data.categories;
+    } catch (error) {
+        console.error("Category Cache Read Error:", error);
+        return null;
+    }
+}
+
+function saveCachedCategories(data) {
+    try {
+        localStorage.setItem(
+            CATEGORY_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                categories: data
+            })
+        );
+    } catch (error) {
+        console.error("Category Cache Save Error:", error);
+    }
+}
+
+function clearCategoryCache() {
+    try {
+        localStorage.removeItem(CATEGORY_CACHE_KEY);
+    } catch (error) {
+        console.error("Category Cache Clear Error:", error);
+    }
+}
+
+/* =========================
+   REPORTS
+========================= */
+
+async function loadReports(forceRefresh = false) {
     const table = document.getElementById("adminReportsTable");
     const recent = document.getElementById("recentReports");
 
+    if (!forceRefresh) {
+        const cachedReports = getCachedReports();
+
+        if (cachedReports) {
+            allReports = cachedReports;
+            updateStatistics();
+            createFilterOptions();
+            displayReports(allReports);
+            displayRecentReports();
+            return;
+        }
+    }
+
     if (table) {
-        table.innerHTML = '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
+        table.innerHTML =
+            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
     }
 
     if (recent) {
-        recent.innerHTML = '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
+        recent.innerHTML =
+            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
     }
 
     try {
@@ -82,21 +216,41 @@ async function loadReports() {
         }
 
         const data = await response.json();
+
         allReports = Array.isArray(data) ? data : [];
+
+        saveCachedReports(allReports);
 
         updateStatistics();
         createFilterOptions();
         displayReports(allReports);
         displayRecentReports();
+
     } catch (error) {
         console.error(error);
 
+        const oldReports = getCachedReports(true);
+
+        if (oldReports) {
+            allReports = oldReports;
+            updateStatistics();
+            createFilterOptions();
+            displayReports(allReports);
+            displayRecentReports();
+            return;
+        }
+
+        allReports = [];
+        updateStatistics();
+
         if (table) {
-            table.innerHTML = '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
+            table.innerHTML =
+                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
         }
 
         if (recent) {
-            recent.innerHTML = '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
+            recent.innerHTML =
+                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
         }
     }
 }
@@ -125,9 +279,7 @@ function updateStatistics() {
 
 function setNumber(id, value) {
     const element = document.getElementById(id);
-
     if (!element) return;
-
     element.textContent = value;
 }
 
@@ -135,9 +287,7 @@ function setNumber(id, value) {
 function normalizeStatus(status) {
     const value = String(status || "").trim().toLowerCase();
 
-    if (value === "pending") {
-        return "pending";
-    }
+    if (value === "pending") return "pending";
 
     if (
         value === "কাজ চলছে" ||
@@ -161,17 +311,9 @@ function normalizeStatus(status) {
 function statusLabel(status) {
     const type = normalizeStatus(status);
 
-    if (type === "pending") {
-        return "Pending";
-    }
-
-    if (type === "progress") {
-        return "কাজ চলছে";
-    }
-
-    if (type === "solved") {
-        return "সমাধান হয়েছে";
-    }
+    if (type === "pending") return "Pending";
+    if (type === "progress") return "কাজ চলছে";
+    if (type === "solved") return "সমাধান হয়েছে";
 
     return status || "Unknown";
 }
@@ -179,28 +321,26 @@ function statusLabel(status) {
 function statusClass(status) {
     const type = normalizeStatus(status);
 
-    if (type === "pending") {
-        return "status-pending";
-    }
-
-    if (type === "progress") {
-        return "status-progress";
-    }
-
-    if (type === "solved") {
-        return "status-solved";
-    }
+    if (type === "pending") return "status-pending";
+    if (type === "progress") return "status-progress";
+    if (type === "solved") return "status-solved";
 
     return "status-default";
 }
 
 /* FILTERS */
 function createFilterOptions() {
-    const categorySelect = document.getElementById("adminCategoryFilter");
-    const divisionSelect = document.getElementById("adminDivisionFilter");
+    const categorySelect =
+        document.getElementById("adminCategoryFilter");
+
+    const divisionSelect =
+        document.getElementById("adminDivisionFilter");
 
     if (categorySelect) {
-        categorySelect.innerHTML = '<option value="">সব ক্যাটাগরি</option>';
+        const currentValue = categorySelect.value;
+
+        categorySelect.innerHTML =
+            '<option value="">সব ক্যাটাগরি</option>';
 
         categories.forEach(category => {
             const option = document.createElement("option");
@@ -210,15 +350,27 @@ function createFilterOptions() {
 
             categorySelect.appendChild(option);
         });
+
+        if (
+            [...categorySelect.options]
+                .some(option => option.value === currentValue)
+        ) {
+            categorySelect.value = currentValue;
+        }
     }
 
     if (divisionSelect) {
-        divisionSelect.innerHTML = '<option value="">সব বিভাগ</option>';
+        const currentValue = divisionSelect.value;
+
+        divisionSelect.innerHTML =
+            '<option value="">সব বিভাগ</option>';
 
         const divisions = [
             ...new Set(
                 allReports
-                    .map(report => String(report.Division || "").trim())
+                    .map(report =>
+                        String(report.Division || "").trim()
+                    )
                     .filter(Boolean)
             )
         ];
@@ -231,16 +383,34 @@ function createFilterOptions() {
 
             divisionSelect.appendChild(option);
         });
+
+        if (
+            [...divisionSelect.options]
+                .some(option => option.value === currentValue)
+        ) {
+            divisionSelect.value = currentValue;
+        }
     }
 }
 
 function setupReportEvents() {
-    const search = document.getElementById("adminReportSearch");
-    const status = document.getElementById("adminStatusFilter");
-    const category = document.getElementById("adminCategoryFilter");
-    const division = document.getElementById("adminDivisionFilter");
-    const reset = document.getElementById("resetAdminFilters");
-    const refresh = document.getElementById("refreshReportsBtn");
+    const search =
+        document.getElementById("adminReportSearch");
+
+    const status =
+        document.getElementById("adminStatusFilter");
+
+    const category =
+        document.getElementById("adminCategoryFilter");
+
+    const division =
+        document.getElementById("adminDivisionFilter");
+
+    const reset =
+        document.getElementById("resetAdminFilters");
+
+    const refresh =
+        document.getElementById("refreshReportsBtn");
 
     if (search) {
         search.addEventListener("input", applyReportFilters);
@@ -271,8 +441,21 @@ function setupReportEvents() {
 
     if (refresh) {
         refresh.addEventListener("click", async () => {
-            await loadCategories();
-            await loadReports();
+            refresh.disabled = true;
+
+            const oldText = refresh.textContent;
+            refresh.textContent = "লোড হচ্ছে...";
+
+            try {
+                clearReportCache();
+                clearCategoryCache();
+
+                await loadCategories(true);
+                await loadReports(true);
+            } finally {
+                refresh.disabled = false;
+                refresh.textContent = oldText;
+            }
         });
     }
 }
@@ -309,7 +492,8 @@ function applyReportFilters() {
         return (
             (!search || searchable.includes(search)) &&
             (!status ||
-                normalizeStatus(report.Status) === normalizeStatus(status)) &&
+                normalizeStatus(report.Status) ===
+                normalizeStatus(status)) &&
             (!category ||
                 String(report.Category || "") === category) &&
             (!division ||
@@ -322,7 +506,8 @@ function applyReportFilters() {
 
 /* DISPLAY REPORTS */
 function displayReports(reports) {
-    const container = document.getElementById("adminReportsTable");
+    const container =
+        document.getElementById("adminReportsTable");
 
     if (!container) return;
 
@@ -391,26 +576,32 @@ function displayReports(reports) {
 
     container.innerHTML = html;
 
-    container.querySelectorAll(".edit-report-btn").forEach(button => {
-        button.addEventListener("click", () => {
-            const report = allReports.find(
-                item => String(item.ID) === String(button.dataset.id)
-            );
+    container
+        .querySelectorAll(".edit-report-btn")
+        .forEach(button => {
+            button.addEventListener("click", () => {
+                const report = allReports.find(
+                    item =>
+                        String(item.ID) ===
+                        String(button.dataset.id)
+                );
 
-            if (report) {
-                openReportEditModal(report);
-            }
+                if (report) {
+                    openReportEditModal(report);
+                }
+            });
         });
-    });
 }
 
 /* RECENT REPORTS */
 function displayRecentReports() {
-    const container = document.getElementById("recentReports");
+    const container =
+        document.getElementById("recentReports");
 
     if (!container) return;
 
-    const reports = [...allReports].reverse().slice(0, 5);
+    const reports =
+        [...allReports].reverse().slice(0, 5);
 
     if (!reports.length) {
         container.innerHTML =
@@ -443,17 +634,24 @@ function displayRecentReports() {
 function openReportEditModal(report) {
     editingReport = report;
 
-    const modal = document.getElementById("reportEditModal");
+    const modal =
+        document.getElementById("reportEditModal");
 
     if (!modal) return;
 
-    document.getElementById("editReportId").value = report.ID || "";
-    document.getElementById("editId").value = report.ID || "";
+    document.getElementById("editReportId").value =
+        report.ID || "";
+
+    document.getElementById("editId").value =
+        report.ID || "";
+
+    const statusType =
+        normalizeStatus(report.Status);
 
     document.getElementById("editStatus").value =
-        normalizeStatus(report.Status) === "progress"
+        statusType === "progress"
             ? "কাজ চলছে"
-            : normalizeStatus(report.Status) === "solved"
+            : statusType === "solved"
             ? "সমাধান হয়েছে"
             : "Pending";
 
@@ -485,7 +683,8 @@ function openReportEditModal(report) {
 }
 
 function populateEditCategory(selected) {
-    const select = document.getElementById("editCategory");
+    const select =
+        document.getElementById("editCategory");
 
     if (!select) return;
 
@@ -507,9 +706,12 @@ function populateEditCategory(selected) {
 
     if (
         selected &&
-        !categories.some(category => category.Name === selected)
+        !categories.some(
+            category => category.Name === selected
+        )
     ) {
-        const oldOption = document.createElement("option");
+        const oldOption =
+            document.createElement("option");
 
         oldOption.value = selected;
         oldOption.textContent = selected;
@@ -520,27 +722,47 @@ function populateEditCategory(selected) {
 }
 
 function setupEditModal() {
-    const modal = document.getElementById("reportEditModal");
-    const close = document.getElementById("closeReportModal");
-    const cancel = document.getElementById("cancelReportEdit");
-    const overlay = modal?.querySelector(".admin-modal-overlay");
+    const modal =
+        document.getElementById("reportEditModal");
+
+    const close =
+        document.getElementById("closeReportModal");
+
+    const cancel =
+        document.getElementById("cancelReportEdit");
+
+    const overlay =
+        modal?.querySelector(".admin-modal-overlay");
 
     if (close) {
-        close.addEventListener("click", closeReportEditModal);
+        close.addEventListener(
+            "click",
+            closeReportEditModal
+        );
     }
 
     if (cancel) {
-        cancel.addEventListener("click", closeReportEditModal);
+        cancel.addEventListener(
+            "click",
+            closeReportEditModal
+        );
     }
 
     if (overlay) {
-        overlay.addEventListener("click", closeReportEditModal);
+        overlay.addEventListener(
+            "click",
+            closeReportEditModal
+        );
     }
 
-    const form = document.getElementById("reportEditForm");
+    const form =
+        document.getElementById("reportEditForm");
 
     if (form) {
-        form.addEventListener("submit", saveReportChanges);
+        form.addEventListener(
+            "submit",
+            saveReportChanges
+        );
     }
 }
 
@@ -549,7 +771,8 @@ async function saveReportChanges(event) {
 
     if (!editingReport) return;
 
-    const button = document.getElementById("saveReportBtn");
+    const button =
+        document.getElementById("saveReportBtn");
 
     if (button) {
         button.disabled = true;
@@ -605,6 +828,8 @@ async function saveReportChanges(event) {
             throw new Error("Report update failed");
         }
 
+        clearReportCache();
+
         closeReportEditModal();
 
         showAdminMessage(
@@ -613,7 +838,8 @@ async function saveReportChanges(event) {
             "success"
         );
 
-        await loadReports();
+        await loadReports(true);
+
     } catch (error) {
         console.error(error);
 
@@ -631,7 +857,8 @@ async function saveReportChanges(event) {
 }
 
 function closeReportEditModal() {
-    const modal = document.getElementById("reportEditModal");
+    const modal =
+        document.getElementById("reportEditModal");
 
     if (modal) {
         modal.classList.remove("active");
@@ -641,8 +868,23 @@ function closeReportEditModal() {
     document.body.style.overflow = "";
 }
 
-/* CATEGORIES - LOAD */
-async function loadCategories() {
+/* =========================
+   CATEGORIES
+========================= */
+
+async function loadCategories(forceRefresh = false) {
+    if (!forceRefresh) {
+        const cachedCategories =
+            getCachedCategories();
+
+        if (cachedCategories) {
+            categories = cachedCategories;
+            renderCategories();
+            createFilterOptions();
+            return;
+        }
+    }
+
     try {
         const response = await fetch(
             `${API_URL}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`
@@ -656,20 +898,32 @@ async function loadCategories() {
 
         categories = Array.isArray(data)
             ? data.filter(
-                  item =>
-                      String(item.Active || "")
-                          .trim()
-                          .toLowerCase() === "true"
-              )
+                item =>
+                    String(item.Active || "")
+                        .trim()
+                        .toLowerCase() === "true"
+            )
             : [];
+
+        saveCachedCategories(categories);
 
         renderCategories();
         createFilterOptions();
+
     } catch (error) {
         console.error("Category loading error:", error);
 
-        categories = [];
+        const oldCategories =
+            getCachedCategories(true);
 
+        if (oldCategories) {
+            categories = oldCategories;
+            renderCategories();
+            createFilterOptions();
+            return;
+        }
+
+        categories = [];
         renderCategories();
 
         showAdminMessage(
@@ -682,7 +936,8 @@ async function loadCategories() {
 
 /* CATEGORY DISPLAY */
 function renderCategories() {
-    const container = document.getElementById("categoriesList");
+    const container =
+        document.getElementById("categoriesList");
 
     if (!container) return;
 
@@ -734,7 +989,9 @@ function renderCategories() {
         .querySelectorAll(".edit-category-btn")
         .forEach(button => {
             button.addEventListener("click", () => {
-                openCategoryModal(Number(button.dataset.index));
+                openCategoryModal(
+                    Number(button.dataset.index)
+                );
             });
         });
 
@@ -742,38 +999,66 @@ function renderCategories() {
         .querySelectorAll(".delete-category-btn")
         .forEach(button => {
             button.addEventListener("click", () => {
-                deleteCategory(Number(button.dataset.index));
+                deleteCategory(
+                    Number(button.dataset.index)
+                );
             });
         });
 }
 
 /* CATEGORY EVENTS */
 function setupCategoryEvents() {
-    const add = document.getElementById("addCategoryBtn");
-    const form = document.getElementById("categoryForm");
-    const close = document.getElementById("closeCategoryModal");
-    const cancel = document.getElementById("cancelCategory");
-    const modal = document.getElementById("categoryModal");
-    const overlay = modal?.querySelector(".admin-modal-overlay");
+    const add =
+        document.getElementById("addCategoryBtn");
+
+    const form =
+        document.getElementById("categoryForm");
+
+    const close =
+        document.getElementById("closeCategoryModal");
+
+    const cancel =
+        document.getElementById("cancelCategory");
+
+    const modal =
+        document.getElementById("categoryModal");
+
+    const overlay =
+        modal?.querySelector(".admin-modal-overlay");
 
     if (add) {
-        add.addEventListener("click", () => openCategoryModal());
+        add.addEventListener(
+            "click",
+            () => openCategoryModal()
+        );
     }
 
     if (form) {
-        form.addEventListener("submit", saveCategory);
+        form.addEventListener(
+            "submit",
+            saveCategory
+        );
     }
 
     if (close) {
-        close.addEventListener("click", closeCategoryModal);
+        close.addEventListener(
+            "click",
+            closeCategoryModal
+        );
     }
 
     if (cancel) {
-        cancel.addEventListener("click", closeCategoryModal);
+        cancel.addEventListener(
+            "click",
+            closeCategoryModal
+        );
     }
 
     if (overlay) {
-        overlay.addEventListener("click", closeCategoryModal);
+        overlay.addEventListener(
+            "click",
+            closeCategoryModal
+        );
     }
 
     setupEditModal();
@@ -783,10 +1068,17 @@ function setupCategoryEvents() {
 function openCategoryModal(index = null) {
     editingCategoryIndex = index;
 
-    const modal = document.getElementById("categoryModal");
-    const title = document.getElementById("categoryModalTitle");
-    const name = document.getElementById("categoryName");
-    const icon = document.getElementById("categoryIcon");
+    const modal =
+        document.getElementById("categoryModal");
+
+    const title =
+        document.getElementById("categoryModalTitle");
+
+    const name =
+        document.getElementById("categoryName");
+
+    const icon =
+        document.getElementById("categoryIcon");
 
     if (!modal) return;
 
@@ -813,7 +1105,8 @@ function openCategoryModal(index = null) {
 }
 
 function closeCategoryModal() {
-    const modal = document.getElementById("categoryModal");
+    const modal =
+        document.getElementById("categoryModal");
 
     if (modal) {
         modal.classList.remove("active");
@@ -828,10 +1121,12 @@ async function saveCategory(event) {
     event.preventDefault();
 
     const name =
-        document.getElementById("categoryName").value.trim();
+        document.getElementById("categoryName")
+            .value.trim();
 
     const icon =
-        document.getElementById("categoryIcon").value.trim() || "📌";
+        document.getElementById("categoryIcon")
+            .value.trim() || "📌";
 
     if (!name) {
         showAdminMessage(
@@ -844,8 +1139,9 @@ async function saveCategory(event) {
 
     const duplicate = categories.some(
         (category, index) =>
-            String(category.Name || "").trim().toLowerCase() ===
-                name.toLowerCase() &&
+            String(category.Name || "")
+                .trim()
+                .toLowerCase() === name.toLowerCase() &&
             index !== editingCategoryIndex
     );
 
@@ -871,20 +1167,24 @@ async function saveCategory(event) {
 
         closeCategoryModal();
 
-        await loadCategories();
-        await loadReports();
+        clearCategoryCache();
+
+        await loadCategories(true);
+        await loadReports(true);
 
         showAdminMessage(
             "সফল হয়েছে",
             "ক্যাটাগরি স্থায়ীভাবে সংরক্ষণ হয়েছে।",
             "success"
         );
+
     } catch (error) {
         console.error(error);
 
         showAdminMessage(
             "সমস্যা হয়েছে",
-            error.message || "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
+            error.message ||
+                "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
             "error"
         );
     }
@@ -919,10 +1219,12 @@ async function createCategory(name, icon) {
             "নতুন category SheetDB-তে save করা যায়নি।";
 
         try {
-            const errorData = await response.json();
+            const errorData =
+                await response.json();
 
             if (errorData?.error) {
-                errorMessage = errorData.error;
+                errorMessage =
+                    errorData.error;
             }
         } catch (error) {
             console.error(error);
@@ -937,9 +1239,11 @@ function generateCategoryID() {
     let maxNumber = 0;
 
     categories.forEach(category => {
-        const id = String(category.ID || "").trim();
+        const id =
+            String(category.ID || "").trim();
 
-        const match = id.match(/^CAT-(\d+)$/i);
+        const match =
+            id.match(/^CAT-(\d+)$/i);
 
         if (match) {
             const number = Number(match[1]);
@@ -950,13 +1254,18 @@ function generateCategoryID() {
         }
     });
 
-    const nextNumber = maxNumber + 1;
+    const nextNumber =
+        maxNumber + 1;
 
     return `CAT-${String(nextNumber).padStart(3, "0")}`;
 }
 
 /* UPDATE CATEGORY */
-async function updateCategory(index, newName, newIcon) {
+async function updateCategory(
+    index,
+    newName,
+    newIcon
+) {
     const category = categories[index];
 
     if (!category) {
@@ -971,7 +1280,8 @@ async function updateCategory(index, newName, newIcon) {
         {
             method: "PATCH",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type":
+                    "application/json"
             },
             body: JSON.stringify({
                 data: {
@@ -984,17 +1294,19 @@ async function updateCategory(index, newName, newIcon) {
     );
 
     if (!response.ok) {
-        throw new Error("Category update করা যায়নি।");
+        throw new Error(
+            "Category update করা যায়নি।"
+        );
     }
 
-    /* REPORT CATEGORY NAME UPDATE */
     if (oldName !== newName) {
         const reportResponse = await fetch(
             `${API_URL}/Category/${encodeURIComponent(oldName)}`,
             {
                 method: "PATCH",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type":
+                        "application/json"
                 },
                 body: JSON.stringify({
                     data: {
@@ -1009,7 +1321,11 @@ async function updateCategory(index, newName, newIcon) {
                 "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
             );
         }
+
+        clearReportCache();
     }
+
+    clearCategoryCache();
 }
 
 /* DELETE CATEGORY */
@@ -1048,37 +1364,47 @@ async function deleteCategory(index) {
         );
 
         if (!response.ok) {
-            throw new Error("Category delete করা যায়নি।");
+            throw new Error(
+                "Category delete করা যায়নি।"
+            );
         }
 
-        await loadCategories();
-        await loadReports();
+        clearCategoryCache();
+
+        await loadCategories(true);
+        await loadReports(true);
 
         showAdminMessage(
             "সফল হয়েছে",
             "Category permanently delete হয়েছে।",
             "success"
         );
+
     } catch (error) {
         console.error(error);
 
         showAdminMessage(
             "সমস্যা হয়েছে",
-            error.message || "Category delete করা যায়নি।",
+            error.message ||
+                "Category delete করা যায়নি।",
             "error"
         );
     }
 }
 
 /* MESSAGE */
-function showAdminMessage(title, message, type) {
-    const old = document.querySelector(".admin-toast");
+function showAdminMessage(
+    title,
+    message,
+    type
+) {
+    const old =
+        document.querySelector(".admin-toast");
 
-    if (old) {
-        old.remove();
-    }
+    if (old) old.remove();
 
-    const toast = document.createElement("div");
+    const toast =
+        document.createElement("div");
 
     toast.className = "admin-toast";
 
@@ -1099,7 +1425,8 @@ function showAdminMessage(title, message, type) {
             : "4px solid #b91c1c";
     toast.style.borderRadius = "10px";
     toast.style.padding = "14px 17px";
-    toast.style.boxShadow = "0 15px 40px rgba(0,0,0,.12)";
+    toast.style.boxShadow =
+        "0 15px 40px rgba(0,0,0,.12)";
     toast.style.display = "flex";
     toast.style.flexDirection = "column";
     toast.style.gap = "2px";
@@ -1109,7 +1436,8 @@ function showAdminMessage(title, message, type) {
 
     setTimeout(() => {
         toast.style.opacity = "0";
-        toast.style.transform = "translateY(8px)";
+        toast.style.transform =
+            "translateY(8px)";
         toast.style.transition = ".3s ease";
 
         setTimeout(() => {
@@ -1134,4 +1462,4 @@ function escapeHTML(value) {
 
 function escapeAttribute(value) {
     return escapeHTML(String(value ?? ""));
-                        }
+        }
