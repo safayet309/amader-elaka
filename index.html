@@ -382,6 +382,49 @@
                 animation: none;
             }
         }
+     /* =========================
+   Emergency Button
+========================= */
+
+.emergency-nav-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    background: #fff7f7;
+    color: #dc2626;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.emergency-nav-button:hover {
+    background: #dc2626;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.18);
+}
+
+.emergency-nav-button:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .emergency-nav-button {
+        padding: 0 11px;
+        font-size: 13px;
+    }
+}
     </style>
 </head>
 
