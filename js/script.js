@@ -3,15 +3,23 @@
 // =====================================
 
 const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
+const REPORT_CACHE_TIME = 60 * 1000; // 1 minute
 
 console.log("Amader Elaka loaded successfully.");
-
 
 // =====================================
 // Load Reports for Home Statistics
 // =====================================
 
 async function loadHomeStatistics() {
+    const cachedReports = getCachedReports();
+
+    if (cachedReports) {
+        updateHomeStatistics(cachedReports);
+        return;
+    }
+
     try {
         const response = await fetch(API_URL);
 
@@ -21,16 +29,93 @@ async function loadHomeStatistics() {
 
         const reports = await response.json();
 
-        updateHomeStatistics(reports);
+        if (Array.isArray(reports)) {
+            saveCachedReports(reports);
+            updateHomeStatistics(reports);
+        } else {
+            updateHomeStatistics([]);
+        }
 
     } catch (error) {
         console.error("Home Statistics Error:", error);
 
-        // Keep the existing 0 values if API is unavailable
-        updateHomeStatistics([]);
+        // Try older cache if API is unavailable
+        const oldReports = getCachedReports(true);
+
+        if (oldReports) {
+            updateHomeStatistics(oldReports);
+        } else {
+            updateHomeStatistics([]);
+        }
     }
 }
 
+// =====================================
+// Get Cached Reports
+// =====================================
+
+function getCachedReports(ignoreExpiry = false) {
+    try {
+        const cached = localStorage.getItem(REPORT_CACHE_KEY);
+
+        if (!cached) {
+            return null;
+        }
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.reports) ||
+            !data.time
+        ) {
+            return null;
+        }
+
+        const age = Date.now() - Number(data.time);
+
+        if (!ignoreExpiry && age > REPORT_CACHE_TIME) {
+            return null;
+        }
+
+        return data.reports;
+
+    } catch (error) {
+        console.error("Cache Read Error:", error);
+        return null;
+    }
+}
+
+// =====================================
+// Save Reports to Cache
+// =====================================
+
+function saveCachedReports(reports) {
+    try {
+        localStorage.setItem(
+            REPORT_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                reports: reports
+            })
+        );
+    } catch (error) {
+        console.error("Cache Save Error:", error);
+    }
+}
+
+// =====================================
+// Clear Report Cache
+// Can be used by other JS files
+// =====================================
+
+function clearReportCache() {
+    try {
+        localStorage.removeItem(REPORT_CACHE_KEY);
+    } catch (error) {
+        console.error("Cache Clear Error:", error);
+    }
+}
 
 // =====================================
 // Update Home Statistics
@@ -48,7 +133,9 @@ function updateHomeStatistics(reports) {
     const total = reports.length;
 
     const pending = reports.filter(function (report) {
-        return String(report.Status || "").trim().toLowerCase() === "pending";
+        return String(report.Status || "")
+            .trim()
+            .toLowerCase() === "pending";
     }).length;
 
     const progress = reports.filter(function (report) {
@@ -56,7 +143,8 @@ function updateHomeStatistics(reports) {
 
         return (
             status === "কাজ চলছে" ||
-            status.toLowerCase() === "in progress"
+            status.toLowerCase() === "in progress" ||
+            status.toLowerCase() === "progress"
         );
     }).length;
 
@@ -65,10 +153,10 @@ function updateHomeStatistics(reports) {
 
         return (
             status === "সমাধান হয়েছে" ||
+            status === "সমাধান হয়েছে" ||
             status.toLowerCase() === "solved"
         );
     }).length;
-
 
     // =====================================
     // Animate Numbers
@@ -79,7 +167,6 @@ function updateHomeStatistics(reports) {
     animateNumber(progressReports, progress);
     animateNumber(solvedReports, solved);
 }
-
 
 // =====================================
 // Number Animation
@@ -121,7 +208,6 @@ function animateNumber(element, target) {
 
     requestAnimationFrame(update);
 }
-
 
 // =====================================
 // Start Home Statistics
