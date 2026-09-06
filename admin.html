@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — আমাদের এলাকা</title>
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+
+<!-- Sidebar -->
+<aside class="admin-sidebar">
+<div class="admin-logo">
+<span>🏘️</span>
+<div>
+<strong>আমাদের এলাকা</strong>
+<small>Admin Panel</small>
+</div>
+</div>
+
+<nav class="admin-nav">
+<button class="admin-nav-item active" data-section="overview">
+<span>📊</span>
+<span>ড্যাশবোর্ড</span>
+</button>
+<button class="admin-nav-item" data-section="reports">
+<span>📋</span>
+<span>রিপোর্টসমূহ</span>
+</button>
+<button class="admin-nav-item" data-section="categories">
+<span>🏷️</span>
+<span>ক্যাটাগরি</span>
+</button>
+</nav>
+
+<div class="sidebar-bottom">
+<a href="index.html">← ওয়েবসাইটে ফিরে যান</a>
+</div>
+</aside>
+
+<!-- Main -->
+<main class="admin-main">
+
+<header class="admin-topbar">
+<div>
+<h1 id="pageTitle">ড্যাশবোর্ড</h1>
+<p id="pageSubtitle">আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন</p>
+</div>
+
+<div class="admin-user">
+<span class="admin-user-icon">👤</span>
+<div>
+<strong>Administrator</strong>
+<small>Admin</small>
+</div>
+</div>
+</header>
+
+<!-- Overview -->
+<section id="overviewSection" class="admin-section active">
+
+<div class="admin-stats-grid">
+
+<div class="admin-stat-card">
+<div class="admin-stat-icon">📋</div>
+<div>
+<span>মোট রিপোর্ট</span>
+<strong id="adminTotalReports">0</strong>
+</div>
+</div>
+
+<div class="admin-stat-card">
+<div class="admin-stat-icon">⏳</div>
+<div>
+<span>Pending</span>
+<strong id="adminPendingReports">0</strong>
+</div>
+</div>
+
+<div class="admin-stat-card">
+<div class="admin-stat-icon">🔧</div>
+<div>
+<span>কাজ চলছে</span>
+<strong id="adminProgressReports">0</strong>
+</div>
+</div>
+
+<div class="admin-stat-card">
+<div class="admin-stat-icon">✅</div>
+<div>
+<span>সমাধান হয়েছে</span>
+<strong id="adminSolvedReports">0</strong>
+</div>
+</div>
+
+</div>
+
+<div class="admin-card">
+<div class="admin-card-header">
+<div>
+<h2>সাম্প্রতিক রিপোর্ট</h2>
+<p>সর্বশেষ জমা দেওয়া রিপোর্টগুলো</p>
+</div>
+<button class="admin-btn admin-btn-primary" data-section-target="reports">
+সব রিপোর্ট দেখুন
+</button>
+</div>
+
+<div id="recentReports" class="recent-reports">
+<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>
+</div>
+</div>
+
+</section>
+
+<!-- Reports -->
+<section id="reportsSection" class="admin-section">
+
+<div class="admin-card">
+
+<div class="admin-card-header">
+<div>
+<h2>রিপোর্ট ব্যবস্থাপনা</h2>
+<p>রিপোর্ট দেখুন, সম্পাদনা করুন এবং কাজের স্ট্যাটাস পরিবর্তন করুন</p>
+</div>
+
+<button id="refreshReportsBtn" class="admin-btn admin-btn-secondary">
+↻ রিফ্রেশ
+</button>
+</div>
+
+<div class="admin-filters">
+
+<div class="admin-search">
+<input
+type="text"
+id="adminReportSearch"
+placeholder="রিপোর্ট ID, এলাকা বা বর্ণনা দিয়ে খুঁজুন..."
+>
+</div>
+
+<select id="adminStatusFilter">
+<option value="">সব স্ট্যাটাস</option>
+<option value="Pending">Pending</option>
+<option value="কাজ চলছে">কাজ চলছে</option>
+<option value="সমাধান হয়েছে">সমাধান হয়েছে</option>
+</select>
+
+<select id="adminCategoryFilter">
+<option value="">সব ক্যাটাগরি</option>
+</select>
+
+<select id="adminDivisionFilter">
+<option value="">সব বিভাগ</option>
+</select>
+
+<button id="resetAdminFilters" class="admin-btn admin-btn-secondary">
+Reset
+</button>
+
+</div>
+
+<div id="adminReportsTable" class="admin-reports-table">
+<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>
+</div>
+
+</div>
+
+</section>
+
+<!-- Categories -->
+<section id="categoriesSection" class="admin-section">
+
+<div class="admin-card">
+
+<div class="admin-card-header">
+<div>
+<h2>ক্যাটাগরি ব্যবস্থাপনা</h2>
+<p>রিপোর্টের সমস্যা/ইস্যু ক্যাটাগরি যোগ, সম্পাদনা ও মুছে ফেলুন</p>
+</div>
+
+<button id="addCategoryBtn" class="admin-btn admin-btn-primary">
+＋ নতুন ক্যাটাগরি
+</button>
+</div>
+
+<div id="categoriesList" class="categories-admin-list">
+<div class="admin-loading">ক্যাটাগরি লোড হচ্ছে...</div>
+</div>
+
+</div>
+
+</section>
+
+</main>
+</div>
+
+<!-- Report Edit Modal -->
+<div id="reportEditModal" class="admin-modal">
+<div class="admin-modal-overlay"></div>
+
+<div class="admin-modal-box">
+
+<div class="admin-modal-header">
+<div>
+<h2>রিপোর্ট সম্পাদনা</h2>
+<p>রিপোর্টের তথ্য ও কাজের অবস্থা পরিবর্তন করুন</p>
+</div>
+
+<button class="admin-modal-close" id="closeReportModal">
+×
+</button>
+</div>
+
+<form id="reportEditForm">
+
+<input type="hidden" id="editReportId">
+
+<div class="admin-form-grid">
+
+<div class="admin-form-group">
+<label>রিপোর্ট ID</label>
+<input type="text" id="editId" readonly>
+</div>
+
+<div class="admin-form-group">
+<label>স্ট্যাটাস</label>
+<select id="editStatus">
+<option value="Pending">Pending</option>
+<option value="কাজ চলছে">কাজ চলছে</option>
+<option value="সমাধান হয়েছে">সমাধান হয়েছে</option>
+</select>
+</div>
+
+<div class="admin-form-group">
+<label>বিভাগ</label>
+<input type="text" id="editDivision">
+</div>
+
+<div class="admin-form-group">
+<label>জেলা</label>
+<input type="text" id="editDistrict">
+</div>
+
+<div class="admin-form-group">
+<label>উপজেলা</label>
+<input type="text" id="editUpazila">
+</div>
+
+<div class="admin-form-group">
+<label>এলাকা</label>
+<input type="text" id="editArea">
+</div>
+
+<div class="admin-form-group">
+<label>ওয়ার্ড</label>
+<input type="text" id="editWard">
+</div>
+
+<div class="admin-form-group">
+<label>ক্যাটাগরি</label>
+<select id="editCategory"></select>
+</div>
+
+</div>
+
+<div class="admin-form-group">
+<label>সমস্যার বিবরণ</label>
+<textarea id="editDescription" rows="5"></textarea>
+</div>
+
+<div class="admin-form-group">
+<label>Admin Note</label>
+<textarea
+id="editAdminNote"
+rows="4"
+placeholder="প্রয়োজনে প্রশাসনের নোট লিখুন..."
+></textarea>
+</div>
+
+<div class="admin-modal-actions">
+<button type="button" class="admin-btn admin-btn-secondary" id="cancelReportEdit">
+বাতিল
+</button>
+
+<button type="submit" class="admin-btn admin-btn-primary" id="saveReportBtn">
+পরিবর্তন সংরক্ষণ
+</button>
+</div>
+
+</form>
+
+</div>
+</div>
+
+<!-- Category Modal -->
+<div id="categoryModal" class="admin-modal">
+<div class="admin-modal-overlay"></div>
+
+<div class="admin-modal-box admin-small-modal">
+
+<div class="admin-modal-header">
+<div>
+<h2 id="categoryModalTitle">নতুন ক্যাটাগরি</h2>
+<p>ক্যাটাগরির নাম লিখুন</p>
+</div>
+
+<button class="admin-modal-close" id="closeCategoryModal">
+×
+</button>
+</div>
+
+<form id="categoryForm">
+
+<input type="hidden" id="editCategoryIndex">
+
+<div class="admin-form-group">
+<label>ক্যাটাগরির নাম</label>
+<input
+type="text"
+id="categoryName"
+placeholder="যেমন: রাস্তা ভাঙা"
+required
+>
+</div>
+
+<div class="admin-form-group">
+<label>আইকন / Emoji</label>
+<input
+type="text"
+id="categoryIcon"
+placeholder="🛣️"
+maxlength="4"
+>
+</div>
+
+<div class="admin-modal-actions">
+
+<button
+type="button"
+class="admin-btn admin-btn-secondary"
+id="cancelCategory"
+>
+বাতিল
+</button>
+
+<button
+type="submit"
+class="admin-btn admin-btn-primary"
+>
+সংরক্ষণ
+</button>
+
+</div>
+
+</form>
+
+</div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
