@@ -1,5 +1,5 @@
- const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
-const CATEGORY_SHEET = "Categories";
+const REPORT_TABLE = "Reports";
+const CATEGORY_TABLE = "Categories";
 
 const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
 const REPORT_CACHE_TIME = 60 * 1000;
@@ -209,13 +209,15 @@ async function loadReports(forceRefresh = false) {
     }
 
     try {
-        const response = await fetch(API_URL);
+        const { data, error } =
+            await supabaseClient
+                .from(REPORT_TABLE)
+                .select("*")
+                .order("Date", { ascending: true });
 
-        if (!response.ok) {
-            throw new Error("Report API failed");
+        if (error) {
+            throw error;
         }
-
-        const data = await response.json();
 
         allReports = Array.isArray(data) ? data : [];
 
@@ -227,7 +229,7 @@ async function loadReports(forceRefresh = false) {
         displayRecentReports();
 
     } catch (error) {
-        console.error(error);
+        console.error("Report loading error:", error);
 
         const oldReports = getCachedReports(true);
 
@@ -811,21 +813,14 @@ async function saveReportChanges(event) {
     };
 
     try {
-        const response = await fetch(
-            `${API_URL}/ID/${encodeURIComponent(id)}`,
-            {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    data: updatedData
-                })
-            }
-        );
+        const { error } =
+            await supabaseClient
+                .from(REPORT_TABLE)
+                .update(updatedData)
+                .eq("ID", id);
 
-        if (!response.ok) {
-            throw new Error("Report update failed");
+        if (error) {
+            throw error;
         }
 
         clearReportCache();
@@ -841,11 +836,12 @@ async function saveReportChanges(event) {
         await loadReports(true);
 
     } catch (error) {
-        console.error(error);
+        console.error("Report update error:", error);
 
         showAdminMessage(
             "সমস্যা হয়েছে",
-            "রিপোর্ট আপডেট করা যায়নি।",
+            error.message ||
+                "রিপোর্ট আপডেট করা যায়নি।",
             "error"
         );
     } finally {
@@ -886,23 +882,19 @@ async function loadCategories(forceRefresh = false) {
     }
 
     try {
-        const response = await fetch(
-            `${API_URL}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`
-        );
+        const { data, error } =
+            await supabaseClient
+                .from(CATEGORY_TABLE)
+                .select("ID, Name, Icon, Active")
+                .eq("Active", true)
+                .order("ID", { ascending: true });
 
-        if (!response.ok) {
-            throw new Error("Category API failed");
+        if (error) {
+            throw error;
         }
 
-        const data = await response.json();
-
         categories = Array.isArray(data)
-            ? data.filter(
-                item =>
-                    String(item.Active || "")
-                        .trim()
-                        .toLowerCase() === "true"
-            )
+            ? data
             : [];
 
         saveCachedCategories(categories);
@@ -928,7 +920,7 @@ async function loadCategories(forceRefresh = false) {
 
         showAdminMessage(
             "সমস্যা",
-            "Categories sheet লোড করা যায়নি।",
+            "Categories লোড করা যায়নি।",
             "error"
         );
     }
@@ -1194,43 +1186,21 @@ async function saveCategory(event) {
 async function createCategory(name, icon) {
     const id = generateCategoryID();
 
-    const response = await fetch(
-        `${API_URL}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                data: [
-                    {
-                        ID: id,
-                        Name: name,
-                        Icon: icon,
-                        Active: "TRUE"
-                    }
-                ]
-            })
-        }
-    );
+    const { error } =
+        await supabaseClient
+            .from(CATEGORY_TABLE)
+            .insert({
+                ID: id,
+                Name: name,
+                Icon: icon,
+                Active: true
+            });
 
-    if (!response.ok) {
-        let errorMessage =
-            "নতুন category SheetDB-তে save করা যায়নি।";
-
-        try {
-            const errorData =
-                await response.json();
-
-            if (errorData?.error) {
-                errorMessage =
-                    errorData.error;
-            }
-        } catch (error) {
-            console.error(error);
-        }
-
-        throw new Error(errorMessage);
+    if (error) {
+        throw new Error(
+            error.message ||
+            "নতুন category Supabase-এ save করা যায়নি।"
+        );
     }
 }
 
@@ -1275,49 +1245,35 @@ async function updateCategory(
     const oldName = category.Name;
     const id = category.ID;
 
-    const response = await fetch(
-        `${API_URL}/ID/${encodeURIComponent(id)}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`,
-        {
-            method: "PATCH",
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-            body: JSON.stringify({
-                data: {
-                    Name: newName,
-                    Icon: newIcon,
-                    Active: "TRUE"
-                }
+    const { error } =
+        await supabaseClient
+            .from(CATEGORY_TABLE)
+            .update({
+                Name: newName,
+                Icon: newIcon,
+                Active: true
             })
-        }
-    );
+            .eq("ID", id);
 
-    if (!response.ok) {
+    if (error) {
         throw new Error(
+            error.message ||
             "Category update করা যায়নি।"
         );
     }
 
     if (oldName !== newName) {
-        const reportResponse = await fetch(
-            `${API_URL}/Category/${encodeURIComponent(oldName)}`,
-            {
-                method: "PATCH",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    data: {
-                        Category: newName
-                    }
+        const { error: reportError } =
+            await supabaseClient
+                .from(REPORT_TABLE)
+                .update({
+                    Category: newName
                 })
-            }
-        );
+                .eq("Category", oldName);
 
-        if (!reportResponse.ok) {
+        if (reportError) {
             throw new Error(
+                reportError.message ||
                 "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
             );
         }
@@ -1356,15 +1312,15 @@ async function deleteCategory(index) {
     if (!confirmed) return;
 
     try {
-        const response = await fetch(
-            `${API_URL}/ID/${encodeURIComponent(category.ID)}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`,
-            {
-                method: "DELETE"
-            }
-        );
+        const { error } =
+            await supabaseClient
+                .from(CATEGORY_TABLE)
+                .delete()
+                .eq("ID", category.ID);
 
-        if (!response.ok) {
+        if (error) {
             throw new Error(
+                error.message ||
                 "Category delete করা যায়নি।"
             );
         }
@@ -1462,4 +1418,4 @@ function escapeHTML(value) {
 
 function escapeAttribute(value) {
     return escapeHTML(String(value ?? ""));
-        }
+}
