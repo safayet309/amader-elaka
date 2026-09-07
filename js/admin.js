@@ -42,7 +42,7 @@ async function initializeAdminAuth() {
     }
 
     if (data?.session) {
-        showAdminPanel();
+        await showAdminPanel();
     } else {
         showLoginScreen();
     }
@@ -51,6 +51,11 @@ async function initializeAdminAuth() {
         if (session) {
             showAdminPanel();
         } else {
+            adminInitialized = false;
+            allReports = [];
+            categories = [];
+            clearReportCache();
+            clearCategoryCache();
             showLoginScreen();
         }
     });
@@ -95,7 +100,10 @@ async function handleAdminLogin(event) {
         if (emailInput) emailInput.value = "";
         if (passwordInput) passwordInput.value = "";
 
-        showAdminPanel();
+        clearReportCache();
+        clearCategoryCache();
+
+        await showAdminPanel();
 
     } catch (error) {
         console.error("Admin login error:", error);
@@ -127,7 +135,7 @@ function showLoginScreen() {
     }
 }
 
-function showAdminPanel() {
+async function showAdminPanel() {
     const loginScreen =
         document.getElementById("adminLoginScreen");
 
@@ -136,10 +144,18 @@ function showAdminPanel() {
     }
 
     restoreAdminContent();
+    setupLogoutButton();
 
     if (!adminInitialized) {
         adminInitialized = true;
-        initializeAdmin();
+
+        clearReportCache();
+        clearCategoryCache();
+
+        await initializeAdmin(true);
+    } else {
+        await loadCategories(true);
+        await loadReports(true);
     }
 }
 
@@ -168,25 +184,99 @@ function saveAndHideAdminContent() {
 
 function restoreAdminContent() {
     originalBodyDisplays.forEach((display, element) => {
-        if (element && element !== document.getElementById("adminLoginScreen")) {
+        if (
+            element &&
+            element !== document.getElementById("adminLoginScreen")
+        ) {
             element.style.display = display;
         }
     });
 }
 
 /* =========================
+   LOGOUT
+========================= */
+
+function setupLogoutButton() {
+    const userBox =
+        document.querySelector(".admin-user");
+
+    if (!userBox) return;
+
+    let button =
+        document.getElementById("adminLogoutBtn");
+
+    if (button) return;
+
+    button = document.createElement("button");
+
+    button.id = "adminLogoutBtn";
+    button.type = "button";
+    button.textContent = "Logout";
+
+    button.style.marginLeft = "12px";
+    button.style.padding = "8px 12px";
+    button.style.border = "1px solid #d1d5db";
+    button.style.borderRadius = "8px";
+    button.style.background = "#fff";
+    button.style.color = "#374151";
+    button.style.fontSize = "13px";
+    button.style.fontWeight = "600";
+    button.style.cursor = "pointer";
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        button.textContent = "Logging out...";
+
+        try {
+            const { error } =
+                await supabaseClient.auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            allReports = [];
+            categories = [];
+            adminInitialized = false;
+
+            clearReportCache();
+            clearCategoryCache();
+
+        } catch (error) {
+            console.error("Logout error:", error);
+
+            button.disabled = false;
+            button.textContent = "Logout";
+
+            showAdminMessage(
+                "সমস্যা হয়েছে",
+                error.message || "Logout করা যায়নি।",
+                "error"
+            );
+        }
+    });
+
+    userBox.appendChild(button);
+}
+
+/* =========================
    ADMIN INITIALIZE
 ========================= */
 
-async function initializeAdmin() {
+async function initializeAdmin(forceRefresh = false) {
     setupNavigation();
     setupReportEvents();
     setupCategoryEvents();
-    await loadCategories();
-    await loadReports();
+
+    await loadCategories(forceRefresh);
+    await loadReports(forceRefresh);
 }
 
-/* NAVIGATION */
+/* =========================
+   NAVIGATION
+========================= */
+
 function setupNavigation() {
     document.querySelectorAll(".admin-nav-item").forEach(item => {
         item.addEventListener("click", () => {
@@ -213,25 +303,35 @@ function switchSection(section) {
         element.classList.remove("active");
     });
 
-    const target = document.getElementById(`${section}Section`);
-    if (target) target.classList.add("active");
+    const target =
+        document.getElementById(`${section}Section`);
 
-    const title = document.getElementById("pageTitle");
-    const subtitle = document.getElementById("pageSubtitle");
+    if (target) {
+        target.classList.add("active");
+    }
+
+    const title =
+        document.getElementById("pageTitle");
+
+    const subtitle =
+        document.getElementById("pageSubtitle");
 
     if (section === "overview") {
         title.textContent = "ড্যাশবোর্ড";
-        subtitle.textContent = "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
+        subtitle.textContent =
+            "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
     }
 
     if (section === "reports") {
         title.textContent = "রিপোর্টসমূহ";
-        subtitle.textContent = "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
+        subtitle.textContent =
+            "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
     }
 
     if (section === "categories") {
         title.textContent = "ক্যাটাগরি";
-        subtitle.textContent = "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
+        subtitle.textContent =
+            "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
     }
 }
 
@@ -241,7 +341,9 @@ function switchSection(section) {
 
 function getCachedReports(ignoreExpiry = false) {
     try {
-        const cached = localStorage.getItem(REPORT_CACHE_KEY);
+        const cached =
+            localStorage.getItem(REPORT_CACHE_KEY);
+
         if (!cached) return null;
 
         const data = JSON.parse(cached);
@@ -250,17 +352,28 @@ function getCachedReports(ignoreExpiry = false) {
             !data ||
             !Array.isArray(data.reports) ||
             !data.time
-        ) return null;
+        ) {
+            return null;
+        }
 
-        const age = Date.now() - Number(data.time);
+        const age =
+            Date.now() - Number(data.time);
 
-        if (!ignoreExpiry && age > REPORT_CACHE_TIME) {
+        if (
+            !ignoreExpiry &&
+            age > REPORT_CACHE_TIME
+        ) {
             return null;
         }
 
         return data.reports;
+
     } catch (error) {
-        console.error("Report Cache Read Error:", error);
+        console.error(
+            "Report Cache Read Error:",
+            error
+        );
+
         return null;
     }
 }
@@ -275,15 +388,23 @@ function saveCachedReports(reports) {
             })
         );
     } catch (error) {
-        console.error("Report Cache Save Error:", error);
+        console.error(
+            "Report Cache Save Error:",
+            error
+        );
     }
 }
 
 function clearReportCache() {
     try {
-        localStorage.removeItem(REPORT_CACHE_KEY);
+        localStorage.removeItem(
+            REPORT_CACHE_KEY
+        );
     } catch (error) {
-        console.error("Report Cache Clear Error:", error);
+        console.error(
+            "Report Cache Clear Error:",
+            error
+        );
     }
 }
 
@@ -293,7 +414,11 @@ function clearReportCache() {
 
 function getCachedCategories(ignoreExpiry = false) {
     try {
-        const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+        const cached =
+            localStorage.getItem(
+                CATEGORY_CACHE_KEY
+            );
+
         if (!cached) return null;
 
         const data = JSON.parse(cached);
@@ -302,17 +427,28 @@ function getCachedCategories(ignoreExpiry = false) {
             !data ||
             !Array.isArray(data.categories) ||
             !data.time
-        ) return null;
+        ) {
+            return null;
+        }
 
-        const age = Date.now() - Number(data.time);
+        const age =
+            Date.now() - Number(data.time);
 
-        if (!ignoreExpiry && age > CATEGORY_CACHE_TIME) {
+        if (
+            !ignoreExpiry &&
+            age > CATEGORY_CACHE_TIME
+        ) {
             return null;
         }
 
         return data.categories;
+
     } catch (error) {
-        console.error("Category Cache Read Error:", error);
+        console.error(
+            "Category Cache Read Error:",
+            error
+        );
+
         return null;
     }
 }
@@ -327,15 +463,23 @@ function saveCachedCategories(data) {
             })
         );
     } catch (error) {
-        console.error("Category Cache Save Error:", error);
+        console.error(
+            "Category Cache Save Error:",
+            error
+        );
     }
 }
 
 function clearCategoryCache() {
     try {
-        localStorage.removeItem(CATEGORY_CACHE_KEY);
+        localStorage.removeItem(
+            CATEGORY_CACHE_KEY
+        );
     } catch (error) {
-        console.error("Category Cache Clear Error:", error);
+        console.error(
+            "Category Cache Clear Error:",
+            error
+        );
     }
 }
 
@@ -344,18 +488,31 @@ function clearCategoryCache() {
 ========================= */
 
 async function loadReports(forceRefresh = false) {
-    const table = document.getElementById("adminReportsTable");
-    const recent = document.getElementById("recentReports");
+    const table =
+        document.getElementById(
+            "adminReportsTable"
+        );
+
+    const recent =
+        document.getElementById(
+            "recentReports"
+        );
 
     if (!forceRefresh) {
-        const cachedReports = getCachedReports();
+        const cachedReports =
+            getCachedReports();
 
-        if (cachedReports) {
+        if (
+            Array.isArray(cachedReports) &&
+            cachedReports.length > 0
+        ) {
             allReports = cachedReports;
+
             updateStatistics();
             createFilterOptions();
             displayReports(allReports);
             displayRecentReports();
+
             return;
         }
     }
@@ -375,13 +532,18 @@ async function loadReports(forceRefresh = false) {
             await supabaseClient
                 .from(REPORT_TABLE)
                 .select("*")
-                .order("Date", { ascending: true });
+                .order("Date", {
+                    ascending: true
+                });
 
         if (error) {
             throw error;
         }
 
-        allReports = Array.isArray(data) ? data : [];
+        allReports =
+            Array.isArray(data)
+                ? data
+                : [];
 
         saveCachedReports(allReports);
 
@@ -391,20 +553,30 @@ async function loadReports(forceRefresh = false) {
         displayRecentReports();
 
     } catch (error) {
-        console.error("Report loading error:", error);
+        console.error(
+            "Report loading error:",
+            error
+        );
 
-        const oldReports = getCachedReports(true);
+        const oldReports =
+            getCachedReports(true);
 
-        if (oldReports) {
+        if (
+            Array.isArray(oldReports) &&
+            oldReports.length > 0
+        ) {
             allReports = oldReports;
+
             updateStatistics();
             createFilterOptions();
             displayReports(allReports);
             displayRecentReports();
+
             return;
         }
 
         allReports = [];
+
         updateStatistics();
 
         if (table) {
@@ -419,39 +591,81 @@ async function loadReports(forceRefresh = false) {
     }
 }
 
-/* REPORT STATISTICS */
+/* =========================
+   REPORT STATISTICS
+========================= */
+
 function updateStatistics() {
-    const total = allReports.length;
+    const total =
+        allReports.length;
 
-    const pending = allReports.filter(
-        report => normalizeStatus(report.Status) === "pending"
-    ).length;
+    const pending =
+        allReports.filter(
+            report =>
+                normalizeStatus(
+                    report.Status
+                ) === "pending"
+        ).length;
 
-    const progress = allReports.filter(
-        report => normalizeStatus(report.Status) === "progress"
-    ).length;
+    const progress =
+        allReports.filter(
+            report =>
+                normalizeStatus(
+                    report.Status
+                ) === "progress"
+        ).length;
 
-    const solved = allReports.filter(
-        report => normalizeStatus(report.Status) === "solved"
-    ).length;
+    const solved =
+        allReports.filter(
+            report =>
+                normalizeStatus(
+                    report.Status
+                ) === "solved"
+        ).length;
 
-    setNumber("adminTotalReports", total);
-    setNumber("adminPendingReports", pending);
-    setNumber("adminProgressReports", progress);
-    setNumber("adminSolvedReports", solved);
+    setNumber(
+        "adminTotalReports",
+        total
+    );
+
+    setNumber(
+        "adminPendingReports",
+        pending
+    );
+
+    setNumber(
+        "adminProgressReports",
+        progress
+    );
+
+    setNumber(
+        "adminSolvedReports",
+        solved
+    );
 }
 
 function setNumber(id, value) {
-    const element = document.getElementById(id);
+    const element =
+        document.getElementById(id);
+
     if (!element) return;
+
     element.textContent = value;
 }
 
-/* STATUS */
-function normalizeStatus(status) {
-    const value = String(status || "").trim().toLowerCase();
+/* =========================
+   STATUS
+========================= */
 
-    if (value === "pending") return "pending";
+function normalizeStatus(status) {
+    const value =
+        String(status || "")
+            .trim()
+            .toLowerCase();
+
+    if (value === "pending") {
+        return "pending";
+    }
 
     if (
         value === "কাজ চলছে" ||
@@ -473,58 +687,98 @@ function normalizeStatus(status) {
 }
 
 function statusLabel(status) {
-    const type = normalizeStatus(status);
+    const type =
+        normalizeStatus(status);
 
-    if (type === "pending") return "Pending";
-    if (type === "progress") return "কাজ চলছে";
-    if (type === "solved") return "সমাধান হয়েছে";
+    if (type === "pending") {
+        return "Pending";
+    }
+
+    if (type === "progress") {
+        return "কাজ চলছে";
+    }
+
+    if (type === "solved") {
+        return "সমাধান হয়েছে";
+    }
 
     return status || "Unknown";
 }
 
 function statusClass(status) {
-    const type = normalizeStatus(status);
+    const type =
+        normalizeStatus(status);
 
-    if (type === "pending") return "status-pending";
-    if (type === "progress") return "status-progress";
-    if (type === "solved") return "status-solved";
+    if (type === "pending") {
+        return "status-pending";
+    }
+
+    if (type === "progress") {
+        return "status-progress";
+    }
+
+    if (type === "solved") {
+        return "status-solved";
+    }
 
     return "status-default";
 }
 
-/* FILTERS */
+/* =========================
+   FILTERS
+========================= */
+
 function createFilterOptions() {
     const categorySelect =
-        document.getElementById("adminCategoryFilter");
+        document.getElementById(
+            "adminCategoryFilter"
+        );
 
     const divisionSelect =
-        document.getElementById("adminDivisionFilter");
+        document.getElementById(
+            "adminDivisionFilter"
+        );
 
     if (categorySelect) {
-        const currentValue = categorySelect.value;
+        const currentValue =
+            categorySelect.value;
 
         categorySelect.innerHTML =
             '<option value="">সব ক্যাটাগরি</option>';
 
         categories.forEach(category => {
-            const option = document.createElement("option");
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-            option.value = category.Name;
-            option.textContent = category.Name;
+            option.value =
+                category.Name;
 
-            categorySelect.appendChild(option);
+            option.textContent =
+                category.Name;
+
+            categorySelect.appendChild(
+                option
+            );
         });
 
         if (
             [...categorySelect.options]
-                .some(option => option.value === currentValue)
+                .some(
+                    option =>
+                        option.value ===
+                        currentValue
+                )
         ) {
-            categorySelect.value = currentValue;
+            categorySelect.value =
+                currentValue;
         }
     }
 
     if (divisionSelect) {
-        const currentValue = divisionSelect.value;
+        const currentValue =
+            divisionSelect.value;
 
         divisionSelect.innerHTML =
             '<option value="">সব বিভাগ</option>';
@@ -532,146 +786,246 @@ function createFilterOptions() {
         const divisions = [
             ...new Set(
                 allReports
-                    .map(report =>
-                        String(report.Division || "").trim()
+                    .map(
+                        report =>
+                            String(
+                                report.Division ||
+                                ""
+                            ).trim()
                     )
                     .filter(Boolean)
             )
         ];
 
         divisions.forEach(division => {
-            const option = document.createElement("option");
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-            option.value = division;
-            option.textContent = division;
+            option.value =
+                division;
 
-            divisionSelect.appendChild(option);
+            option.textContent =
+                division;
+
+            divisionSelect.appendChild(
+                option
+            );
         });
 
         if (
             [...divisionSelect.options]
-                .some(option => option.value === currentValue)
+                .some(
+                    option =>
+                        option.value ===
+                        currentValue
+                )
         ) {
-            divisionSelect.value = currentValue;
+            divisionSelect.value =
+                currentValue;
         }
     }
 }
 
 function setupReportEvents() {
     const search =
-        document.getElementById("adminReportSearch");
+        document.getElementById(
+            "adminReportSearch"
+        );
 
     const status =
-        document.getElementById("adminStatusFilter");
+        document.getElementById(
+            "adminStatusFilter"
+        );
 
     const category =
-        document.getElementById("adminCategoryFilter");
+        document.getElementById(
+            "adminCategoryFilter"
+        );
 
     const division =
-        document.getElementById("adminDivisionFilter");
+        document.getElementById(
+            "adminDivisionFilter"
+        );
 
     const reset =
-        document.getElementById("resetAdminFilters");
+        document.getElementById(
+            "resetAdminFilters"
+        );
 
     const refresh =
-        document.getElementById("refreshReportsBtn");
+        document.getElementById(
+            "refreshReportsBtn"
+        );
 
     if (search) {
-        search.addEventListener("input", applyReportFilters);
+        search.addEventListener(
+            "input",
+            applyReportFilters
+        );
     }
 
     if (status) {
-        status.addEventListener("change", applyReportFilters);
+        status.addEventListener(
+            "change",
+            applyReportFilters
+        );
     }
 
     if (category) {
-        category.addEventListener("change", applyReportFilters);
+        category.addEventListener(
+            "change",
+            applyReportFilters
+        );
     }
 
     if (division) {
-        division.addEventListener("change", applyReportFilters);
+        division.addEventListener(
+            "change",
+            applyReportFilters
+        );
     }
 
     if (reset) {
-        reset.addEventListener("click", () => {
-            if (search) search.value = "";
-            if (status) status.value = "";
-            if (category) category.value = "";
-            if (division) division.value = "";
+        reset.addEventListener(
+            "click",
+            () => {
+                if (search) {
+                    search.value = "";
+                }
 
-            displayReports(allReports);
-        });
+                if (status) {
+                    status.value = "";
+                }
+
+                if (category) {
+                    category.value = "";
+                }
+
+                if (division) {
+                    division.value = "";
+                }
+
+                displayReports(
+                    allReports
+                );
+            }
+        );
     }
 
     if (refresh) {
-        refresh.addEventListener("click", async () => {
-            refresh.disabled = true;
+        refresh.addEventListener(
+            "click",
+            async () => {
+                refresh.disabled = true;
 
-            const oldText = refresh.textContent;
-            refresh.textContent = "লোড হচ্ছে...";
+                const oldText =
+                    refresh.textContent;
 
-            try {
-                clearReportCache();
-                clearCategoryCache();
+                refresh.textContent =
+                    "লোড হচ্ছে...";
 
-                await loadCategories(true);
-                await loadReports(true);
-            } finally {
-                refresh.disabled = false;
-                refresh.textContent = oldText;
+                try {
+                    clearReportCache();
+                    clearCategoryCache();
+
+                    await loadCategories(true);
+                    await loadReports(true);
+
+                } finally {
+                    refresh.disabled = false;
+                    refresh.textContent =
+                        oldText;
+                }
             }
-        });
+        );
     }
 }
 
 function applyReportFilters() {
-    const search = String(
-        document.getElementById("adminReportSearch")?.value || ""
-    ).trim().toLowerCase();
+    const search =
+        String(
+            document.getElementById(
+                "adminReportSearch"
+            )?.value || ""
+        )
+            .trim()
+            .toLowerCase();
 
     const status =
-        document.getElementById("adminStatusFilter")?.value || "";
+        document.getElementById(
+            "adminStatusFilter"
+        )?.value || "";
 
     const category =
-        document.getElementById("adminCategoryFilter")?.value || "";
+        document.getElementById(
+            "adminCategoryFilter"
+        )?.value || "";
 
     const division =
-        document.getElementById("adminDivisionFilter")?.value || "";
+        document.getElementById(
+            "adminDivisionFilter"
+        )?.value || "";
 
-    const filtered = allReports.filter(report => {
-        const searchable = [
-            report.ID,
-            report.Area,
-            report.Description,
-            report.District,
-            report.Upazila,
-            report.Division,
-            report.Category,
-            report.Ward,
-            report.AdminNote
-        ]
-            .map(value => String(value || "").toLowerCase())
-            .join(" ");
+    const filtered =
+        allReports.filter(report => {
+            const searchable = [
+                report.ID,
+                report.Area,
+                report.Description,
+                report.District,
+                report.Upazila,
+                report.Division,
+                report.Category,
+                report.Ward,
+                report.AdminNote
+            ]
+                .map(
+                    value =>
+                        String(
+                            value || ""
+                        ).toLowerCase()
+                )
+                .join(" ");
 
-        return (
-            (!search || searchable.includes(search)) &&
-            (!status ||
-                normalizeStatus(report.Status) ===
-                normalizeStatus(status)) &&
-            (!category ||
-                String(report.Category || "") === category) &&
-            (!division ||
-                String(report.Division || "") === division)
-        );
-    });
+            return (
+                (!search ||
+                    searchable.includes(
+                        search
+                    )) &&
+                (!status ||
+                    normalizeStatus(
+                        report.Status
+                    ) ===
+                    normalizeStatus(
+                        status
+                    )) &&
+                (!category ||
+                    String(
+                        report.Category ||
+                        ""
+                    ) === category) &&
+                (!division ||
+                    String(
+                        report.Division ||
+                        ""
+                    ) === division)
+            );
+        });
 
     displayReports(filtered);
 }
 
-/* DISPLAY REPORTS */
+/* =========================
+   DISPLAY REPORTS
+========================= */
+
 function displayReports(reports) {
     const container =
-        document.getElementById("adminReportsTable");
+        document.getElementById(
+            "adminReportsTable"
+        );
 
     if (!container) return;
 
@@ -682,6 +1036,7 @@ function displayReports(reports) {
                 কোনো রিপোর্ট পাওয়া যায়নি।
             </div>
         `;
+
         return;
     }
 
@@ -700,36 +1055,71 @@ function displayReports(reports) {
         html += `
             <div class="admin-report-row">
                 <div class="admin-report-cell">
-                    <strong>${safe(report.ID || "N/A")}</strong>
-                    <small>${safe(report.Description || "কোনো বিবরণ নেই")}</small>
+                    <strong>${safe(
+                        report.ID ||
+                        "N/A"
+                    )}</strong>
+
+                    <small>${safe(
+                        report.Description ||
+                        "কোনো বিবরণ নেই"
+                    )}</small>
                 </div>
 
                 <div class="admin-report-cell">
-                    <strong>${safe(report.Area || "—")}</strong>
+                    <strong>${safe(
+                        report.Area ||
+                        "—"
+                    )}</strong>
+
                     <small>
-                        ${safe(report.District || "")}
-                        ${report.Division ? " • " + safe(report.Division) : ""}
+                        ${safe(
+                            report.District ||
+                            ""
+                        )}
+                        ${
+                            report.Division
+                                ? " • " +
+                                  safe(
+                                      report.Division
+                                  )
+                                : ""
+                        }
                     </small>
                 </div>
 
                 <div class="admin-report-cell">
-                    <strong>${safe(report.Category || "—")}</strong>
+                    <strong>${safe(
+                        report.Category ||
+                        "—"
+                    )}</strong>
                 </div>
 
                 <div class="admin-report-cell">
-                    <span class="status-badge ${statusClass(report.Status)}">
-                        ${safe(statusLabel(report.Status))}
+                    <span class="status-badge ${statusClass(
+                        report.Status
+                    )}">
+                        ${safe(
+                            statusLabel(
+                                report.Status
+                            )
+                        )}
                     </span>
                 </div>
 
                 <div class="admin-report-cell">
-                    <strong>${safe(report.Date || "—")}</strong>
+                    <strong>${safe(
+                        report.Date ||
+                        "—"
+                    )}</strong>
                 </div>
 
                 <div class="admin-report-actions">
                     <button
                         class="admin-btn admin-btn-secondary edit-report-btn"
-                        data-id="${escapeAttribute(report.ID)}"
+                        data-id="${escapeAttribute(
+                            report.ID
+                        )}"
                     >
                         ✏️
                     </button>
@@ -741,162 +1131,265 @@ function displayReports(reports) {
     container.innerHTML = html;
 
     container
-        .querySelectorAll(".edit-report-btn")
+        .querySelectorAll(
+            ".edit-report-btn"
+        )
         .forEach(button => {
-            button.addEventListener("click", () => {
-                const report = allReports.find(
-                    item =>
-                        String(item.ID) ===
-                        String(button.dataset.id)
-                );
+            button.addEventListener(
+                "click",
+                () => {
+                    const report =
+                        allReports.find(
+                            item =>
+                                String(
+                                    item.ID
+                                ) ===
+                                String(
+                                    button.dataset
+                                        .id
+                                )
+                        );
 
-                if (report) {
-                    openReportEditModal(report);
+                    if (report) {
+                        openReportEditModal(
+                            report
+                        );
+                    }
                 }
-            });
+            );
         });
 }
 
-/* RECENT REPORTS */
+/* =========================
+   RECENT REPORTS
+========================= */
+
 function displayRecentReports() {
     const container =
-        document.getElementById("recentReports");
+        document.getElementById(
+            "recentReports"
+        );
 
     if (!container) return;
 
     const reports =
-        [...allReports].reverse().slice(0, 5);
+        [...allReports]
+            .reverse()
+            .slice(0, 5);
 
     if (!reports.length) {
         container.innerHTML =
             '<div class="admin-empty">কোনো রিপোর্ট নেই।</div>';
+
         return;
     }
 
-    container.innerHTML = reports
-        .map(
-            report => `
+    container.innerHTML =
+        reports
+            .map(
+                report => `
             <div class="recent-report-item">
                 <div class="recent-report-info">
-                    <strong>${safe(report.Category || "রিপোর্ট")}</strong>
+                    <strong>${safe(
+                        report.Category ||
+                        "রিপোর্ট"
+                    )}</strong>
+
                     <small>
-                        ${safe(report.Area || "লোকেশন নেই")}
-                        ${report.District ? " • " + safe(report.District) : ""}
+                        ${safe(
+                            report.Area ||
+                            "লোকেশন নেই"
+                        )}
+                        ${
+                            report.District
+                                ? " • " +
+                                  safe(
+                                      report.District
+                                  )
+                                : ""
+                        }
                     </small>
                 </div>
 
-                <span class="status-badge ${statusClass(report.Status)}">
-                    ${safe(statusLabel(report.Status))}
+                <span class="status-badge ${statusClass(
+                    report.Status
+                )}">
+                    ${safe(
+                        statusLabel(
+                            report.Status
+                        )
+                    )}
                 </span>
             </div>
         `
-        )
-        .join("");
+            )
+            .join("");
 }
 
-/* REPORT EDIT */
+/* =========================
+   REPORT EDIT
+========================= */
+
 function openReportEditModal(report) {
     editingReport = report;
 
     const modal =
-        document.getElementById("reportEditModal");
+        document.getElementById(
+            "reportEditModal"
+        );
 
     if (!modal) return;
 
-    document.getElementById("editReportId").value =
+    document.getElementById(
+        "editReportId"
+    ).value =
         report.ID || "";
 
-    document.getElementById("editId").value =
+    document.getElementById(
+        "editId"
+    ).value =
         report.ID || "";
 
     const statusType =
-        normalizeStatus(report.Status);
+        normalizeStatus(
+            report.Status
+        );
 
-    document.getElementById("editStatus").value =
+    document.getElementById(
+        "editStatus"
+    ).value =
         statusType === "progress"
             ? "কাজ চলছে"
             : statusType === "solved"
             ? "সমাধান হয়েছে"
             : "Pending";
 
-    document.getElementById("editDivision").value =
+    document.getElementById(
+        "editDivision"
+    ).value =
         report.Division || "";
 
-    document.getElementById("editDistrict").value =
+    document.getElementById(
+        "editDistrict"
+    ).value =
         report.District || "";
 
-    document.getElementById("editUpazila").value =
+    document.getElementById(
+        "editUpazila"
+    ).value =
         report.Upazila || "";
 
-    document.getElementById("editArea").value =
+    document.getElementById(
+        "editArea"
+    ).value =
         report.Area || "";
 
-    document.getElementById("editWard").value =
+    document.getElementById(
+        "editWard"
+    ).value =
         report.Ward || "";
 
-    document.getElementById("editDescription").value =
+    document.getElementById(
+        "editDescription"
+    ).value =
         report.Description || "";
 
-    document.getElementById("editAdminNote").value =
+    document.getElementById(
+        "editAdminNote"
+    ).value =
         report.AdminNote || "";
 
-    populateEditCategory(report.Category);
+    populateEditCategory(
+        report.Category
+    );
 
     modal.classList.add("active");
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+        "hidden";
 }
 
 function populateEditCategory(selected) {
     const select =
-        document.getElementById("editCategory");
+        document.getElementById(
+            "editCategory"
+        );
 
     if (!select) return;
 
     select.innerHTML = "";
 
     categories.forEach(category => {
-        const option = document.createElement("option");
+        const option =
+            document.createElement(
+                "option"
+            );
 
-        option.value = category.Name;
+        option.value =
+            category.Name;
+
         option.textContent =
             `${category.Icon || "📌"} ${category.Name}`;
 
-        if (category.Name === selected) {
+        if (
+            category.Name ===
+            selected
+        ) {
             option.selected = true;
         }
 
-        select.appendChild(option);
+        select.appendChild(
+            option
+        );
     });
 
     if (
         selected &&
         !categories.some(
-            category => category.Name === selected
+            category =>
+                category.Name ===
+                selected
         )
     ) {
         const oldOption =
-            document.createElement("option");
+            document.createElement(
+                "option"
+            );
 
-        oldOption.value = selected;
-        oldOption.textContent = selected;
-        oldOption.selected = true;
+        oldOption.value =
+            selected;
 
-        select.appendChild(oldOption);
+        oldOption.textContent =
+            selected;
+
+        oldOption.selected =
+            true;
+
+        select.appendChild(
+            oldOption
+        );
     }
 }
 
 function setupEditModal() {
     const modal =
-        document.getElementById("reportEditModal");
+        document.getElementById(
+            "reportEditModal"
+        );
 
     const close =
-        document.getElementById("closeReportModal");
+        document.getElementById(
+            "closeReportModal"
+        );
 
     const cancel =
-        document.getElementById("cancelReportEdit");
+        document.getElementById(
+            "cancelReportEdit"
+        );
 
     const overlay =
-        modal?.querySelector(".admin-modal-overlay");
+        modal?.querySelector(
+            ".admin-modal-overlay"
+        );
 
     if (close) {
         close.addEventListener(
@@ -920,7 +1413,9 @@ function setupEditModal() {
     }
 
     const form =
-        document.getElementById("reportEditForm");
+        document.getElementById(
+            "reportEditForm"
+        );
 
     if (form) {
         form.addEventListener(
@@ -936,42 +1431,85 @@ async function saveReportChanges(event) {
     if (!editingReport) return;
 
     const button =
-        document.getElementById("saveReportBtn");
+        document.getElementById(
+            "saveReportBtn"
+        );
 
     if (button) {
         button.disabled = true;
-        button.textContent = "সংরক্ষণ হচ্ছে...";
+        button.textContent =
+            "সংরক্ষণ হচ্ছে...";
     }
 
-    const id = editingReport.ID;
+    const id =
+        editingReport.ID;
 
     const updatedData = {
         Division:
-            document.getElementById("editDivision").value.trim(),
+            document
+                .getElementById(
+                    "editDivision"
+                )
+                .value
+                .trim(),
 
         District:
-            document.getElementById("editDistrict").value.trim(),
+            document
+                .getElementById(
+                    "editDistrict"
+                )
+                .value
+                .trim(),
 
         Upazila:
-            document.getElementById("editUpazila").value.trim(),
+            document
+                .getElementById(
+                    "editUpazila"
+                )
+                .value
+                .trim(),
 
         Area:
-            document.getElementById("editArea").value.trim(),
+            document
+                .getElementById(
+                    "editArea"
+                )
+                .value
+                .trim(),
 
         Ward:
-            document.getElementById("editWard").value.trim(),
+            document
+                .getElementById(
+                    "editWard"
+                )
+                .value
+                .trim(),
 
         Category:
-            document.getElementById("editCategory").value,
+            document.getElementById(
+                "editCategory"
+            ).value,
 
         Description:
-            document.getElementById("editDescription").value.trim(),
+            document
+                .getElementById(
+                    "editDescription"
+                )
+                .value
+                .trim(),
 
         Status:
-            document.getElementById("editStatus").value,
+            document.getElementById(
+                "editStatus"
+            ).value,
 
         AdminNote:
-            document.getElementById("editAdminNote").value.trim()
+            document
+                .getElementById(
+                    "editAdminNote"
+                )
+                .value
+                .trim()
     };
 
     try {
@@ -998,7 +1536,10 @@ async function saveReportChanges(event) {
         await loadReports(true);
 
     } catch (error) {
-        console.error("Report update error:", error);
+        console.error(
+            "Report update error:",
+            error
+        );
 
         showAdminMessage(
             "সমস্যা হয়েছে",
@@ -1006,39 +1547,57 @@ async function saveReportChanges(event) {
                 "রিপোর্ট আপডেট করা যায়নি।",
             "error"
         );
+
     } finally {
         if (button) {
             button.disabled = false;
-            button.textContent = "পরিবর্তন সংরক্ষণ";
+            button.textContent =
+                "পরিবর্তন সংরক্ষণ";
         }
     }
 }
 
 function closeReportEditModal() {
     const modal =
-        document.getElementById("reportEditModal");
+        document.getElementById(
+            "reportEditModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 
     editingReport = null;
-    document.body.style.overflow = "";
+
+    document.body.style.overflow =
+        "";
 }
 
 /* =========================
    CATEGORIES
 ========================= */
 
-async function loadCategories(forceRefresh = false) {
+async function loadCategories(
+    forceRefresh = false
+) {
     if (!forceRefresh) {
         const cachedCategories =
             getCachedCategories();
 
-        if (cachedCategories) {
-            categories = cachedCategories;
+        if (
+            Array.isArray(
+                cachedCategories
+            ) &&
+            cachedCategories.length > 0
+        ) {
+            categories =
+                cachedCategories;
+
             renderCategories();
             createFilterOptions();
+
             return;
         }
     }
@@ -1047,37 +1606,58 @@ async function loadCategories(forceRefresh = false) {
         const { data, error } =
             await supabaseClient
                 .from(CATEGORY_TABLE)
-                .select("ID, Name, Icon, Active")
+                .select(
+                    "ID, Name, Icon, Active"
+                )
                 .eq("Active", true)
-                .order("ID", { ascending: true });
+                .order("ID", {
+                    ascending: true
+                });
 
         if (error) {
             throw error;
         }
 
-        categories = Array.isArray(data)
-            ? data
-            : [];
+        categories =
+            Array.isArray(data)
+                ? data
+                : [];
 
-        saveCachedCategories(categories);
+        saveCachedCategories(
+            categories
+        );
 
         renderCategories();
         createFilterOptions();
 
     } catch (error) {
-        console.error("Category loading error:", error);
+        console.error(
+            "Category loading error:",
+            error
+        );
 
         const oldCategories =
-            getCachedCategories(true);
+            getCachedCategories(
+                true
+            );
 
-        if (oldCategories) {
-            categories = oldCategories;
+        if (
+            Array.isArray(
+                oldCategories
+            ) &&
+            oldCategories.length > 0
+        ) {
+            categories =
+                oldCategories;
+
             renderCategories();
             createFilterOptions();
+
             return;
         }
 
         categories = [];
+
         renderCategories();
 
         showAdminMessage(
@@ -1088,10 +1668,15 @@ async function loadCategories(forceRefresh = false) {
     }
 }
 
-/* CATEGORY DISPLAY */
+/* =========================
+   CATEGORY DISPLAY
+========================= */
+
 function renderCategories() {
     const container =
-        document.getElementById("categoriesList");
+        document.getElementById(
+            "categoriesList"
+        );
 
     if (!container) return;
 
@@ -1102,20 +1687,27 @@ function renderCategories() {
                 কোনো category পাওয়া যায়নি।
             </div>
         `;
+
         return;
     }
 
-    container.innerHTML = categories
-        .map(
-            (category, index) => `
+    container.innerHTML =
+        categories
+            .map(
+                (category, index) => `
             <div class="category-admin-item">
                 <div class="category-admin-left">
                     <div class="category-admin-icon">
-                        ${safe(category.Icon || "📌")}
+                        ${safe(
+                            category.Icon ||
+                            "📌"
+                        )}
                     </div>
 
                     <div>
-                        <strong>${safe(category.Name)}</strong>
+                        <strong>${safe(
+                            category.Name
+                        )}</strong>
                     </div>
                 </div>
 
@@ -1136,54 +1728,86 @@ function renderCategories() {
                 </div>
             </div>
         `
-        )
-        .join("");
+            )
+            .join("");
 
     container
-        .querySelectorAll(".edit-category-btn")
+        .querySelectorAll(
+            ".edit-category-btn"
+        )
         .forEach(button => {
-            button.addEventListener("click", () => {
-                openCategoryModal(
-                    Number(button.dataset.index)
-                );
-            });
+            button.addEventListener(
+                "click",
+                () => {
+                    openCategoryModal(
+                        Number(
+                            button.dataset
+                                .index
+                        )
+                    );
+                }
+            );
         });
 
     container
-        .querySelectorAll(".delete-category-btn")
+        .querySelectorAll(
+            ".delete-category-btn"
+        )
         .forEach(button => {
-            button.addEventListener("click", () => {
-                deleteCategory(
-                    Number(button.dataset.index)
-                );
-            });
+            button.addEventListener(
+                "click",
+                () => {
+                    deleteCategory(
+                        Number(
+                            button.dataset
+                                .index
+                        )
+                    );
+                }
+            );
         });
 }
 
-/* CATEGORY EVENTS */
+/* =========================
+   CATEGORY EVENTS
+========================= */
+
 function setupCategoryEvents() {
     const add =
-        document.getElementById("addCategoryBtn");
+        document.getElementById(
+            "addCategoryBtn"
+        );
 
     const form =
-        document.getElementById("categoryForm");
+        document.getElementById(
+            "categoryForm"
+        );
 
     const close =
-        document.getElementById("closeCategoryModal");
+        document.getElementById(
+            "closeCategoryModal"
+        );
 
     const cancel =
-        document.getElementById("cancelCategory");
+        document.getElementById(
+            "cancelCategory"
+        );
 
     const modal =
-        document.getElementById("categoryModal");
+        document.getElementById(
+            "categoryModal"
+        );
 
     const overlay =
-        modal?.querySelector(".admin-modal-overlay");
+        modal?.querySelector(
+            ".admin-modal-overlay"
+        );
 
     if (add) {
         add.addEventListener(
             "click",
-            () => openCategoryModal()
+            () =>
+                openCategoryModal()
         );
     }
 
@@ -1218,40 +1842,67 @@ function setupCategoryEvents() {
     setupEditModal();
 }
 
-/* CATEGORY MODAL */
-function openCategoryModal(index = null) {
-    editingCategoryIndex = index;
+/* =========================
+   CATEGORY MODAL
+========================= */
+
+function openCategoryModal(
+    index = null
+) {
+    editingCategoryIndex =
+        index;
 
     const modal =
-        document.getElementById("categoryModal");
+        document.getElementById(
+            "categoryModal"
+        );
 
     const title =
-        document.getElementById("categoryModalTitle");
+        document.getElementById(
+            "categoryModalTitle"
+        );
 
     const name =
-        document.getElementById("categoryName");
+        document.getElementById(
+            "categoryName"
+        );
 
     const icon =
-        document.getElementById("categoryIcon");
+        document.getElementById(
+            "categoryIcon"
+        );
 
     if (!modal) return;
 
     if (index === null) {
-        title.textContent = "নতুন ক্যাটাগরি";
+        title.textContent =
+            "নতুন ক্যাটাগরি";
+
         name.value = "";
         icon.value = "";
+
     } else {
-        const category = categories[index];
+        const category =
+            categories[index];
 
         if (!category) return;
 
-        title.textContent = "ক্যাটাগরি সম্পাদনা";
-        name.value = category.Name || "";
-        icon.value = category.Icon || "";
+        title.textContent =
+            "ক্যাটাগরি সম্পাদনা";
+
+        name.value =
+            category.Name || "";
+
+        icon.value =
+            category.Icon || "";
     }
 
-    modal.classList.add("active");
-    document.body.style.overflow = "hidden";
+    modal.classList.add(
+        "active"
+    );
+
+    document.body.style.overflow =
+        "hidden";
 
     setTimeout(() => {
         name.focus();
@@ -1260,27 +1911,46 @@ function openCategoryModal(index = null) {
 
 function closeCategoryModal() {
     const modal =
-        document.getElementById("categoryModal");
+        document.getElementById(
+            "categoryModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 
-    editingCategoryIndex = null;
-    document.body.style.overflow = "";
+    editingCategoryIndex =
+        null;
+
+    document.body.style.overflow =
+        "";
 }
 
-/* ADD / EDIT CATEGORY */
+/* =========================
+   ADD / EDIT CATEGORY
+========================= */
+
 async function saveCategory(event) {
     event.preventDefault();
 
     const name =
-        document.getElementById("categoryName")
-            .value.trim();
+        document
+            .getElementById(
+                "categoryName"
+            )
+            .value
+            .trim();
 
     const icon =
-        document.getElementById("categoryIcon")
-            .value.trim() || "📌";
+        document
+            .getElementById(
+                "categoryIcon"
+            )
+            .value
+            .trim() ||
+        "📌";
 
     if (!name) {
         showAdminMessage(
@@ -1288,16 +1958,23 @@ async function saveCategory(event) {
             "ক্যাটাগরির নাম লিখুন।",
             "error"
         );
+
         return;
     }
 
-    const duplicate = categories.some(
-        (category, index) =>
-            String(category.Name || "")
-                .trim()
-                .toLowerCase() === name.toLowerCase() &&
-            index !== editingCategoryIndex
-    );
+    const duplicate =
+        categories.some(
+            (category, index) =>
+                String(
+                    category.Name ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase() ===
+                    name.toLowerCase() &&
+                index !==
+                    editingCategoryIndex
+        );
 
     if (duplicate) {
         showAdminMessage(
@@ -1305,12 +1982,19 @@ async function saveCategory(event) {
             "এই ক্যাটাগরিটি আগে থেকেই আছে।",
             "error"
         );
+
         return;
     }
 
     try {
-        if (editingCategoryIndex === null) {
-            await createCategory(name, icon);
+        if (
+            editingCategoryIndex ===
+            null
+        ) {
+            await createCategory(
+                name,
+                icon
+            );
         } else {
             await updateCategory(
                 editingCategoryIndex,
@@ -1323,8 +2007,13 @@ async function saveCategory(event) {
 
         clearCategoryCache();
 
-        await loadCategories(true);
-        await loadReports(true);
+        await loadCategories(
+            true
+        );
+
+        await loadReports(
+            true
+        );
 
         showAdminMessage(
             "সফল হয়েছে",
@@ -1344,9 +2033,16 @@ async function saveCategory(event) {
     }
 }
 
-/* CREATE CATEGORY */
-async function createCategory(name, icon) {
-    const id = generateCategoryID();
+/* =========================
+   CREATE CATEGORY
+========================= */
+
+async function createCategory(
+    name,
+    icon
+) {
+    const id =
+        generateCategoryID();
 
     const { error } =
         await supabaseClient
@@ -1361,51 +2057,79 @@ async function createCategory(name, icon) {
     if (error) {
         throw new Error(
             error.message ||
-            "নতুন category Supabase-এ save করা যায়নি।"
+                "নতুন category Supabase-এ save করা যায়নি।"
         );
     }
 }
 
-/* GENERATE CATEGORY ID */
+/* =========================
+   GENERATE CATEGORY ID
+========================= */
+
 function generateCategoryID() {
     let maxNumber = 0;
 
-    categories.forEach(category => {
-        const id =
-            String(category.ID || "").trim();
+    categories.forEach(
+        category => {
+            const id =
+                String(
+                    category.ID ||
+                    ""
+                ).trim();
 
-        const match =
-            id.match(/^CAT-(\d+)$/i);
+            const match =
+                id.match(
+                    /^CAT-(\d+)$/i
+                );
 
-        if (match) {
-            const number = Number(match[1]);
+            if (match) {
+                const number =
+                    Number(
+                        match[1]
+                    );
 
-            if (number > maxNumber) {
-                maxNumber = number;
+                if (
+                    number >
+                    maxNumber
+                ) {
+                    maxNumber =
+                        number;
+                }
             }
         }
-    });
+    );
 
     const nextNumber =
         maxNumber + 1;
 
-    return `CAT-${String(nextNumber).padStart(3, "0")}`;
+    return `CAT-${String(
+        nextNumber
+    ).padStart(3, "0")}`;
 }
 
-/* UPDATE CATEGORY */
+/* =========================
+   UPDATE CATEGORY
+========================= */
+
 async function updateCategory(
     index,
     newName,
     newIcon
 ) {
-    const category = categories[index];
+    const category =
+        categories[index];
 
     if (!category) {
-        throw new Error("Category পাওয়া যায়নি।");
+        throw new Error(
+            "Category পাওয়া যায়নি।"
+        );
     }
 
-    const oldName = category.Name;
-    const id = category.ID;
+    const oldName =
+        category.Name;
+
+    const id =
+        category.ID;
 
     const { error } =
         await supabaseClient
@@ -1420,23 +2144,32 @@ async function updateCategory(
     if (error) {
         throw new Error(
             error.message ||
-            "Category update করা যায়নি।"
+                "Category update করা যায়নি।"
         );
     }
 
-    if (oldName !== newName) {
-        const { error: reportError } =
+    if (
+        oldName !==
+        newName
+    ) {
+        const {
+            error: reportError
+        } =
             await supabaseClient
                 .from(REPORT_TABLE)
                 .update({
-                    Category: newName
+                    Category:
+                        newName
                 })
-                .eq("Category", oldName);
+                .eq(
+                    "Category",
+                    oldName
+                );
 
         if (reportError) {
             throw new Error(
                 reportError.message ||
-                "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
+                    "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
             );
         }
 
@@ -1446,17 +2179,30 @@ async function updateCategory(
     clearCategoryCache();
 }
 
-/* DELETE CATEGORY */
-async function deleteCategory(index) {
-    const category = categories[index];
+/* =========================
+   DELETE CATEGORY
+========================= */
+
+async function deleteCategory(
+    index
+) {
+    const category =
+        categories[index];
 
     if (!category) return;
 
-    const used = allReports.some(
-        report =>
-            String(report.Category || "").trim() ===
-            String(category.Name || "").trim()
-    );
+    const used =
+        allReports.some(
+            report =>
+                String(
+                    report.Category ||
+                    ""
+                ).trim() ===
+                String(
+                    category.Name ||
+                    ""
+                ).trim()
+        );
 
     if (used) {
         showAdminMessage(
@@ -1464,12 +2210,14 @@ async function deleteCategory(index) {
             "এই category-তে report আছে। আগে সেই report-গুলোর category পরিবর্তন করুন।",
             "error"
         );
+
         return;
     }
 
-    const confirmed = confirm(
-        `"${category.Name}" category-টি permanently delete করতে চান?`
-    );
+    const confirmed =
+        confirm(
+            `"${category.Name}" category-টি permanently delete করতে চান?`
+        );
 
     if (!confirmed) return;
 
@@ -1478,19 +2226,27 @@ async function deleteCategory(index) {
             await supabaseClient
                 .from(CATEGORY_TABLE)
                 .delete()
-                .eq("ID", category.ID);
+                .eq(
+                    "ID",
+                    category.ID
+                );
 
         if (error) {
             throw new Error(
                 error.message ||
-                "Category delete করা যায়নি।"
+                    "Category delete করা যায়নি।"
             );
         }
 
         clearCategoryCache();
 
-        await loadCategories(true);
-        await loadReports(true);
+        await loadCategories(
+            true
+        );
+
+        await loadReports(
+            true
+        );
 
         showAdminMessage(
             "সফল হয়েছে",
@@ -1510,74 +2266,142 @@ async function deleteCategory(index) {
     }
 }
 
-/* MESSAGE */
+/* =========================
+   MESSAGE
+========================= */
+
 function showAdminMessage(
     title,
     message,
     type
 ) {
     const old =
-        document.querySelector(".admin-toast");
+        document.querySelector(
+            ".admin-toast"
+        );
 
-    if (old) old.remove();
+    if (old) {
+        old.remove();
+    }
 
     const toast =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
-    toast.className = "admin-toast";
+    toast.className =
+        "admin-toast";
 
     toast.innerHTML = `
-        <strong>${safe(title)}</strong>
-        <span>${safe(message)}</span>
+        <strong>${safe(
+            title
+        )}</strong>
+        <span>${safe(
+            message
+        )}</span>
     `;
 
-    toast.style.position = "fixed";
-    toast.style.right = "20px";
-    toast.style.bottom = "20px";
-    toast.style.zIndex = "5000";
-    toast.style.background = "#fff";
-    toast.style.border = "1px solid #dfe5e1";
+    toast.style.position =
+        "fixed";
+
+    toast.style.right =
+        "20px";
+
+    toast.style.bottom =
+        "20px";
+
+    toast.style.zIndex =
+        "5000";
+
+    toast.style.background =
+        "#fff";
+
+    toast.style.border =
+        "1px solid #dfe5e1";
+
     toast.style.borderLeft =
         type === "success"
             ? "4px solid #166534"
             : "4px solid #b91c1c";
-    toast.style.borderRadius = "10px";
-    toast.style.padding = "14px 17px";
+
+    toast.style.borderRadius =
+        "10px";
+
+    toast.style.padding =
+        "14px 17px";
+
     toast.style.boxShadow =
         "0 15px 40px rgba(0,0,0,.12)";
-    toast.style.display = "flex";
-    toast.style.flexDirection = "column";
-    toast.style.gap = "2px";
-    toast.style.minWidth = "250px";
 
-    document.body.appendChild(toast);
+    toast.style.display =
+        "flex";
+
+    toast.style.flexDirection =
+        "column";
+
+    toast.style.gap =
+        "2px";
+
+    toast.style.minWidth =
+        "250px";
+
+    document.body.appendChild(
+        toast
+    );
 
     setTimeout(() => {
-        toast.style.opacity = "0";
+        toast.style.opacity =
+            "0";
+
         toast.style.transform =
             "translateY(8px)";
-        toast.style.transition = ".3s ease";
+
+        toast.style.transition =
+            ".3s ease";
 
         setTimeout(() => {
             toast.remove();
         }, 300);
+
     }, 3000);
 }
 
-/* HELPERS */
+/* =========================
+   HELPERS
+========================= */
+
 function safe(value) {
-    return escapeHTML(String(value ?? ""));
+    return escapeHTML(
+        String(value ?? "")
+    );
 }
 
 function escapeHTML(value) {
     return value
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 }
 
 function escapeAttribute(value) {
-    return escapeHTML(String(value ?? ""));
+    return escapeHTML(
+        String(value ?? "")
+    );
 }
