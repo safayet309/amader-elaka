@@ -2,9 +2,9 @@
 // Amader Elaka - Dashboard JavaScript
 // =====================================
 
-const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+const REPORT_TABLE = "Reports";
 const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
-const REPORT_CACHE_TIME = 60 * 1000; // 1 minute
+const REPORT_CACHE_TIME = 60 * 1000;
 
 // =====================================
 // DOM Elements
@@ -70,16 +70,21 @@ async function loadReports(forceRefresh = false) {
         }
 
         // =====================================
-        // Fresh API Request
+        // Supabase Request
         // =====================================
 
-        const response = await fetch(API_URL);
-
-        if (!response.ok) {
-            throw new Error("Failed to load reports");
+        if (typeof supabaseClient === "undefined") {
+            throw new Error("Supabase client is not loaded");
         }
 
-        const data = await response.json();
+        const { data, error } = await supabaseClient
+            .from(REPORT_TABLE)
+            .select("*")
+            .order("Date", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
 
         allReports = Array.isArray(data) ? data : [];
 
@@ -94,7 +99,7 @@ async function loadReports(forceRefresh = false) {
 
         console.error("Dashboard Error:", error);
 
-        // Try cache if API fails
+        // Try stale cache if Supabase fails
         const cachedReports = getCachedReports(true);
 
         if (cachedReports) {
@@ -112,6 +117,7 @@ async function loadReports(forceRefresh = false) {
             updateStatistics([]);
 
             if (reportsContainer) {
+
                 reportsContainer.innerHTML = `
                     <div class="no-reports">
                         <h3>রিপোর্ট লোড করা যায়নি</h3>
@@ -1118,7 +1124,7 @@ if (refreshButton) {
             refreshButton.textContent =
                 "লোড হচ্ছে...";
 
-            // Force fresh API request
+            // Force fresh Supabase request
             loadReports(true)
                 .finally(
                     function () {
@@ -1145,4 +1151,4 @@ document.addEventListener(
         loadReports(false);
 
     }
-); 
+);
