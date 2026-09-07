@@ -11,10 +11,172 @@ let allReports = [];
 let categories = [];
 let editingReport = null;
 let editingCategoryIndex = null;
+let adminInitialized = false;
+let originalBodyDisplays = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
-    initializeAdmin();
+    initializeAdminAuth();
 });
+
+/* =========================
+   ADMIN AUTH
+========================= */
+
+async function initializeAdminAuth() {
+    const loginScreen = document.getElementById("adminLoginScreen");
+    const loginForm = document.getElementById("adminLoginForm");
+
+    if (!loginScreen || !loginForm) {
+        console.error("Admin login screen not found.");
+        return;
+    }
+
+    loginForm.addEventListener("submit", handleAdminLogin);
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("Auth session error:", error);
+        showLoginScreen();
+        return;
+    }
+
+    if (data?.session) {
+        showAdminPanel();
+    } else {
+        showLoginScreen();
+    }
+
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            showAdminPanel();
+        } else {
+            showLoginScreen();
+        }
+    });
+}
+
+async function handleAdminLogin(event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById("adminEmail");
+    const passwordInput = document.getElementById("adminPassword");
+    const button = document.getElementById("adminLoginButton");
+    const errorElement = document.getElementById("adminLoginError");
+
+    const email = String(emailInput?.value || "").trim();
+    const password = String(passwordInput?.value || "");
+
+    if (errorElement) {
+        errorElement.style.display = "none";
+        errorElement.textContent = "";
+    }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "লগইন হচ্ছে...";
+    }
+
+    try {
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data?.session) {
+            throw new Error("লগইন সেশন তৈরি হয়নি।");
+        }
+
+        if (emailInput) emailInput.value = "";
+        if (passwordInput) passwordInput.value = "";
+
+        showAdminPanel();
+
+    } catch (error) {
+        console.error("Admin login error:", error);
+
+        if (errorElement) {
+            errorElement.textContent =
+                error.message === "Invalid login credentials"
+                    ? "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।"
+                    : error.message || "লগইন করা যায়নি।";
+
+            errorElement.style.display = "block";
+        }
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = "লগইন করুন";
+        }
+    }
+}
+
+function showLoginScreen() {
+    const loginScreen =
+        document.getElementById("adminLoginScreen");
+
+    saveAndHideAdminContent();
+
+    if (loginScreen) {
+        loginScreen.style.display = "flex";
+    }
+}
+
+function showAdminPanel() {
+    const loginScreen =
+        document.getElementById("adminLoginScreen");
+
+    if (loginScreen) {
+        loginScreen.style.display = "none";
+    }
+
+    restoreAdminContent();
+
+    if (!adminInitialized) {
+        adminInitialized = true;
+        initializeAdmin();
+    }
+}
+
+function saveAndHideAdminContent() {
+    const loginScreen =
+        document.getElementById("adminLoginScreen");
+
+    document.querySelectorAll("body > *").forEach(element => {
+        if (
+            element === loginScreen ||
+            element.tagName === "SCRIPT"
+        ) {
+            return;
+        }
+
+        if (!originalBodyDisplays.has(element)) {
+            originalBodyDisplays.set(
+                element,
+                element.style.display
+            );
+        }
+
+        element.style.display = "none";
+    });
+}
+
+function restoreAdminContent() {
+    originalBodyDisplays.forEach((display, element) => {
+        if (element && element !== document.getElementById("adminLoginScreen")) {
+            element.style.display = display;
+        }
+    });
+}
+
+/* =========================
+   ADMIN INITIALIZE
+========================= */
 
 async function initializeAdmin() {
     setupNavigation();
