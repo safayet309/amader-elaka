@@ -896,8 +896,7 @@
 
     <script>
 
-        const SUMMARY_API_URL =
-            "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+        const SUMMARY_TABLE = "Reports";
 
 
         let summaryReports = [];
@@ -911,17 +910,15 @@
 
             try {
 
-                const response =
-                    await fetch(SUMMARY_API_URL);
+                const { data, error } =
+                    await supabaseClient
+                        .from(SUMMARY_TABLE)
+                        .select("*")
+                        .order("Date", { ascending: true });
 
-                if (!response.ok) {
-                    throw new Error(
-                        "Failed to load summary"
-                    );
+                if (error) {
+                    throw error;
                 }
-
-                const data =
-                    await response.json();
 
                 summaryReports =
                     Array.isArray(data)
@@ -1530,6 +1527,10 @@
     </script>
 
 
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
 
     <!-- Existing Dashboard JavaScript -->
     <script src="js/dashboard.js"></script>
