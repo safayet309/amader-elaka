@@ -1,8 +1,8 @@
- const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
-const CATEGORY_SHEET = "Categories";
+const REPORT_TABLE = "Reports";
+const CATEGORY_TABLE = "Categories";
 
 const CATEGORY_CACHE_KEY = "amaderElaka_categories_cache";
-const CATEGORY_CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+const CATEGORY_CACHE_TIME = 10 * 60 * 1000;
 const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
 
 document.addEventListener("DOMContentLoaded", initializeReportForm);
@@ -99,21 +99,19 @@ async function loadCategories(selectElement) {
     }
 
     try {
-        const response = await fetch(
-            `${API_URL}?sheet=${encodeURIComponent(CATEGORY_SHEET)}`
-        );
+        if (typeof supabaseClient === "undefined") {
+            throw new Error("Supabase client is not loaded");
+        }
 
-        if (!response.ok) throw new Error("Category API failed");
+        const { data, error } = await supabaseClient
+            .from(CATEGORY_TABLE)
+            .select("ID, Name, Icon, Active")
+            .eq("Active", true)
+            .order("ID", { ascending: true });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        const activeCategories = Array.isArray(data)
-            ? data.filter(item =>
-                String(item.Active || "")
-                    .trim()
-                    .toLowerCase() === "true"
-            )
-            : [];
+        const activeCategories = Array.isArray(data) ? data : [];
 
         saveCachedCategories(activeCategories);
         renderCategories(selectElement, activeCategories);
@@ -161,9 +159,7 @@ function renderCategories(selectElement, categories) {
 function getCachedCategories(ignoreExpiry = false) {
     try {
         const cached =
-            localStorage.getItem(
-                CATEGORY_CACHE_KEY
-            );
+            localStorage.getItem(CATEGORY_CACHE_KEY);
 
         if (!cached) return null;
 
@@ -307,25 +303,15 @@ async function handleReportSubmit(event) {
     }
 
     try {
-        const response =
-            await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    data: [formData]
-                })
-            });
-
-        if (!response.ok) {
-            throw new Error(
-                `HTTP ${response.status}`
-            );
+        if (typeof supabaseClient === "undefined") {
+            throw new Error("Supabase client is not loaded");
         }
 
-        await response.json();
+        const { error } = await supabaseClient
+            .from(REPORT_TABLE)
+            .insert([formData]);
+
+        if (error) throw error;
 
         /*
          * নতুন রিপোর্টের জন্য পুরনো
@@ -444,9 +430,6 @@ function generateReportID() {
 function showSuccessMessage(reportID) {
     removeExistingMessage();
 
-    /*
-     * Popup overlay
-     */
     const overlay =
         document.createElement("div");
 
@@ -499,6 +482,7 @@ function showSuccessMessage(reportID) {
                 </div>
 
                 <div class="report-id-value">
+
                     <strong id="generatedReportID">
                         ${escapeHTML(reportID)}
                     </strong>
@@ -510,6 +494,7 @@ function showSuccessMessage(reportID) {
                     >
                         📋 Copy ID
                     </button>
+
                 </div>
 
             </div>
@@ -533,9 +518,6 @@ function showSuccessMessage(reportID) {
 
     document.body.appendChild(overlay);
 
-    /*
-     * Popup open হলে background scroll বন্ধ।
-     */
     document.body.style.overflow = "hidden";
 
     const copyButton =
@@ -562,28 +544,21 @@ function showSuccessMessage(reportID) {
      * Copy Report ID
      */
     if (copyButton) {
-
         copyButton.addEventListener(
             "click",
             async () => {
-
                 try {
-
                     if (
                         navigator.clipboard &&
                         navigator.clipboard.writeText
                     ) {
-
                         await navigator.clipboard.writeText(
                             reportID
                         );
-
                     } else {
-
                         fallbackCopy(
                             reportID
                         );
-
                     }
 
                     copyButton.textContent =
@@ -594,40 +569,31 @@ function showSuccessMessage(reportID) {
                     );
 
                     if (copySuccessText) {
-
                         copySuccessText.textContent =
                             "Report ID কপি হয়েছে।";
-
                     }
 
                     setTimeout(() => {
-
                         if (
                             copyButton.parentNode
                         ) {
-
                             copyButton.textContent =
                                 "📋 Copy ID";
 
                             copyButton.classList.remove(
                                 "copied"
                             );
-
                         }
 
                         if (
                             copySuccessText
                         ) {
-
                             copySuccessText.textContent =
                                 "";
-
                         }
-
                     }, 1800);
 
                 } catch (error) {
-
                     console.error(
                         "Copy Error:",
                         error
@@ -641,38 +607,29 @@ function showSuccessMessage(reportID) {
                         "কপি হয়েছে ✓";
 
                     if (copySuccessText) {
-
                         copySuccessText.textContent =
                             "Report ID কপি হয়েছে।";
-
                     }
-
                 }
-
             }
         );
-
     }
 
     /*
      * Close popup
      */
     if (closeButton) {
-
         closeButton.addEventListener(
             "click",
             closeSuccessPopup
         );
-
     }
 
     if (closeX) {
-
         closeX.addEventListener(
             "click",
             closeSuccessPopup
         );
-
     }
 
     /*
@@ -681,15 +638,11 @@ function showSuccessMessage(reportID) {
     overlay.addEventListener(
         "click",
         event => {
-
             if (
                 event.target === overlay
             ) {
-
                 closeSuccessPopup();
-
             }
-
         }
     );
 
@@ -698,15 +651,11 @@ function showSuccessMessage(reportID) {
      */
     overlay._escapeHandler =
         function(event) {
-
             if (
                 event.key === "Escape"
             ) {
-
                 closeSuccessPopup();
-
             }
-
         };
 
     document.addEventListener(
@@ -718,24 +667,18 @@ function showSuccessMessage(reportID) {
      * Popup animation শুরু।
      */
     requestAnimationFrame(() => {
-
         overlay.classList.add(
             "show"
         );
-
     });
 
     /*
      * Close button-এ focus।
      */
     if (closeButton) {
-
         setTimeout(() => {
-
             closeButton.focus();
-
         }, 100);
-
     }
 }
 
@@ -752,12 +695,10 @@ function closeSuccessPopup() {
     if (!overlay) return;
 
     if (overlay._escapeHandler) {
-
         document.removeEventListener(
             "keydown",
             overlay._escapeHandler
         );
-
     }
 
     overlay.classList.remove(
@@ -765,7 +706,6 @@ function closeSuccessPopup() {
     );
 
     setTimeout(() => {
-
         if (overlay.parentNode) {
             overlay.remove();
         }
@@ -811,26 +751,20 @@ function showErrorMessage(text) {
         );
 
     if (form) {
-
         form.parentNode.insertBefore(
             message,
             form
         );
-
     } else {
-
         document.body.prepend(
             message
         );
-
     }
 
     setTimeout(() => {
-
         if (message.parentNode) {
             message.remove();
         }
-
     }, 7000);
 }
 
@@ -863,18 +797,15 @@ function fallbackCopy(text) {
     textarea.select();
 
     try {
-
         document.execCommand(
             "copy"
         );
 
     } catch (error) {
-
         console.error(
             "Fallback Copy Error:",
             error
         );
-
     }
 
     textarea.remove();
@@ -909,27 +840,22 @@ function escapeHTML(value) {
 }
 
 function removeExistingMessage() {
-
     document
         .querySelectorAll(
             ".report-success-overlay, .report-success-message, .report-error-message"
         )
         .forEach(
             element => {
-
                 if (
                     element._escapeHandler
                 ) {
-
                     document.removeEventListener(
                         "keydown",
                         element._escapeHandler
                     );
-
                 }
 
                 element.remove();
-
             }
         );
 
