@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
@@ -430,9 +430,27 @@
            Emergency Hotline
         ========================= */
         .emergency-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.58);backdrop-filter:blur(6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease}.emergency-overlay.show{opacity:1;visibility:visible;pointer-events:auto}.emergency-modal{width:min(720px,100%);max-height:min(86vh,760px);overflow:hidden;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.22);transform:translateY(18px) scale(.98);transition:transform .25s ease}.emergency-overlay.show .emergency-modal{transform:translateY(0) scale(1)}.emergency-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #eef2f0}.emergency-title{display:flex;align-items:center;gap:12px;min-width:0}.emergency-title-icon{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fee2e2;font-size:22px}.emergency-title h2{margin:0 0 3px;color:#111827;font-size:21px}.emergency-title p{margin:0;color:#6b7280;font-size:13px}.emergency-close{width:38px;height:38px;flex-shrink:0;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;color:#374151;font-size:24px;line-height:1;cursor:pointer;transition:background .2s ease,color .2s ease,transform .2s ease}.emergency-close:hover{background:#fee2e2;color:#dc2626;transform:translateY(-1px)}.emergency-body{max-height:calc(min(86vh,760px) - 82px);overflow-y:auto;padding:16px 20px 20px}.emergency-notice{margin-bottom:12px;padding:11px 13px;border:1px solid #fee2e2;border-radius:10px;background:#fff7f7;color:#991b1b;font-size:13px;line-height:1.6}.emergency-list{display:grid;gap:10px}.emergency-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px;border:1px solid #e5e7eb;border-radius:13px;background:#fff;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.emergency-card:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,23,42,.07);border-color:#d1d5db}.emergency-card-info{display:flex;align-items:center;gap:11px;min-width:0}.emergency-card-icon{width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:11px;background:#f3f4f6;font-size:20px}.emergency-card h3{margin:0 0 3px;color:#374151;font-size:14px;font-weight:700}.emergency-card strong{color:#111827;font-size:18px;letter-spacing:.3px}.emergency-card-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}.emergency-call,.emergency-copy{min-height:36px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font:inherit;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}.emergency-call{border:1px solid #166534;background:#166534;color:#fff}.emergency-call:hover{background:#14532d;transform:translateY(-1px)}.emergency-copy{border:1px solid #d1d5db;background:#f8fafc;color:#374151}.emergency-copy:hover{background:#f3f4f6;border-color:#9ca3af;transform:translateY(-1px)}.emergency-card.important{border-color:#fecaca;background:linear-gradient(135deg,#fff7f7,#fff);box-shadow:0 6px 20px rgba(220,38,38,.08)}.emergency-card.important .emergency-card-icon{background:#fee2e2}.emergency-card.important h3{color:#b91c1c}.emergency-card.important strong{color:#dc2626;font-size:21px}.emergency-footer{margin-top:12px;color:#6b7280;font-size:12px;line-height:1.6;text-align:center}@media(max-width:600px){.emergency-modal{border-radius:15px}.emergency-header{padding:15px}.emergency-body{padding:13px 15px 16px}.emergency-card{align-items:stretch;flex-direction:column;gap:11px}.emergency-card-actions{width:100%}.emergency-call,.emergency-copy{flex:1}}@media(max-width:420px){.emergency-overlay{padding:10px}.emergency-title h2{font-size:18px}.emergency-title p{font-size:12px}.emergency-card{padding:11px}.emergency-card-icon{width:38px;height:38px}.emergency-card h3{font-size:13px}.emergency-card strong{font-size:17px}.emergency-card.important strong{font-size:20px}}
-   
- 
-    
+        /* =========================
+           Premium UI + Stable Controls
+        ========================== */
+        :root{--premium-green:#176b45;--premium-green-dark:#105638;--premium-navy:#102a43;--premium-border:#e6ebe8;--premium-soft:#f5f8f6;}
+        .btn,.nav-button,.home-search-button,.emergency-call,.emergency-copy,.emergency-close,.home-slider-dot{position:relative;transform:none!important;transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease!important;}
+        .btn-primary,.nav-button,.home-search-button{background:linear-gradient(135deg,var(--premium-green),#23865a)!important;color:#fff!important;border:1px solid transparent!important;box-shadow:0 8px 20px rgba(23,107,69,.16)!important;}
+        .btn-primary:hover,.nav-button:hover,.home-search-button:hover{background:linear-gradient(135deg,var(--premium-green-dark),var(--premium-green))!important;box-shadow:0 10px 24px rgba(23,107,69,.22)!important;}
+        .btn-secondary{background:#fff!important;color:var(--premium-navy)!important;border:1px solid #d9e2dd!important;box-shadow:0 6px 16px rgba(16,42,67,.06)!important;}
+        .btn-secondary:hover{border-color:#b9c9c1!important;background:var(--premium-soft)!important;box-shadow:0 8px 20px rgba(16,42,67,.09)!important;}
+        .nav a{transform:none!important;}
+        .nav a:hover{transform:none!important;}
+        .home-search-box{transform:none!important;}
+        .home-search-box:focus-within{transform:none!important;box-shadow:0 12px 34px rgba(23,107,69,.13)!important;border-color:#b8d2c4!important;}
+        .home-search-button{border-radius:11px!important;min-width:92px;}
+        .home-slider-dot{width:8px!important;height:8px!important;flex:0 0 8px!important;}
+        .home-slider-dot.active{width:8px!important;box-shadow:0 0 0 3px rgba(255,255,255,.22)!important;}
+        .category-card{transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease!important;transform:none!important;}
+        .category-card:hover{transform:none!important;box-shadow:0 12px 28px rgba(16,42,67,.09)!important;border-color:#cbdad2!important;}
+        .emergency-nav-button:hover,.emergency-call:hover,.emergency-copy:hover,.emergency-close:hover{transform:none!important;}
+        button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(23,107,69,.18);outline-offset:2px;}
+        @media(max-width:600px){.nav-button{width:100%;}.hero-actions .btn{min-height:46px;}.home-search-button{min-height:44px;}}
     </style>
 </head>
 
@@ -470,10 +488,6 @@
 
                 <a href="dashboard.html">
                     ড্যাশবোর্ড
-                </a>
-
-                <a href="government.html">
-                  🌐 সরকারি সেবা
                 </a>
              <a
                href="#"
@@ -1478,480 +1492,68 @@
 
 
     <!-- =========================
-         Home Search JavaScript
+         Home Supabase Data JavaScript
     ========================== -->
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
     <script>
-
-        const HOME_API_URL =
-            "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
-
-
-        const HOME_REPORT_CACHE_KEY =
-            "amaderElaka_reports_cache";
-
-
-        const HOME_REPORT_CACHE_TIME =
-            60 * 1000;
-
-
-        let homeReports = [];
-
-
-        function getHomeCachedReports(
-            ignoreExpiry = false
-        ) {
-
-            try {
-
-                const cached =
-                    localStorage.getItem(
-                        HOME_REPORT_CACHE_KEY
-                    );
-
-
-                if (!cached) {
-                    return null;
-                }
-
-
-                const data =
-                    JSON.parse(cached);
-
-
-                if (
-                    !data ||
-                    !Array.isArray(
-                        data.reports
-                    ) ||
-                    !data.time
-                ) {
-
-                    return null;
-
-                }
-
-
-                const age =
-                    Date.now() -
-                    Number(data.time);
-
-
-                if (
-                    !ignoreExpiry &&
-                    age > HOME_REPORT_CACHE_TIME
-                ) {
-
-                    return null;
-
-                }
-
-
-                return data.reports;
-
-            } catch (error) {
-
-                console.error(
-                    "Home Cache Read Error:",
-                    error
-                );
-
-                return null;
-
-            }
-
+    (function(){
+        const REPORT_TABLE="Reports";
+        const CACHE_KEY="amaderElaka_reports_cache";
+        const CACHE_TIME=60*1000;
+        let homeReports=[];
+        const $=id=>document.getElementById(id);
+        function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");}
+        function setStat(id,n){const el=$(id);if(el)el.textContent=Number(n)||0;}
+        function updateStats(reports){
+            const total=reports.length;
+            const pending=reports.filter(r=>String(r.Status||"").trim().toLowerCase()==="pending"||String(r.Status||"").trim()==="অপেক্ষমাণ").length;
+            const progress=reports.filter(r=>{const x=String(r.Status||"").trim().toLowerCase();return x==="কাজ চলছে"||x==="in progress"||x==="progress";}).length;
+            const solved=reports.filter(r=>{const x=String(r.Status||"").trim().toLowerCase();return x==="সমাধান হয়েছে"||x==="সমাধান হয়েছে"||x==="solved";}).length;
+            setStat("totalReports",total);setStat("pendingReports",pending);setStat("progressReports",progress);setStat("solvedReports",solved);
         }
-
-
-        async function loadHomeSearchReports() {
-
-            /*
-             * Use existing shared cache first.
-             * This avoids an unnecessary SheetDB
-             * request on Home Page.
-             */
-
-            const cachedReports =
-                getHomeCachedReports();
-
-
-            if (cachedReports) {
-
-                homeReports =
-                    cachedReports;
-
-                return;
-
+        function saveCache(reports){try{localStorage.setItem(CACHE_KEY,JSON.stringify({time:Date.now(),reports}));}catch(e){}}
+        function getCache(){try{const x=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");if(x&&Array.isArray(x.reports)&&Date.now()-Number(x.time)<CACHE_TIME)return x.reports;}catch(e){}return null;}
+        async function loadReports(){
+            const cached=getCache();
+            if(cached){homeReports=cached;updateStats(homeReports);return;}
+            try{
+                if(typeof supabaseClient==="undefined")throw new Error("Supabase client is not loaded");
+                const {data,error}=await supabaseClient.from(REPORT_TABLE).select("ID,Division,District,Upazila,Area,Category,Description,Status,AdminNote,Date").order("Date",{ascending:false});
+                if(error)throw error;
+                homeReports=Array.isArray(data)?data:[];
+                saveCache(homeReports);updateStats(homeReports);
+            }catch(error){
+                console.error("Home Supabase Error:",error);
+                homeReports=[];updateStats([]);
             }
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        HOME_API_URL
-                    );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        "Failed to load reports"
-                    );
-
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                homeReports =
-                    Array.isArray(data)
-                        ? data
-                        : [];
-
-
-                /*
-                 * Save to shared cache.
-                 */
-
-                try {
-
-                    localStorage.setItem(
-                        HOME_REPORT_CACHE_KEY,
-                        JSON.stringify({
-                            time: Date.now(),
-                            reports: homeReports
-                        })
-                    );
-
-                } catch (cacheError) {
-
-                    console.error(
-                        "Home Cache Save Error:",
-                        cacheError
-                    );
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Home Search Error:",
-                    error
-                );
-
-
-                /*
-                 * Use old cache if API
-                 * is temporarily unavailable.
-                 */
-
-                const oldReports =
-                    getHomeCachedReports(
-                        true
-                    );
-
-
-                homeReports =
-                    oldReports || [];
-
-            }
-
         }
-
-
-        function escapeHomeSearchHTML(
-            value
-        ) {
-
-            return String(
-                value || ""
-            )
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
-
+        function renderSearch(value){
+            const box=$("homeSearchResults");if(!box)return;
+            const q=String(value||"").trim().toLowerCase();
+            if(!q){box.innerHTML="";box.style.display="none";return;}
+            const results=homeReports.filter(r=>[r.ID,r.Area,r.Description,r.Division,r.District,r.Upazila,r.Category,r.Status,r.AdminNote].map(v=>String(v||"")).join(" ").toLowerCase().includes(q)).slice(0,6);
+            box.style.display="block";
+            if(!results.length){box.innerHTML='<div class="home-search-empty">কোনো রিপোর্ট পাওয়া যায়নি।<br><small>এলাকা, বিষয় বা রিপোর্ট ID দিয়ে আবার চেষ্টা করুন।</small></div>';return;}
+            box.innerHTML=results.map(r=>{const loc=[r.Division,r.District,r.Upazila,r.Area].filter(Boolean).join(" → ");return `<div class="home-search-result"><strong>${esc(r.Category||"অন্যান্য")}</strong><span>📍 ${esc(loc||"স্থান উল্লেখ নেই")}<br>🆔 ${esc(r.ID||"N/A")} &nbsp;•&nbsp; ${esc(r.Status||"Pending")}</span></div>`;}).join("");
         }
-
-
-        function searchHomeReports(
-            searchValue
-        ) {
-
-            const resultsBox =
-                document.getElementById(
-                    "homeSearchResults"
-                );
-
-
-            if (!resultsBox) {
-                return;
-            }
-
-
-            const query =
-                String(
-                    searchValue || ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-
-            if (!query) {
-
-                resultsBox.innerHTML =
-                    "";
-
-                resultsBox.style.display =
-                    "none";
-
-                return;
-
-            }
-
-
-            const results =
-                homeReports
-                    .filter(
-                        function(report) {
-
-                            const searchableText = [
-
-                                report.ID,
-                                report.Area,
-                                report.Description,
-                                report.Division,
-                                report.District,
-                                report.Upazila,
-                                report.Category,
-                                report.Status,
-                                report.AdminNote
-
-                            ]
-                                .map(
-                                    function(value) {
-
-                                        return String(
-                                            value || ""
-                                        );
-
-                                    }
-                                )
-                                .join(" ")
-                                .toLowerCase();
-
-
-                            return searchableText
-                                .includes(
-                                    query
-                                );
-
-                        }
-                    )
-                    .slice(0, 5);
-
-
-            resultsBox.style.display =
-                "block";
-
-
-            if (!results.length) {
-
-                resultsBox.innerHTML = `
-                    <div class="home-search-empty">
-                        কোনো রিপোর্ট পাওয়া যায়নি।
-                        <br>
-                        <small>
-                            অন্য এলাকা, বিষয় বা রিপোর্ট ID দিয়ে চেষ্টা করুন।
-                        </small>
-                    </div>
-                `;
-
-                return;
-
-            }
-
-
-            resultsBox.innerHTML =
-                results
-                    .map(
-                        function(report) {
-
-                            const location = [
-
-                                report.Division,
-                                report.District,
-                                report.Upazila,
-                                report.Area
-
-                            ]
-                                .filter(Boolean)
-                                .join(" → ");
-
-
-                            return `
-                                <div class="home-search-result">
-
-                                    <strong>
-                                        ${escapeHomeSearchHTML(
-                                            report.Category ||
-                                            "অন্যান্য"
-                                        )}
-                                    </strong>
-
-                                    <span>
-                                        📍
-                                        ${escapeHomeSearchHTML(
-                                            location ||
-                                            "স্থান উল্লেখ নেই"
-                                        )}
-
-                                        <br>
-
-                                        🆔
-                                        ${escapeHomeSearchHTML(
-                                            report.ID ||
-                                            "N/A"
-                                        )}
-
-                                        &nbsp; | &nbsp;
-
-                                        ${escapeHomeSearchHTML(
-                                            report.Status ||
-                                            "Pending"
-                                        )}
-                                    </span>
-
-                                </div>
-                            `;
-
-                        }
-                    )
-                    .join("");
-
-        }
-
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            function() {
-
-                loadHomeSearchReports();
-
-
-                const searchForm =
-                    document.getElementById(
-                        "homeSearchForm"
-                    );
-
-
-                const searchInput =
-                    document.getElementById(
-                        "homeSearchInput"
-                    );
-
-
-                if (
-                    searchForm &&
-                    searchInput
-                ) {
-
-                    searchForm.addEventListener(
-                        "submit",
-                        async function(event) {
-
-                            event.preventDefault();
-
-
-                            if (
-                                !homeReports.length
-                            ) {
-
-                                await loadHomeSearchReports();
-
-                            }
-
-
-                            searchHomeReports(
-                                searchInput.value
-                            );
-
-                        }
-                    );
-
-
-                    searchInput.addEventListener(
-                        "input",
-                        function() {
-
-                            if (
-                                searchInput.value.trim()
-                            ) {
-
-                                searchHomeReports(
-                                    searchInput.value
-                                );
-
-                            } else {
-
-                                const resultsBox =
-                                    document.getElementById(
-                                        "homeSearchResults"
-                                    );
-
-
-                                if (resultsBox) {
-
-                                    resultsBox.innerHTML =
-                                        "";
-
-                                    resultsBox.style.display =
-                                        "none";
-
-                                }
-
-                            }
-
-                        }
-                    );
-
-                }
-
-            }
-        );
-
+        document.addEventListener("DOMContentLoaded",async()=>{
+            await loadReports();
+            const form=$("homeSearchForm"),input=$("homeSearchInput");
+            if(form&&input){form.addEventListener("submit",e=>{e.preventDefault();renderSearch(input.value);});input.addEventListener("input",()=>renderSearch(input.value));}
+        });
+    })();
     </script>
-
 
     <!-- =========================
          Existing Main JavaScript
     ========================== -->
 
-    <script src="js/script.js"></script>
 
 
     <!-- Emergency Hotline JavaScript -->
     <script>
-        const emergencyNumbers=[{name:"জাতীয় জরুরি সেবা",number:"999",icon:"🚨",important:true},{name:"সরকারি তথ্য ও সেবা",number:"333",icon:"📞"},{name:"ফায়ার সার্ভিস",number:"102",icon:"🚒"},{name:"নারী ও শিশু সহায়তা",number:"109",icon:"👩"},{name:"শিশু সহায়তা",number:"1098",icon:"👶"},{name:"স্বাস্থ্য বাতায়ন",number:"16263",icon:"🏥"},{name:"কৃষি কল সেন্টার",number:"16123",icon:"🌾"},{name:"সরকারি আইনি সহায়তা",number:"16699",icon:"⚖️"},{name:"দুর্নীতি দমন কমিশন",number:"106",icon:"🔍"},{name:"দুর্যোগ পূর্বাভাস",number:"1090",icon:"🌪️"},{name:"বাংলাদেশ রেলওয়ে",number:"131",icon:"🚂"},{name:"ঢাকা ওয়াসা",number:"16162",icon:"💧"}];
+        const emergencyNumbers=[{name:"জাতীয় জরুরি সেবা",number:"999",icon:"🚨",important:true},{name:"সরকারি তথ্য ও সেবা",number:"333",icon:"📞"},{name:"ফায়ার সার্ভিস",number:"102",icon:"🚒"},{name:"নারী ও শিশু সহায়তা",number:"109",icon:"👩"},{name:"শিশু সহায়তা",number:"1098",icon:"👶"},{name:"স্বাস্থ্য বাতায়ন",number:"16263",icon:"🏥"},{name:"কৃষি কল সেন্টার",number:"16123",icon:"🌾"},{name:"সরকারি আইনি সহায়তা",number:"16430",icon:"⚖️"},{name:"দুর্নীতি দমন কমিশন",number:"106",icon:"🔍"},{name:"দুর্যোগ পূর্বাভাস",number:"1090",icon:"🌪️"},{name:"বাংলাদেশ রেলওয়ে",number:"131",icon:"🚂"},{name:"ঢাকা ওয়াসা",number:"16162",icon:"💧"}];
         const emergencyButton=document.getElementById("emergencyButton"),emergencyOverlay=document.getElementById("emergencyOverlay"),emergencyClose=document.getElementById("emergencyClose"),emergencyList=document.getElementById("emergencyList");
         function renderEmergencyNumbers(){if(!emergencyList)return;emergencyList.innerHTML=emergencyNumbers.map(s=>`<div class="emergency-card ${s.important?"important":""}"><div class="emergency-card-info"><div class="emergency-card-icon">${s.icon}</div><div><h3>${s.name}</h3><strong>${s.number}</strong></div></div><div class="emergency-card-actions"><a href="tel:${s.number}" class="emergency-call">📞 কল করুন</a><button type="button" class="emergency-copy" data-number="${s.number}">📋 কপি</button></div></div>`).join("")}
         function openEmergencyPopup(){if(!emergencyOverlay)return;emergencyOverlay.classList.add("show");emergencyOverlay.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
