@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
@@ -370,6 +370,30 @@
             .home-search-button {
                 width: 100%;
             }
+        }
+
+
+        /* =========================
+           Stable Premium Navigation & Buttons
+        ========================= */
+        .header-inner{min-width:0;}
+        .nav{flex:1 1 auto;min-width:0;}
+        .nav a{flex:0 0 auto;}
+        .nav-button,.emergency-nav-button{min-height:42px;box-sizing:border-box;position:relative;transform:none!important;}
+        .nav-button{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px!important;border-radius:10px!important;line-height:1.25!important;white-space:nowrap;}
+        .emergency-nav-button{padding:0 14px!important;border-radius:10px!important;line-height:1.25!important;white-space:nowrap;transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease!important;}
+        .nav-button:hover,.nav-button:active,.emergency-nav-button:hover,.emergency-nav-button:active{transform:none!important;}
+        .hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+        .hero-actions .btn{min-width:170px;transform:none!important;transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease!important;}
+        .hero-actions .btn:hover,.hero-actions .btn:active{transform:none!important;}
+        @media(max-width:800px){
+            .header-inner{align-items:stretch;}
+            .nav{width:100%;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:8px;padding:2px 2px 5px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+            .nav::-webkit-scrollbar{display:none;}
+            .nav a{flex:0 0 auto;}
+            .nav-button,.emergency-nav-button{min-height:40px;}
+            .hero-actions{width:100%;flex-direction:column;align-items:stretch;}
+            .hero-actions .btn{width:100%;min-width:0;}
         }
 
         @media (prefers-reduced-motion: reduce) {
