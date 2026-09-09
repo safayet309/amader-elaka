@@ -286,6 +286,11 @@
 
 <body>
 
+    <!-- Emergency Hotline Popup -->
+    <div class="emergency-overlay" id="emergencyOverlay" aria-hidden="true"><div class="emergency-modal" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle"><div class="emergency-header"><div class="emergency-title"><div class="emergency-title-icon">🚨</div><div><h2 id="emergencyTitle">জরুরি নম্বর</h2><p>প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন</p></div></div><button type="button" class="emergency-close" id="emergencyClose" aria-label="বন্ধ করুন">×</button></div><div class="emergency-body"><div class="emergency-notice">🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।</div><div class="emergency-list" id="emergencyList"></div><div class="emergency-footer">জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।</div></div></div></div>
+
+
+
 
     <!-- =========================
          Header
@@ -327,6 +332,18 @@
 
                 <a href="dashboard.html">
                     ড্যাশবোর্ড
+                </a>
+
+                <a href="government.html">
+                  🌐 সরকারি সেবা
+                </a>
+
+                <a
+                    href="#"
+                    class="emergency-nav-button"
+                    id="emergencyButton"
+                >
+                    🚨 জরুরি নম্বর
                 </a>
 
                 <a
@@ -1534,6 +1551,9 @@
 
     <!-- Existing Dashboard JavaScript -->
     <script src="js/dashboard.js"></script>
+
+    <!-- Emergency Hotline JavaScript -->
+    <script src="js/emergency.js"></script>
 
 
 </body>
