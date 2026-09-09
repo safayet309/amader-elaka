@@ -280,4 +280,127 @@ body{background:var(--pe-bg);color:var(--pe-text);font-family:"Noto Sans Bengali
     font-size:11px!important;
     padding:7px 16px!important;
   }
-     }
+}
+
+/* =========================================================
+   FINAL BUTTON SIZE STANDARDIZATION
+   Keeps button dimensions stable across pages and states.
+========================================================= */
+
+/* Desktop / common navigation controls */
+.nav a,
+.nav-button,
+.emergency-nav-button{
+  box-sizing:border-box!important;
+  height:40px!important;
+  min-height:40px!important;
+  max-height:40px!important;
+  line-height:1!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+}
+
+.nav-button{padding-left:16px!important;padding-right:16px!important;min-width:158px!important}
+.emergency-nav-button{padding-left:14px!important;padding-right:14px!important;min-width:120px!important}
+
+/* Main action buttons */
+.btn{
+  box-sizing:border-box!important;
+  min-height:46px!important;
+  height:46px!important;
+  max-height:46px!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+
+.hero-buttons .btn{min-width:172px!important}
+
+/* Search CTA */
+.home-search-button{
+  box-sizing:border-box!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  width:112px!important;
+  min-width:112px!important;
+  max-width:112px!important;
+  padding:0 16px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+
+/* Never change dimensions on hover/active/focus */
+.nav a:hover,
+.nav a:active,
+.nav-button:hover,
+.nav-button:active,
+.emergency-nav-button:hover,
+.emergency-nav-button:active,
+.btn:hover,
+.btn:active,
+.home-search-button:hover,
+.home-search-button:active{
+  height:inherit!important;
+  min-height:inherit!important;
+  max-height:inherit!important;
+  transform:none!important;
+}
+
+/* Mobile menu buttons use the same stable vertical scale */
+@media(max-width:900px){
+  .nav a,
+  .nav a.active,
+  .nav a:hover,
+  .nav-button,
+  .nav .emergency-nav-button{
+    height:46px!important;
+    min-height:46px!important;
+    max-height:46px!important;
+    padding-top:0!important;
+    padding-bottom:0!important;
+  }
+
+  .nav .nav-button{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+
+  .hero-buttons .btn{
+    width:100%!important;
+    height:46px!important;
+    min-height:46px!important;
+    max-height:46px!important;
+  }
+
+  .home-search-button{
+    width:92px!important;
+    min-width:92px!important;
+    max-width:92px!important;
+    height:44px!important;
+    min-height:44px!important;
+    max-height:44px!important;
+  }
+}
+
+@media(max-width:480px){
+  .home-search-button{
+    width:82px!important;
+    min-width:82px!important;
+    max-width:82px!important;
+    height:40px!important;
+    min-height:40px!important;
+    max-height:40px!important;
+  }
+}
