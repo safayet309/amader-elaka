@@ -67,10 +67,6 @@
 <span>🏷️</span>
 <span>ক্যাটাগরি</span>
 </button>
-<button class="admin-nav-item" data-section="healthcare">
-<span>🏥</span>
-<span>Healthcare</span>
-</button>
 </nav>
 
 <div class="sidebar-bottom">
@@ -232,120 +228,8 @@ Reset
 
 </section>
 
-<!-- Healthcare Management -->
-<section id="healthcareSection" class="admin-section">
-
-<div class="admin-card">
-<div class="admin-card-header">
-<div>
-<h2>🏥 Healthcare Management</h2>
-<p>হাসপাতাল, ডাক্তার ও Specialization পরিচালনা করুন</p>
-</div>
-</div>
-
-<div class="admin-filters">
-<div class="admin-search">
-<input type="text" id="healthcareSearch" placeholder="হাসপাতাল বা ডাক্তার খুঁজুন...">
-</div>
-<select id="healthcareTypeFilter">
-<option value="">সব ধরনের প্রতিষ্ঠান</option>
-<option value="সরকারি">সরকারি</option>
-<option value="বেসরকারি">বেসরকারি</option>
-<option value="ডায়াগনস্টিক">ডায়াগনস্টিক</option>
-</select>
-<select id="healthcareStatusFilter">
-<option value="">সব স্ট্যাটাস</option>
-<option value="true">Active</option>
-<option value="false">Inactive</option>
-</select>
-<button id="refreshHealthcareBtn" class="admin-btn admin-btn-secondary">↻ রিফ্রেশ</button>
-</div>
-
-<div class="admin-form-grid" style="margin-bottom:20px;">
-<button id="addHospitalBtn" class="admin-btn admin-btn-primary">＋ নতুন হাসপাতাল</button>
-<button id="addDoctorBtn" class="admin-btn admin-btn-primary">＋ নতুন ডাক্তার</button>
-<button id="addSpecializationBtn" class="admin-btn admin-btn-secondary">＋ Specialization</button>
-</div>
-
-<div id="healthcareHospitalsList" class="categories-admin-list">
-<div class="admin-loading">Healthcare data লোড হচ্ছে...</div>
-</div>
-</div>
-
-</section>
-
 </main>
 </div>
-
-<!-- Hospital Modal -->
-<div id="hospitalModal" class="admin-modal">
-<div class="admin-modal-overlay"></div>
-<div class="admin-modal-box">
-<div class="admin-modal-header">
-<div><h2 id="hospitalModalTitle">নতুন হাসপাতাল</h2><p>হাসপাতালের তথ্য দিন</p></div>
-<button class="admin-modal-close" id="closeHospitalModal">×</button>
-</div>
-<form id="hospitalForm">
-<input type="hidden" id="hospitalId">
-<div class="admin-form-grid">
-<div class="admin-form-group"><label>হাসপাতালের নাম *</label><input id="hospitalName" required></div>
-<div class="admin-form-group"><label>ধরন</label><select id="hospitalType"><option value="সরকারি">সরকারি</option><option value="বেসরকারি">বেসরকারি</option><option value="ডায়াগনস্টিক">ডায়াগনস্টিক</option></select></div>
-<div class="admin-form-group"><label>বিভাগ *</label><select id="hospitalDivision" required></select></div>
-<div class="admin-form-group"><label>জেলা *</label><select id="hospitalDistrict" required></select></div>
-<div class="admin-form-group"><label>উপজেলা *</label><select id="hospitalUpazila" required></select></div>
-<div class="admin-form-group"><label>ফোন</label><input id="hospitalPhone" type="tel"></div>
-<div class="admin-form-group"><label>জরুরি ফোন</label><input id="hospitalEmergencyPhone" type="tel"></div>
-<div class="admin-form-group"><label>Opening Hours</label><input id="hospitalOpeningHours"></div>
-<div class="admin-form-group"><label>Verified Date</label><input id="hospitalVerifiedAt" type="date"></div>
-</div>
-<div class="admin-form-group"><label>ঠিকানা</label><textarea id="hospitalAddress" rows="2"></textarea></div>
-<div class="admin-form-group"><label>Departments</label><textarea id="hospitalDepartments" rows="2" placeholder="Medicine, Surgery, Cardiology..."></textarea></div>
-<div class="admin-form-group"><label>Emergency Available</label><select id="hospitalEmergencyAvailable"><option value="true">হ্যাঁ</option><option value="false">না</option></select></div>
-<div class="admin-form-group"><label>Source URL</label><input id="hospitalSourceUrl" type="url"></div>
-<div class="admin-form-group"><label>Website</label><input id="hospitalWebsite" type="url"></div>
-<div class="admin-form-group"><label>Map URL</label><input id="hospitalMapUrl" type="url"></div>
-<div class="admin-form-group"><label>Latitude / Longitude</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input id="hospitalLatitude" type="number" step="any" placeholder="Latitude"><input id="hospitalLongitude" type="number" step="any" placeholder="Longitude"></div></div>
-<div class="admin-form-group"><label>স্ট্যাটাস</label><select id="hospitalActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
-<div class="admin-modal-actions"><button type="button" class="admin-btn admin-btn-secondary" id="cancelHospital">বাতিল</button><button type="submit" class="admin-btn admin-btn-primary">সংরক্ষণ</button></div>
-</form>
-</div></div>
-
-<!-- Doctor Modal -->
-<div id="doctorModal" class="admin-modal">
-<div class="admin-modal-overlay"></div>
-<div class="admin-modal-box">
-<div class="admin-modal-header"><div><h2 id="doctorModalTitle">নতুন ডাক্তার</h2><p>ডাক্তারের তথ্য দিন</p></div><button class="admin-modal-close" id="closeDoctorModal">×</button></div>
-<form id="doctorForm">
-<input type="hidden" id="doctorId">
-<div class="admin-form-grid">
-<div class="admin-form-group"><label>হাসপাতাল *</label><select id="doctorHospital" required></select></div>
-<div class="admin-form-group"><label>Specialization</label><select id="doctorSpecialization"></select></div>
-<div class="admin-form-group"><label>ডাক্তারের নাম *</label><input id="doctorName" required></div>
-<div class="admin-form-group"><label>Degrees</label><input id="doctorDegrees"></div>
-<div class="admin-form-group"><label>Designation</label><input id="doctorDesignation"></div>
-<div class="admin-form-group"><label>Department</label><input id="doctorDepartment"></div>
-<div class="admin-form-group"><label>Experience</label><input id="doctorExperience"></div>
-<div class="admin-form-group"><label>Chamber</label><input id="doctorChamber"></div>
-<div class="admin-form-group"><label>Visiting Days</label><input id="doctorVisitingDays"></div>
-<div class="admin-form-group"><label>Visiting Hours</label><input id="doctorVisitingHours"></div>
-<div class="admin-form-group"><label>Consultation Fee</label><input id="doctorConsultationFee" type="number" min="0" step="0.01"></div>
-<div class="admin-form-group"><label>Phone</label><input id="doctorPhone" type="tel"></div>
-<div class="admin-form-group"><label>Verified Date</label><input id="doctorVerifiedAt" type="date"></div>
-<div class="admin-form-group"><label>Photo</label><input id="doctorPhoto" type="file" accept="image/jpeg,image/png,image/webp"><small style="display:block;margin-top:6px;color:#6b7280;">ছবি পরে upload করা যাবে; আপাতত optional.</small></div>
-<div class="admin-form-group"><label>Source URL</label><input id="doctorSourceUrl" type="url"></div>
-<div class="admin-form-group"><label>স্ট্যাটাস</label><select id="doctorActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
-</div>
-<div class="admin-modal-actions"><button type="button" class="admin-btn admin-btn-secondary" id="cancelDoctor">বাতিল</button><button type="submit" class="admin-btn admin-btn-primary">সংরক্ষণ</button></div>
-</form>
-</div></div>
-
-<!-- Specialization Modal -->
-<div id="specializationModal" class="admin-modal">
-<div class="admin-modal-overlay"></div>
-<div class="admin-modal-box admin-small-modal">
-<div class="admin-modal-header"><div><h2>নতুন Specialization</h2><p>Specialization-এর নাম দিন</p></div><button class="admin-modal-close" id="closeSpecializationModal">×</button></div>
-<form id="specializationForm"><div class="admin-form-group"><label>নাম *</label><input id="specializationName" required placeholder="যেমন: Cardiology"></div><div class="admin-form-group"><label>Icon / Emoji</label><input id="specializationIcon" maxlength="4" placeholder="❤️"></div><div class="admin-modal-actions"><button type="button" class="admin-btn admin-btn-secondary" id="cancelSpecialization">বাতিল</button><button type="submit" class="admin-btn admin-btn-primary">সংরক্ষণ</button></div></form>
-</div></div>
 
 <!-- Report Edit Modal -->
 <div id="reportEditModal" class="admin-modal">
@@ -511,7 +395,6 @@ class="admin-btn admin-btn-primary"
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
-<script src="js/location-data.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/pwa.js"></script>
 </body>
