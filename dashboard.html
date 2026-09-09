@@ -281,6 +281,7 @@
 
     </style>
 
+    <link rel="stylesheet" href="css/premium.css">
 </head>
 
 
@@ -317,7 +318,12 @@
             </a>
 
 
-            <nav class="nav">
+            <div class="mobile-header-actions" aria-label="মোবাইল হেডার অ্যাকশন">
+            <button type="button" class="mobile-search-button" id="mobileSearchButton" aria-label="সার্চ">⌕</button>
+            <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="মেনু খুলুন" aria-expanded="false" aria-controls="mobile-navigation">☰</button>
+        </div>
+
+        <nav class="nav" id="mobile-navigation">
 
                 <a href="index.html">
                     হোম
@@ -1556,6 +1562,7 @@
     <script src="js/emergency.js"></script>
 
 
+<script src="js/mobile-nav.js"></script>
 </body>
 
 </html>
