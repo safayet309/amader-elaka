@@ -1480,8 +1480,7 @@
 
     <script>
 
-        const HOME_API_URL =
-            "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+        const HOME_REPORT_TABLE = "Reports";
 
 
         const HOME_REPORT_CACHE_KEY =
@@ -1584,23 +1583,35 @@
 
             try {
 
-                const response =
-                    await fetch(
-                        HOME_API_URL
-                    );
-
-
-                if (!response.ok) {
+                if (
+                    typeof supabaseClient ===
+                    "undefined"
+                ) {
 
                     throw new Error(
-                        "Failed to load reports"
+                        "Supabase client is not loaded"
                     );
 
                 }
 
 
-                const data =
-                    await response.json();
+                const { data, error } =
+                    await supabaseClient
+                        .from(
+                            HOME_REPORT_TABLE
+                        )
+                        .select("*")
+                        .order(
+                            "Date",
+                            { ascending: true }
+                        );
+
+
+                if (error) {
+
+                    throw error;
+
+                }
 
 
                 homeReports =
@@ -1938,6 +1949,13 @@
 
     </script>
 
+
+    <!-- =========================
+         Supabase (Reports Data)
+    ========================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
 
     <!-- =========================
          Existing Main JavaScript
