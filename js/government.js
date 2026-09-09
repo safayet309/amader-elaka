@@ -90,9 +90,33 @@ const mobileMenu=document.getElementById("mobileMenu");
 const govNav=document.getElementById("govNav");
 
 if(mobileMenu&&govNav){
+    let govMenuOverlay=null;
+    const closeGovMenu=()=>{
+        govNav.classList.remove("open");
+        mobileMenu.setAttribute("aria-expanded","false");
+        mobileMenu.textContent="☰";
+        document.body.classList.remove("gov-menu-lock");
+        if(govMenuOverlay) govMenuOverlay.classList.remove("show");
+    };
+    const openGovMenu=()=>{
+        if(!govMenuOverlay){
+            govMenuOverlay=document.createElement("div");
+            govMenuOverlay.className="gov-menu-overlay";
+            document.body.appendChild(govMenuOverlay);
+            govMenuOverlay.addEventListener("click",closeGovMenu);
+        }
+        govNav.classList.add("open");
+        mobileMenu.setAttribute("aria-expanded","true");
+        mobileMenu.textContent="×";
+        document.body.classList.add("gov-menu-lock");
+        govMenuOverlay.classList.add("show");
+    };
+    mobileMenu.setAttribute("aria-expanded","false");
     mobileMenu.addEventListener("click",function(){
-        govNav.classList.toggle("open");
+        govNav.classList.contains("open") ? closeGovMenu() : openGovMenu();
     });
+    govNav.querySelectorAll("a").forEach(a=>a.addEventListener("click",closeGovMenu));
+    document.addEventListener("keydown",e=>{if(e.key==="Escape") closeGovMenu();});
 }
 
 const emergencyButton=document.getElementById("emergencyButton");
