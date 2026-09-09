@@ -431,6 +431,7 @@
         ========================= */
         .emergency-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.58);backdrop-filter:blur(6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease}.emergency-overlay.show{opacity:1;visibility:visible;pointer-events:auto}.emergency-modal{width:min(720px,100%);max-height:min(86vh,760px);overflow:hidden;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.22);transform:translateY(18px) scale(.98);transition:transform .25s ease}.emergency-overlay.show .emergency-modal{transform:translateY(0) scale(1)}.emergency-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #eef2f0}.emergency-title{display:flex;align-items:center;gap:12px;min-width:0}.emergency-title-icon{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fee2e2;font-size:22px}.emergency-title h2{margin:0 0 3px;color:#111827;font-size:21px}.emergency-title p{margin:0;color:#6b7280;font-size:13px}.emergency-close{width:38px;height:38px;flex-shrink:0;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;color:#374151;font-size:24px;line-height:1;cursor:pointer;transition:background .2s ease,color .2s ease,transform .2s ease}.emergency-close:hover{background:#fee2e2;color:#dc2626;transform:translateY(-1px)}.emergency-body{max-height:calc(min(86vh,760px) - 82px);overflow-y:auto;padding:16px 20px 20px}.emergency-notice{margin-bottom:12px;padding:11px 13px;border:1px solid #fee2e2;border-radius:10px;background:#fff7f7;color:#991b1b;font-size:13px;line-height:1.6}.emergency-list{display:grid;gap:10px}.emergency-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px;border:1px solid #e5e7eb;border-radius:13px;background:#fff;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.emergency-card:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,23,42,.07);border-color:#d1d5db}.emergency-card-info{display:flex;align-items:center;gap:11px;min-width:0}.emergency-card-icon{width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:11px;background:#f3f4f6;font-size:20px}.emergency-card h3{margin:0 0 3px;color:#374151;font-size:14px;font-weight:700}.emergency-card strong{color:#111827;font-size:18px;letter-spacing:.3px}.emergency-card-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}.emergency-call,.emergency-copy{min-height:36px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font:inherit;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}.emergency-call{border:1px solid #166534;background:#166534;color:#fff}.emergency-call:hover{background:#14532d;transform:translateY(-1px)}.emergency-copy{border:1px solid #d1d5db;background:#f8fafc;color:#374151}.emergency-copy:hover{background:#f3f4f6;border-color:#9ca3af;transform:translateY(-1px)}.emergency-card.important{border-color:#fecaca;background:linear-gradient(135deg,#fff7f7,#fff);box-shadow:0 6px 20px rgba(220,38,38,.08)}.emergency-card.important .emergency-card-icon{background:#fee2e2}.emergency-card.important h3{color:#b91c1c}.emergency-card.important strong{color:#dc2626;font-size:21px}.emergency-footer{margin-top:12px;color:#6b7280;font-size:12px;line-height:1.6;text-align:center}@media(max-width:600px){.emergency-modal{border-radius:15px}.emergency-header{padding:15px}.emergency-body{padding:13px 15px 16px}.emergency-card{align-items:stretch;flex-direction:column;gap:11px}.emergency-card-actions{width:100%}.emergency-call,.emergency-copy{flex:1}}@media(max-width:420px){.emergency-overlay{padding:10px}.emergency-title h2{font-size:18px}.emergency-title p{font-size:12px}.emergency-card{padding:11px}.emergency-card-icon{width:38px;height:38px}.emergency-card h3{font-size:13px}.emergency-card strong{font-size:17px}.emergency-card.important strong{font-size:20px}}
     </style>
+    <link rel="stylesheet" href="css/premium.css">
 </head>
 
 
@@ -452,7 +453,12 @@
                 <span>আমাদের এলাকা</span>
             </a>
 
-            <nav class="nav">
+            <div class="mobile-header-actions" aria-label="মোবাইল হেডার অ্যাকশন">
+            <button type="button" class="mobile-search-button" id="mobileSearchButton" aria-label="সার্চ">⌕</button>
+            <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="মেনু খুলুন" aria-expanded="false" aria-controls="mobile-navigation">☰</button>
+        </div>
+
+        <nav class="nav" id="mobile-navigation">
 
                 <a
                     href="index.html"
@@ -746,6 +752,25 @@
 
             </div>
 
+        </section>
+
+
+        <!-- =========================
+             Recent Reports
+        ========================== -->
+
+        <section class="recent-reports-section" aria-labelledby="recentReportsTitle">
+            <div class="container">
+                <div class="section-heading recent-heading">
+                    <div>
+                        <span class="section-label">নাগরিক কার্যক্রম</span>
+                        <h2 id="recentReportsTitle">সাম্প্রতিক রিপোর্ট</h2>
+                        <p>আপনার এলাকার সর্বশেষ রিপোর্টগুলো এক নজরে দেখুন।</p>
+                    </div>
+                    <a href="dashboard.html#reports" class="section-action">সব রিপোর্ট দেখুন →</a>
+                </div>
+                <div id="homeRecentReports" class="home-recent-grid" aria-live="polite"></div>
+            </div>
         </section>
 
 
@@ -1979,5 +2004,6 @@
         document.addEventListener("keydown",e=>{if(e.key==="Escape")closeEmergencyPopup()});
         renderEmergencyNumbers();
     </script>
+<script src="js/mobile-nav.js"></script>
 </body>
 </html>
