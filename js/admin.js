@@ -112,7 +112,7 @@ async function handleAdminLogin(event) {
             errorElement.textContent =
                 error.message === "Invalid login credentials"
                     ? "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।"
-                    : error.message || "লগইন করা যায়নি.";
+                    : error.message || "লগইন করা যায়নি।";
 
             errorElement.style.display = "block";
         }
@@ -317,30 +317,21 @@ function switchSection(section) {
         document.getElementById("pageSubtitle");
 
     if (section === "overview") {
-        if (title) title.textContent = "ড্যাশবোর্ড";
-
-        if (subtitle) {
-            subtitle.textContent =
-                "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
-        }
+        title.textContent = "ড্যাশবোর্ড";
+        subtitle.textContent =
+            "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
     }
 
     if (section === "reports") {
-        if (title) title.textContent = "রিপোর্টসমূহ";
-
-        if (subtitle) {
-            subtitle.textContent =
-                "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
-        }
+        title.textContent = "রিপোর্টসমূহ";
+        subtitle.textContent =
+            "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
     }
 
     if (section === "categories") {
-        if (title) title.textContent = "ক্যাটাগরি";
-
-        if (subtitle) {
-            subtitle.textContent =
-                "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
-        }
+        title.textContent = "ক্যাটাগরি";
+        subtitle.textContent =
+            "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
     }
 }
 
@@ -732,7 +723,6 @@ function statusClass(status) {
 
     return "status-default";
 }
-
 /* =========================
    FILTERS
 ========================= */
@@ -1006,20 +996,28 @@ function applyReportFilters() {
                 (!status ||
                     normalizeStatus(
                         report.Status
-                    ) === status) &&
+                    ) ===
+                    normalizeStatus(
+                        status
+                    )) &&
                 (!category ||
-                    report.Category ===
-                        category) &&
+                    String(
+                        report.Category ||
+                        ""
+                    ) === category) &&
                 (!division ||
-                    report.Division ===
-                        division)
+                    String(
+                        report.Division ||
+                        ""
+                    ) === division)
             );
         });
 
     displayReports(filtered);
 }
+
 /* =========================
-   REPORT DISPLAY
+   DISPLAY REPORTS
 ========================= */
 
 function displayReports(reports) {
@@ -1030,164 +1028,140 @@ function displayReports(reports) {
 
     if (!container) return;
 
-    if (
-        !Array.isArray(reports) ||
-        reports.length === 0
-    ) {
-        container.innerHTML =
-            '<div class="admin-empty">কোনো রিপোর্ট পাওয়া যায়নি।</div>';
+    if (!reports.length) {
+        container.innerHTML = `
+            <div class="admin-empty">
+                <div class="admin-empty-icon">📭</div>
+                কোনো রিপোর্ট পাওয়া যায়নি।
+            </div>
+        `;
 
         return;
     }
 
-    container.innerHTML = reports
-        .map(report => createReportCard(report))
-        .join("");
+    let html = `
+        <div class="admin-report-row admin-report-header">
+            <div>রিপোর্ট</div>
+            <div>লোকেশন</div>
+            <div>ক্যাটাগরি</div>
+            <div>স্ট্যাটাস</div>
+            <div>তারিখ</div>
+            <div>অ্যাকশন</div>
+        </div>
+    `;
+
+    reports.forEach(report => {
+        html += `
+            <div class="admin-report-row">
+                <div class="admin-report-cell">
+                    <strong>${safe(
+                        report.ID ||
+                        "N/A"
+                    )}</strong>
+
+                    <small>${safe(
+                        report.Description ||
+                        "কোনো বিবরণ নেই"
+                    )}</small>
+                </div>
+
+                <div class="admin-report-cell">
+                    <strong>${safe(
+                        report.Area ||
+                        "—"
+                    )}</strong>
+
+                    <small>
+                        ${safe(
+                            report.District ||
+                            ""
+                        )}
+                        ${
+                            report.Division
+                                ? " • " +
+                                  safe(
+                                      report.Division
+                                  )
+                                : ""
+                        }
+                    </small>
+                </div>
+
+                <div class="admin-report-cell">
+                    <strong>${safe(
+                        report.Category ||
+                        "—"
+                    )}</strong>
+                </div>
+
+                <div class="admin-report-cell">
+                    <span class="status-badge ${statusClass(
+                        report.Status
+                    )}">
+                        ${safe(
+                            statusLabel(
+                                report.Status
+                            )
+                        )}
+                    </span>
+                </div>
+
+                <div class="admin-report-cell">
+                    <strong>${safe(
+                        report.Date ||
+                        "—"
+                    )}</strong>
+                </div>
+
+                <div class="admin-report-actions">
+                    <button
+                        class="admin-btn admin-btn-secondary edit-report-btn"
+                        data-id="${escapeAttribute(
+                            report.ID
+                        )}"
+                    >
+                        ✏️
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 
     container
-        .querySelectorAll("[data-report-action]")
+        .querySelectorAll(
+            ".edit-report-btn"
+        )
         .forEach(button => {
             button.addEventListener(
                 "click",
-                handleReportAction
+                () => {
+                    const report =
+                        allReports.find(
+                            item =>
+                                String(
+                                    item.ID
+                                ) ===
+                                String(
+                                    button.dataset
+                                        .id
+                                )
+                        );
+
+                    if (report) {
+                        openReportEditModal(
+                            report
+                        );
+                    }
+                }
             );
         });
 }
 
-function createReportCard(report) {
-    const id =
-        escapeHtml(
-            report.ID ||
-            report.id ||
-            "N/A"
-        );
-
-    const category =
-        escapeHtml(
-            report.Category ||
-            "অনির্দিষ্ট"
-        );
-
-    const area =
-        escapeHtml(
-            report.Area ||
-            "এলাকা উল্লেখ নেই"
-        );
-
-    const division =
-        escapeHtml(
-            report.Division ||
-            ""
-        );
-
-    const district =
-        escapeHtml(
-            report.District ||
-            ""
-        );
-
-    const upazila =
-        escapeHtml(
-            report.Upazila ||
-            ""
-        );
-
-    const description =
-        escapeHtml(
-            report.Description ||
-            "কোনো বিবরণ নেই"
-        );
-
-    const status =
-        report.Status ||
-        "Unknown";
-
-    const date =
-        formatAdminDate(
-            report.Date
-        );
-
-    const statusText =
-        escapeHtml(
-            statusLabel(status)
-        );
-
-    const statusCss =
-        statusClass(status);
-
-    return `
-        <div class="admin-report-card">
-            <div class="admin-report-card-header">
-                <div>
-                    <span class="admin-report-id">
-                        #${id}
-                    </span>
-
-                    <span class="admin-report-category">
-                        ${category}
-                    </span>
-                </div>
-
-                <span class="admin-status ${statusCss}">
-                    ${statusText}
-                </span>
-            </div>
-
-            <div class="admin-report-card-body">
-                <h3>${area}</h3>
-
-                <p class="admin-report-location">
-                    ${division}
-                    ${district ? ` • ${district}` : ""}
-                    ${upazila ? ` • ${upazila}` : ""}
-                </p>
-
-                <p class="admin-report-description">
-                    ${description}
-                </p>
-            </div>
-
-            <div class="admin-report-card-footer">
-                <span>${date}</span>
-
-                <div class="admin-report-actions">
-                    <button
-                        type="button"
-                        class="admin-action-btn"
-                        data-report-action="view"
-                        data-report-id="${escapeAttribute(
-                            report.ID || report.id || ""
-                        )}"
-                    >
-                        দেখুন
-                    </button>
-
-                    <button
-                        type="button"
-                        class="admin-action-btn"
-                        data-report-action="edit"
-                        data-report-id="${escapeAttribute(
-                            report.ID || report.id || ""
-                        )}"
-                    >
-                        সম্পাদনা
-                    </button>
-
-                    <button
-                        type="button"
-                        class="admin-action-btn danger"
-                        data-report-action="delete"
-                        data-report-id="${escapeAttribute(
-                            report.ID || report.id || ""
-                        )}"
-                    >
-                        মুছুন
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-}
+/* =========================
+   RECENT REPORTS
+========================= */
 
 function displayRecentReports() {
     const container =
@@ -1197,464 +1171,366 @@ function displayRecentReports() {
 
     if (!container) return;
 
-    if (
-        !Array.isArray(allReports) ||
-        allReports.length === 0
-    ) {
-        container.innerHTML =
-            '<div class="admin-empty">কোনো সাম্প্রতিক রিপোর্ট নেই।</div>';
-
-        return;
-    }
-
-    const recent =
+    const reports =
         [...allReports]
-            .sort(
-                (a, b) =>
-                    new Date(
-                        b.Date || 0
-                    ) -
-                    new Date(
-                        a.Date || 0
-                    )
-            )
+            .reverse()
             .slice(0, 5);
 
-    container.innerHTML = recent
-        .map(report => {
-            const id =
-                escapeHtml(
-                    report.ID ||
-                    report.id ||
-                    "N/A"
-                );
-
-            const area =
-                escapeHtml(
-                    report.Area ||
-                    "এলাকা উল্লেখ নেই"
-                );
-
-            const category =
-                escapeHtml(
-                    report.Category ||
-                    "অনির্দিষ্ট"
-                );
-
-            const status =
-                report.Status ||
-                "Unknown";
-
-            return `
-                <div class="admin-recent-item">
-                    <div class="admin-recent-main">
-                        <strong>#${id}</strong>
-
-                        <span>
-                            ${area}
-                        </span>
-
-                        <small>
-                            ${category}
-                        </small>
-                    </div>
-
-                    <span class="admin-status ${statusClass(status)}">
-                        ${escapeHtml(
-                            statusLabel(status)
-                        )}
-                    </span>
-                </div>
-            `;
-        })
-        .join("");
-}
-
-/* =========================
-   REPORT ACTIONS
-========================= */
-
-async function handleReportAction(event) {
-    const button =
-        event.currentTarget;
-
-    const action =
-        button.dataset.reportAction;
-
-    const reportId =
-        button.dataset.reportId;
-
-    if (!action || !reportId) return;
-
-    const report =
-        allReports.find(
-            item =>
-                String(
-                    item.ID ||
-                    item.id ||
-                    ""
-                ) === String(reportId)
-        );
-
-    if (!report) {
-        showAdminMessage(
-            "রিপোর্ট পাওয়া যায়নি",
-            "রিপোর্টটি তালিকায় পাওয়া যায়নি।",
-            "error"
-        );
+    if (!reports.length) {
+        container.innerHTML =
+            '<div class="admin-empty">কোনো রিপোর্ট নেই।</div>';
 
         return;
     }
 
-    if (action === "view") {
-        showReportDetails(report);
-        return;
-    }
+    container.innerHTML =
+        reports
+            .map(
+                report => `
+            <div class="recent-report-item">
+                <div class="recent-report-info">
+                    <strong>${safe(
+                        report.Category ||
+                        "রিপোর্ট"
+                    )}</strong>
 
-    if (action === "edit") {
-        openReportEdit(report);
-        return;
-    }
-
-    if (action === "delete") {
-        await deleteReport(report);
-    }
-}
-
-function showReportDetails(report) {
-    const existing =
-        document.getElementById(
-            "adminReportDetailsModal"
-        );
-
-    if (existing) {
-        existing.remove();
-    }
-
-    const modal =
-        document.createElement("div");
-
-    modal.id =
-        "adminReportDetailsModal";
-
-    modal.className =
-        "admin-modal";
-
-    modal.innerHTML = `
-        <div class="admin-modal-overlay"
-             data-close-report-modal></div>
-
-        <div class="admin-modal-content">
-
-            <div class="admin-modal-header">
-                <h2>রিপোর্টের বিস্তারিত</h2>
-
-                <button
-                    type="button"
-                    class="admin-modal-close"
-                    data-close-report-modal
-                >
-                    ×
-                </button>
-            </div>
-
-            <div class="admin-modal-body">
-
-                <div class="admin-detail-grid">
-
-                    <div>
-                        <label>রিপোর্ট ID</label>
-                        <p>${escapeHtml(
-                            report.ID ||
-                            report.id ||
-                            "N/A"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>ক্যাটাগরি</label>
-                        <p>${escapeHtml(
-                            report.Category ||
-                            "অনির্দিষ্ট"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>বিভাগ</label>
-                        <p>${escapeHtml(
-                            report.Division ||
-                            "—"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>জেলা</label>
-                        <p>${escapeHtml(
-                            report.District ||
-                            "—"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>উপজেলা</label>
-                        <p>${escapeHtml(
-                            report.Upazila ||
-                            "—"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>ওয়ার্ড</label>
-                        <p>${escapeHtml(
-                            report.Ward ||
-                            "—"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>এলাকা</label>
-                        <p>${escapeHtml(
+                    <small>
+                        ${safe(
                             report.Area ||
-                            "—"
-                        )}</p>
-                    </div>
-
-                    <div>
-                        <label>স্ট্যাটাস</label>
-                        <p>
-                            <span class="admin-status ${statusClass(
-                                report.Status
-                            )}">
-                                ${escapeHtml(
-                                    statusLabel(
-                                        report.Status
-                                    )
-                                )}
-                            </span>
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="admin-detail-block">
-                    <label>বিবরণ</label>
-                    <p>
-                        ${escapeHtml(
-                            report.Description ||
-                            "কোনো বিবরণ নেই"
+                            "লোকেশন নেই"
                         )}
-                    </p>
+                        ${
+                            report.District
+                                ? " • " +
+                                  safe(
+                                      report.District
+                                  )
+                                : ""
+                        }
+                    </small>
                 </div>
 
-                <div class="admin-detail-block">
-                    <label>Admin Note</label>
-                    <p>
-                        ${escapeHtml(
-                            report.AdminNote ||
-                            "কোনো নোট নেই"
-                        )}
-                    </p>
-                </div>
-
-                <div class="admin-detail-block">
-                    <label>তারিখ</label>
-                    <p>
-                        ${escapeHtml(
-                            formatAdminDate(
-                                report.Date
-                            )
-                        )}
-                    </p>
-                </div>
-
+                <span class="status-badge ${statusClass(
+                    report.Status
+                )}">
+                    ${safe(
+                        statusLabel(
+                            report.Status
+                        )
+                    )}
+                </span>
             </div>
-
-            <div class="admin-modal-footer">
-                <button
-                    type="button"
-                    class="admin-btn secondary"
-                    data-close-report-modal
-                >
-                    বন্ধ করুন
-                </button>
-
-                <button
-                    type="button"
-                    class="admin-btn primary"
-                    data-edit-report-from-details
-                >
-                    সম্পাদনা
-                </button>
-            </div>
-
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    modal
-        .querySelectorAll(
-            "[data-close-report-modal]"
-        )
-        .forEach(element => {
-            element.addEventListener(
-                "click",
-                () => {
-                    modal.remove();
-                }
-            );
-        });
-
-    const editButton =
-        modal.querySelector(
-            "[data-edit-report-from-details]"
-        );
-
-    if (editButton) {
-        editButton.addEventListener(
-            "click",
-            () => {
-                modal.remove();
-                openReportEdit(report);
-            }
-        );
-    }
-
-    requestAnimationFrame(() => {
-        modal.classList.add("active");
-    });
+        `
+            )
+            .join("");
 }
 
 /* =========================
    REPORT EDIT
 ========================= */
 
-function openReportEdit(report) {
+function openReportEditModal(report) {
     editingReport = report;
 
     const modal =
         document.getElementById(
-            "reportModal"
-        );
-
-    if (!modal) {
-        showAdminMessage(
-            "সম্পাদনা করা যাচ্ছে না",
-            "Report modal পাওয়া যায়নি।",
-            "error"
-        );
-
-        return;
-    }
-
-    setFormValue(
-        "editReportId",
-        report.ID || report.id || ""
-    );
-
-    setFormValue(
-        "editReportStatus",
-        report.Status || ""
-    );
-
-    setFormValue(
-        "editReportCategory",
-        report.Category || ""
-    );
-
-    setFormValue(
-        "editReportAdminNote",
-        report.AdminNote || ""
-    );
-
-    modal.classList.add("active");
-
-    if (modal.style) {
-        modal.style.display = "flex";
-    }
-}
-
-function closeReportModal() {
-    const modal =
-        document.getElementById(
-            "reportModal"
+            "reportEditModal"
         );
 
     if (!modal) return;
 
-    modal.classList.remove("active");
+    document.getElementById(
+        "editReportId"
+    ).value =
+        report.ID || "";
+
+    document.getElementById(
+        "editId"
+    ).value =
+        report.ID || "";
+
+    const statusType =
+        normalizeStatus(
+            report.Status
+        );
+
+    document.getElementById(
+        "editStatus"
+    ).value =
+        statusType === "progress"
+            ? "কাজ চলছে"
+            : statusType === "solved"
+            ? "সমাধান হয়েছে"
+            : "Pending";
+
+    document.getElementById(
+        "editDivision"
+    ).value =
+        report.Division || "";
+
+    document.getElementById(
+        "editDistrict"
+    ).value =
+        report.District || "";
+
+    document.getElementById(
+        "editUpazila"
+    ).value =
+        report.Upazila || "";
+
+    document.getElementById(
+        "editArea"
+    ).value =
+        report.Area || "";
+
+    document.getElementById(
+        "editWard"
+    ).value =
+        report.Ward || "";
+
+    document.getElementById(
+        "editDescription"
+    ).value =
+        report.Description || "";
+
+    document.getElementById(
+        "editAdminNote"
+    ).value =
+        report.AdminNote || "";
+
+    populateEditCategory(
+        report.Category
+    );
+
+    modal.classList.add("active");
+    document.body.style.overflow =
+        "hidden";
+}
+
+function populateEditCategory(selected) {
+    const select =
+        document.getElementById(
+            "editCategory"
+        );
+
+    if (!select) return;
+
+    select.innerHTML = "";
+
+    categories.forEach(category => {
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            category.Name;
+
+        option.textContent =
+            `${category.Icon || "📌"} ${category.Name}`;
+
+        if (
+            category.Name ===
+            selected
+        ) {
+            option.selected = true;
+        }
+
+        select.appendChild(
+            option
+        );
+    });
 
     if (
-        !modal.classList.contains(
-            "admin-modal"
+        selected &&
+        !categories.some(
+            category =>
+                category.Name ===
+                selected
         )
     ) {
-        modal.style.display = "none";
+        const oldOption =
+            document.createElement(
+                "option"
+            );
+
+        oldOption.value =
+            selected;
+
+        oldOption.textContent =
+            selected;
+
+        oldOption.selected =
+            true;
+
+        select.appendChild(
+            oldOption
+        );
+    }
+}
+
+function setupEditModal() {
+    const modal =
+        document.getElementById(
+            "reportEditModal"
+        );
+
+    const close =
+        document.getElementById(
+            "closeReportModal"
+        );
+
+    const cancel =
+        document.getElementById(
+            "cancelReportEdit"
+        );
+
+    const overlay =
+        modal?.querySelector(
+            ".admin-modal-overlay"
+        );
+
+    if (close) {
+        close.addEventListener(
+            "click",
+            closeReportEditModal
+        );
     }
 
-    editingReport = null;
+    if (cancel) {
+        cancel.addEventListener(
+            "click",
+            closeReportEditModal
+        );
+    }
+
+    if (overlay) {
+        overlay.addEventListener(
+            "click",
+            closeReportEditModal
+        );
+    }
+
+    const form =
+        document.getElementById(
+            "reportEditForm"
+        );
+
+    if (form) {
+        form.addEventListener(
+            "submit",
+            saveReportChanges
+        );
+    }
 }
 
 async function saveReportChanges(event) {
-    if (event) {
-        event.preventDefault();
-    }
+    event.preventDefault();
 
-    if (!editingReport) {
-        showAdminMessage(
-            "রিপোর্ট নির্বাচন করুন",
-            "কোনো রিপোর্ট সম্পাদনার জন্য নির্বাচন করা হয়নি।",
-            "error"
+    if (!editingReport) return;
+
+    const button =
+        document.getElementById(
+            "saveReportBtn"
         );
 
-        return;
-    }
+if (button) {
+    button.disabled = true;
+    button.textContent =
+        "সংরক্ষণ হচ্ছে...";
+}
 
-    const id =
-        editingReport.ID ||
-        editingReport.id;
+const id =
+    editingReport.ID;
 
-    const status =
-        getFormValue(
-            "editReportStatus"
-        );
+    const updatedData = {
+        Division:
+            document
+                .getElementById(
+                    "editDivision"
+                )
+                .value
+                .trim(),
 
-    const category =
-        getFormValue(
-            "editReportCategory"
-        );
+        District:
+            document
+                .getElementById(
+                    "editDistrict"
+                )
+                .value
+                .trim(),
 
-    const adminNote =
-        getFormValue(
-            "editReportAdminNote"
-        );
+        Upazila:
+            document
+                .getElementById(
+                    "editUpazila"
+                )
+                .value
+                .trim(),
+
+        Area:
+            document
+                .getElementById(
+                    "editArea"
+                )
+                .value
+                .trim(),
+
+        Ward:
+            document
+                .getElementById(
+                    "editWard"
+                )
+                .value
+                .trim(),
+
+        Category:
+            document.getElementById(
+                "editCategory"
+            ).value,
+
+        Description:
+            document
+                .getElementById(
+                    "editDescription"
+                )
+                .value
+                .trim(),
+
+        Status:
+            document.getElementById(
+                "editStatus"
+            ).value,
+
+        AdminNote:
+            document
+                .getElementById(
+                    "editAdminNote"
+                )
+                .value
+                .trim()
+    };
 
     try {
-        const updateData = {
-            Status: status,
-            Category: category,
-            AdminNote: adminNote
-        };
-
         const { error } =
             await supabaseClient
                 .from(REPORT_TABLE)
-                .update(updateData)
+                .update(updatedData)
                 .eq("ID", id);
 
         if (error) {
             throw error;
         }
 
+        clearReportCache();
+
+        closeReportEditModal();
+
         showAdminMessage(
             "সফল হয়েছে",
-            "রিপোর্ট সফলভাবে আপডেট হয়েছে।",
+            "রিপোর্টের পরিবর্তন সংরক্ষণ হয়েছে।",
             "success"
         );
-
-        closeReportModal();
-
-        clearReportCache();
 
         await loadReports(true);
 
@@ -1665,88 +1541,58 @@ async function saveReportChanges(event) {
         );
 
         showAdminMessage(
-            "আপডেট ব্যর্থ",
+            "সমস্যা হয়েছে",
             error.message ||
                 "রিপোর্ট আপডেট করা যায়নি।",
             "error"
         );
+
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "পরিবর্তন সংরক্ষণ";
+        }
     }
 }
 
-async function deleteReport(report) {
-    const id =
-        report.ID ||
-        report.id;
-
-    const confirmed =
-        window.confirm(
-            `রিপোর্ট #${id} কি সত্যিই মুছে ফেলতে চান?`
+function closeReportEditModal() {
+    const modal =
+        document.getElementById(
+            "reportEditModal"
         );
 
-    if (!confirmed) return;
-
-    try {
-        const { error } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .delete()
-                .eq("ID", id);
-
-        if (error) {
-            throw error;
-        }
-
-        allReports =
-            allReports.filter(
-                item =>
-                    String(
-                        item.ID ||
-                        item.id ||
-                        ""
-                    ) !== String(id)
-            );
-
-        saveCachedReports(allReports);
-
-        updateStatistics();
-        createFilterOptions();
-        displayReports(allReports);
-        displayRecentReports();
-
-        showAdminMessage(
-            "মুছে ফেলা হয়েছে",
-            "রিপোর্ট সফলভাবে মুছে ফেলা হয়েছে।",
-            "success"
-        );
-
-    } catch (error) {
-        console.error(
-            "Report delete error:",
-            error
-        );
-
-        showAdminMessage(
-            "মুছে ফেলা যায়নি",
-            error.message ||
-                "রিপোর্ট মুছে ফেলা যায়নি।",
-            "error"
+    if (modal) {
+        modal.classList.remove(
+            "active"
         );
     }
+
+    editingReport = null;
+
+    document.body.style.overflow =
+        "";
 }
 
 /* =========================
-   CATEGORY LOADING
+   CATEGORIES
 ========================= */
 
-async function loadCategories(forceRefresh = false) {
+async function loadCategories(
+    forceRefresh = false
+) {
     if (!forceRefresh) {
-        const cached =
+        const cachedCategories =
             getCachedCategories();
 
         if (
-            Array.isArray(cached)
+            Array.isArray(
+                cachedCategories
+            ) &&
+            cachedCategories.length > 0
         ) {
-            categories = cached;
+            categories =
+                cachedCategories;
 
             renderCategories();
             createFilterOptions();
@@ -1759,8 +1605,11 @@ async function loadCategories(forceRefresh = false) {
         const { data, error } =
             await supabaseClient
                 .from(CATEGORY_TABLE)
-                .select("*")
-                .order("Name", {
+                .select(
+                    "ID, Name, Icon, Active"
+                )
+                .eq("Active", true)
+                .order("ID", {
                     ascending: true
                 });
 
@@ -1786,13 +1635,19 @@ async function loadCategories(forceRefresh = false) {
             error
         );
 
-        const cached =
-            getCachedCategories(true);
+        const oldCategories =
+            getCachedCategories(
+                true
+            );
 
         if (
-            Array.isArray(cached)
+            Array.isArray(
+                oldCategories
+            ) &&
+            oldCategories.length > 0
         ) {
-            categories = cached;
+            categories =
+                oldCategories;
 
             renderCategories();
             createFilterOptions();
@@ -1803,8 +1658,113 @@ async function loadCategories(forceRefresh = false) {
         categories = [];
 
         renderCategories();
-        createFilterOptions();
+
+        showAdminMessage(
+            "সমস্যা",
+            "Categories লোড করা যায়নি।",
+            "error"
+        );
     }
+}
+
+/* =========================
+   CATEGORY DISPLAY
+========================= */
+
+function renderCategories() {
+    const container =
+        document.getElementById(
+            "categoriesList"
+        );
+
+    if (!container) return;
+
+    if (!categories.length) {
+        container.innerHTML = `
+            <div class="admin-empty">
+                <div class="admin-empty-icon">🏷️</div>
+                কোনো category পাওয়া যায়নি।
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        categories
+            .map(
+                (category, index) => `
+            <div class="category-admin-item">
+                <div class="category-admin-left">
+                    <div class="category-admin-icon">
+                        ${safe(
+                            category.Icon ||
+                            "📌"
+                        )}
+                    </div>
+
+                    <div>
+                        <strong>${safe(
+                            category.Name
+                        )}</strong>
+                    </div>
+                </div>
+
+                <div class="category-admin-actions">
+                    <button
+                        class="admin-btn admin-btn-secondary edit-category-btn"
+                        data-index="${index}"
+                    >
+                        ✏️ Edit
+                    </button>
+
+                    <button
+                        class="admin-btn admin-btn-danger delete-category-btn"
+                        data-index="${index}"
+                    >
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        `
+            )
+            .join("");
+
+    container
+        .querySelectorAll(
+            ".edit-category-btn"
+        )
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    openCategoryModal(
+                        Number(
+                            button.dataset
+                                .index
+                        )
+                    );
+                }
+            );
+        });
+
+    container
+        .querySelectorAll(
+            ".delete-category-btn"
+        )
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    deleteCategory(
+                        Number(
+                            button.dataset
+                                .index
+                        )
+                    );
+                }
+            );
+        });
 }
 
 /* =========================
@@ -1812,14 +1772,9 @@ async function loadCategories(forceRefresh = false) {
 ========================= */
 
 function setupCategoryEvents() {
-    const addButton =
+    const add =
         document.getElementById(
             "addCategoryBtn"
-        );
-
-    const refreshButton =
-        document.getElementById(
-            "refreshCategoriesBtn"
         );
 
     const form =
@@ -1827,41 +1782,31 @@ function setupCategoryEvents() {
             "categoryForm"
         );
 
-    if (addButton) {
-        addButton.addEventListener(
-            "click",
-            () => {
-                openCategoryModal();
-            }
+    const close =
+        document.getElementById(
+            "closeCategoryModal"
         );
-    }
 
-    if (refreshButton) {
-        refreshButton.addEventListener(
+    const cancel =
+        document.getElementById(
+            "cancelCategory"
+        );
+
+    const modal =
+        document.getElementById(
+            "categoryModal"
+        );
+
+    const overlay =
+        modal?.querySelector(
+            ".admin-modal-overlay"
+        );
+
+    if (add) {
+        add.addEventListener(
             "click",
-            async () => {
-                refreshButton.disabled = true;
-
-                const oldText =
-                    refreshButton.textContent;
-
-                refreshButton.textContent =
-                    "লোড হচ্ছে...";
-
-                try {
-                    clearCategoryCache();
-
-                    await loadCategories(
-                        true
-                    );
-                } finally {
-                    refreshButton.disabled =
-                        false;
-
-                    refreshButton.textContent =
-                        oldText;
-                }
-            }
+            () =>
+                openCategoryModal()
         );
     }
 
@@ -1871,124 +1816,36 @@ function setupCategoryEvents() {
             saveCategory
         );
     }
-}
 
-function renderCategories() {
-    const container =
-        document.getElementById(
-            "adminCategoriesList"
+    if (close) {
+        close.addEventListener(
+            "click",
+            closeCategoryModal
         );
-
-    if (!container) return;
-
-    if (
-        !Array.isArray(categories) ||
-        categories.length === 0
-    ) {
-        container.innerHTML =
-            '<div class="admin-empty">কোনো ক্যাটাগরি পাওয়া যায়নি।</div>';
-
-        return;
     }
 
-    container.innerHTML =
-        categories
-            .map(
-                (category, index) => `
-                    <div class="admin-category-item">
+    if (cancel) {
+        cancel.addEventListener(
+            "click",
+            closeCategoryModal
+        );
+    }
 
-                        <div class="admin-category-info">
-                            <strong>
-                                ${escapeHtml(
-                                    category.Name ||
-                                    "Unnamed"
-                                )}
-                            </strong>
+    if (overlay) {
+        overlay.addEventListener(
+            "click",
+            closeCategoryModal
+        );
+    }
 
-                            ${
-                                category.Description
-                                    ? `
-                                        <small>
-                                            ${escapeHtml(
-                                                category.Description
-                                            )}
-                                        </small>
-                                      `
-                                    : ""
-                            }
-                        </div>
-
-                        <div class="admin-category-actions">
-
-                            <button
-                                type="button"
-                                class="admin-action-btn"
-                                data-category-edit="${index}"
-                            >
-                                সম্পাদনা
-                            </button>
-
-                            <button
-                                type="button"
-                                class="admin-action-btn danger"
-                                data-category-delete="${index}"
-                            >
-                                মুছুন
-                            </button>
-
-                        </div>
-
-                    </div>
-                `
-            )
-            .join("");
-
-    container
-        .querySelectorAll(
-            "[data-category-edit]"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    const index =
-                        Number(
-                            button.dataset
-                                .categoryEdit
-                        );
-
-                    openCategoryModal(
-                        categories[index],
-                        index
-                    );
-                }
-            );
-        });
-
-    container
-        .querySelectorAll(
-            "[data-category-delete]"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                async () => {
-                    const index =
-                        Number(
-                            button.dataset
-                                .categoryDelete
-                        );
-
-                    await deleteCategory(
-                        categories[index]
-                    );
-                }
-            );
-        });
+    setupEditModal();
 }
 
+/* =========================
+   CATEGORY MODAL
+========================= */
+
 function openCategoryModal(
-    category = null,
     index = null
 ) {
     editingCategoryIndex =
@@ -1999,51 +1856,56 @@ function openCategoryModal(
             "categoryModal"
         );
 
-    const form =
+    const title =
         document.getElementById(
-            "categoryForm"
+            "categoryModalTitle"
         );
 
-    if (!modal || !form) {
-        return;
-    }
-
-    const nameInput =
+    const name =
         document.getElementById(
             "categoryName"
         );
 
-    const descriptionInput =
+    const icon =
         document.getElementById(
-            "categoryDescription"
+            "categoryIcon"
         );
 
-    if (nameInput) {
-        nameInput.value =
-            category?.Name || "";
-    }
+    if (!modal) return;
 
-    if (descriptionInput) {
-        descriptionInput.value =
-            category?.Description || "";
-    }
-
-    const title =
-        modal.querySelector(
-            ".admin-modal-title"
-        );
-
-    if (title) {
+    if (index === null) {
         title.textContent =
-            category
-                ? "ক্যাটাগরি সম্পাদনা"
-                : "নতুন ক্যাটাগরি";
+            "নতুন ক্যাটাগরি";
+
+        name.value = "";
+        icon.value = "";
+
+    } else {
+        const category =
+            categories[index];
+
+        if (!category) return;
+
+        title.textContent =
+            "ক্যাটাগরি সম্পাদনা";
+
+        name.value =
+            category.Name || "";
+
+        icon.value =
+            category.Icon || "";
     }
 
-    modal.classList.add("active");
+    modal.classList.add(
+        "active"
+    );
 
-    modal.style.display =
-        "flex";
+    document.body.style.overflow =
+        "hidden";
+
+    setTimeout(() => {
+        name.focus();
+    }, 100);
 }
 
 function closeCategoryModal() {
@@ -2052,37 +1914,46 @@ function closeCategoryModal() {
             "categoryModal"
         );
 
-    if (!modal) return;
-
-    modal.classList.remove(
-        "active"
-    );
-
-    modal.style.display =
-        "none";
+    if (modal) {
+        modal.classList.remove(
+            "active"
+        );
+    }
 
     editingCategoryIndex =
         null;
+
+    document.body.style.overflow =
+        "";
 }
 
+/* =========================
+   ADD / EDIT CATEGORY
+========================= */
+
 async function saveCategory(event) {
-    if (event) {
-        event.preventDefault();
-    }
+    event.preventDefault();
 
     const name =
-        getFormValue(
-            "categoryName"
-        );
+        document
+            .getElementById(
+                "categoryName"
+            )
+            .value
+            .trim();
 
-    const description =
-        getFormValue(
-            "categoryDescription"
-        );
+    const icon =
+        document
+            .getElementById(
+                "categoryIcon"
+            )
+            .value
+            .trim() ||
+        "📌";
 
     if (!name) {
         showAdminMessage(
-            "তথ্য দিন",
+            "তথ্য প্রয়োজন",
             "ক্যাটাগরির নাম লিখুন।",
             "error"
         );
@@ -2090,1356 +1961,308 @@ async function saveCategory(event) {
         return;
     }
 
-    try {
-        const payload = {
-            Name: name,
-            Description:
-                description || null
-        };
-
-        let response;
-
-        if (
-            editingCategoryIndex !== null &&
-            categories[
-                editingCategoryIndex
-            ]
-        ) {
-            const existing =
-                categories[
+    const duplicate =
+        categories.some(
+            (category, index) =>
+                String(
+                    category.Name ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase() ===
+                    name.toLowerCase() &&
+                index !==
                     editingCategoryIndex
-                ];
+        );
 
-            const categoryId =
-                existing.id ??
-                existing.ID;
+    if (duplicate) {
+        showAdminMessage(
+            "ইতিমধ্যে আছে",
+            "এই ক্যাটাগরিটি আগে থেকেই আছে।",
+            "error"
+        );
 
-            response =
-                await supabaseClient
-                    .from(CATEGORY_TABLE)
-                    .update(payload)
-                    .eq(
-                        "id",
-                        categoryId
-                    );
+        return;
+    }
+
+    try {
+        if (
+            editingCategoryIndex ===
+            null
+        ) {
+            await createCategory(
+                name,
+                icon
+            );
         } else {
-            response =
-                await supabaseClient
-                    .from(CATEGORY_TABLE)
-                    .insert(
-                        payload
-                    );
+            await updateCategory(
+                editingCategoryIndex,
+                name,
+                icon
+            );
         }
-
-        if (response.error) {
-            throw response.error;
-        }
-
-        clearCategoryCache();
 
         closeCategoryModal();
+
+        clearCategoryCache();
 
         await loadCategories(
             true
         );
 
+        await loadReports(
+            true
+        );
+
         showAdminMessage(
             "সফল হয়েছে",
-            "ক্যাটাগরি সফলভাবে সংরক্ষণ করা হয়েছে।",
+            "ক্যাটাগরি স্থায়ীভাবে সংরক্ষণ হয়েছে।",
+            "success"
+        );
+
+    }
+
+        /* =========================
+   CREATE CATEGORY
+========================= */
+
+async function createCategory(
+    name,
+    icon
+) {
+    const id =
+        generateCategoryID();
+
+    const { error } =
+        await supabaseClient
+            .from(CATEGORY_TABLE)
+            .insert({
+                ID: id,
+                Name: name,
+                Icon: icon,
+                Active: true
+            });
+
+    if (error) {
+        throw new Error(
+            error.message ||
+                "নতুন category Supabase-এ save করা যায়নি।"
+        );
+    }
+}
+
+/* =========================
+   GENERATE CATEGORY ID
+========================= */
+
+function generateCategoryID() {
+    let maxNumber = 0;
+
+    categories.forEach(
+        category => {
+            const id =
+                String(
+                    category.ID ||
+                    ""
+                ).trim();
+
+            const match =
+                id.match(
+                    /^CAT-(\d+)$/i
+                );
+
+            if (match) {
+                const number =
+                    Number(
+                        match[1]
+                    );
+
+                if (
+                    number >
+                    maxNumber
+                ) {
+                    maxNumber =
+                        number;
+                }
+            }
+        }
+    );
+
+    const nextNumber =
+        maxNumber + 1;
+
+    return `CAT-${String(
+        nextNumber
+    ).padStart(3, "0")}`;
+}
+
+/* =========================
+   UPDATE CATEGORY
+========================= */
+
+async function updateCategory(
+    index,
+    newName,
+    newIcon
+) {
+    const category =
+        categories[index];
+
+    if (!category) {
+        throw new Error(
+            "Category পাওয়া যায়নি।"
+        );
+    }
+
+    const oldName =
+        category.Name;
+
+    const id =
+        category.ID;
+
+    const { error } =
+        await supabaseClient
+            .from(CATEGORY_TABLE)
+            .update({
+                Name: newName,
+                Icon: newIcon,
+                Active: true
+            })
+            .eq("ID", id);
+
+    if (error) {
+        throw new Error(
+            error.message ||
+                "Category update করা যায়নি।"
+        );
+    }
+
+    if (
+        oldName !==
+        newName
+    ) {
+        const {
+            error: reportError
+        } =
+            await supabaseClient
+                .from(REPORT_TABLE)
+                .update({
+                    Category:
+                        newName
+                })
+                .eq(
+                    "Category",
+                    oldName
+                );
+
+        if (reportError) {
+            throw new Error(
+                reportError.message ||
+                    "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
+            );
+        }
+
+        clearReportCache();
+    }
+
+    clearCategoryCache();
+}
+
+/* =========================
+   DELETE CATEGORY
+========================= */
+
+async function deleteCategory(
+    index
+) {
+    const category =
+        categories[index];
+
+    if (!category) return;
+
+    const used =
+        allReports.some(
+            report =>
+                String(
+                    report.Category ||
+                    ""
+                ).trim() ===
+                String(
+                    category.Name ||
+                    ""
+                ).trim()
+        );
+
+    if (used) {
+        showAdminMessage(
+            "Category ব্যবহার হচ্ছে",
+            "এই category-তে report আছে। আগে সেই report-গুলোর category পরিবর্তন করুন।",
+            "error"
+        );
+
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            `"${category.Name}" category-টি permanently delete করতে চান?`
+        );
+
+    if (!confirmed) return;
+
+    try {
+        const { error } =
+            await supabaseClient
+                .from(CATEGORY_TABLE)
+                .delete()
+                .eq(
+                    "ID",
+                    category.ID
+                );
+
+        if (error) {
+            throw new Error(
+                error.message ||
+                    "Category delete করা যায়নি।"
+            );
+        }
+
+        clearCategoryCache();
+
+        await loadCategories(
+            true
+        );
+
+        await loadReports(
+            true
+        );
+
+        showAdminMessage(
+            "সফল হয়েছে",
+            "Category permanently delete হয়েছে।",
             "success"
         );
 
     } catch (error) {
-        console.error(
-            "Category save error:",
-            error
-        );
+        console.error(error);
 
         showAdminMessage(
-            "সংরক্ষণ ব্যর্থ",
+            "সমস্যা হয়েছে",
+            error.message ||
+                "Category delete করা যায়নি।",
+            "error"
+        );
+    }
+}
+    
+    catch (error) {
+        console.error(error);
+
+        showAdminMessage(
+            "সমস্যা হয়েছে",
             error.message ||
                 "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
             "error"
         );
     }
 }
-
-async function deleteCategory(category) {
-    if (!category) return;
-
-    const categoryName =
-        category.Name ||
-        "এই ক্যাটাগরি";
-
-    const confirmed =
-        window.confirm(
-            `"${categoryName}" ক্যাটাগরি মুছে ফেলতে চান?`
-        );
-
-    if (!confirmed) return;
-
-    try {
-        const categoryId =
-            category.id ??
-            category.ID;
-
-        const { error } =
-            await supabaseClient
-                .from(CATEGORY_TABLE)
-                .delete()
-                .eq(
-                    "id",
-                    categoryId
-                );
-
-        if (error) {
-            throw error;
-        }
-
-        clearCategoryCache();
-
-        await loadCategories(
-            true
-        );
-
-        showAdminMessage(
-            "মুছে ফেলা হয়েছে",
-            "ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে।",
-            "success"
-        );
-
-    } catch (error) {
-        console.error(
-            "Category delete error:",
-            error
-        );
-
-        showAdminMessage(
-            "মুছে ফেলা যায়নি",
-            error.message ||
-                "ক্যাটাগরি মুছে ফেলা যায়নি।",
-            "error"
-        );
-    }
-}
-
-/* =========================
-   FORM HELPERS
-========================= */
-
-function getFormValue(id) {
-    const element =
-        document.getElementById(id);
-
-    return String(
-        element?.value || ""
-    ).trim();
-}
-
-function setFormValue(
-    id,
-    value
-) {
-    const element =
-        document.getElementById(id);
-
-    if (!element) return;
-
-    element.value =
-        value ?? "";
-}
-
-function formatAdminDate(value) {
-    if (!value) {
-        return "তারিখ নেই";
-    }
-
-    const date =
-        new Date(value);
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-        return String(value);
-    }
-
-    return date.toLocaleString(
-        "bn-BD",
-        {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    );
-}
-
-function escapeHtml(value) {
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-}
-
-function escapeAttribute(value) {
-    return escapeHtml(value);
-}
-
-function showAdminMessage(
-    title,
-    message,
-    type = "info"
-) {
-    const existing =
-        document.getElementById(
-            "adminMessagePopup"
-        );
-
-    if (existing) {
-        existing.remove();
-    }
-
-    const popup =
-        document.createElement(
-            "div"
-        );
-
-    popup.id =
-        "adminMessagePopup";
-
-    popup.className =
-        `admin-message-popup ${type}`;
-
-    popup.innerHTML = `
-        <div class="admin-message-inner">
-
-            <button
-                type="button"
-                class="admin-message-close"
-            >
-                ×
-            </button>
-
-            <strong>
-                ${escapeHtml(title)}
-            </strong>
-
-            <p>
-                ${escapeHtml(message)}
-            </p>
-
-        </div>
-    `;
-
-    document.body.appendChild(
-        popup
-    );
-
-    const close =
-        popup.querySelector(
-            ".admin-message-close"
-        );
-
-    if (close) {
-        close.addEventListener(
-            "click",
-            () => popup.remove()
-        );
-    }
-
-    setTimeout(() => {
-        if (
-            document.body.contains(
-                popup
-            )
-        ) {
-            popup.remove();
-        }
-    }, 5000);
-}
-/* =========================
-   DISPLAY REPORTS
-========================= */
-
-function displayReports(reports) {
-    const container =
-        document.getElementById(
-            "adminReportsTable"
-        );
-
-    if (!container) return;
-
-    if (!reports.length) {
-        container.innerHTML = `
-            <div class="admin-empty">
-                <div class="admin-empty-icon">📭</div>
-                <h3>কোনো রিপোর্ট পাওয়া যায়নি</h3>
-                <p>আপনার নির্বাচিত ফিল্টার অনুযায়ী কোনো রিপোর্ট নেই।</p>
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = reports
-        .map(
-            report => `
-                <div class="admin-report-row">
-
-                    <div class="admin-report-main">
-
-                        <div class="admin-report-top">
-
-                            <span class="admin-report-id">
-                                #${escapeHtml(
-                                    report.ID ||
-                                    report.id ||
-                                    "N/A"
-                                )}
-                            </span>
-
-                            <span class="admin-status ${statusClass(
-                                report.Status
-                            )}">
-                                ${escapeHtml(
-                                    statusLabel(
-                                        report.Status
-                                    )
-                                )}
-                            </span>
-
-                        </div>
-
-                        <h3>
-                            ${escapeHtml(
-                                report.Area ||
-                                "এলাকা উল্লেখ নেই"
-                            )}
-                        </h3>
-
-                        <div class="admin-report-meta">
-
-                            <span>
-                                📂
-                                ${escapeHtml(
-                                    report.Category ||
-                                    "অনির্দিষ্ট"
-                                )}
-                            </span>
-
-                            <span>
-                                📍
-                                ${escapeHtml(
-                                    report.District ||
-                                    "—"
-                                )}
-                            </span>
-
-                            <span>
-                                🕒
-                                ${escapeHtml(
-                                    formatAdminDate(
-                                        report.Date
-                                    )
-                                )}
-                            </span>
-
-                        </div>
-
-                        <p class="admin-report-description">
-                            ${escapeHtml(
-                                report.Description ||
-                                "কোনো বিবরণ নেই"
-                            )}
-                        </p>
-
-                    </div>
-
-                    <div class="admin-report-actions">
-
-                        <button
-                            type="button"
-                            class="admin-action-btn"
-                            onclick="showReportDetailsById('${escapeAttribute(
-                                report.ID ||
-                                report.id ||
-                                ""
-                            )}')"
-                        >
-                            👁️ দেখুন
-                        </button>
-
-                        <button
-                            type="button"
-                            class="admin-action-btn"
-                            onclick="openReportEditById('${escapeAttribute(
-                                report.ID ||
-                                report.id ||
-                                ""
-                            )}')"
-                        >
-                            ✏️ সম্পাদনা
-                        </button>
-
-                        <button
-                            type="button"
-                            class="admin-action-btn danger"
-                            onclick="deleteReportById('${escapeAttribute(
-                                report.ID ||
-                                report.id ||
-                                ""
-                            )}')"
-                        >
-                            🗑️ মুছুন
-                        </button>
-
-                    </div>
-
-                </div>
-            `
-        )
-        .join("");
-}
-
-function showReportDetailsById(id) {
-    const report =
-        allReports.find(
-            item =>
-                String(
-                    item.ID ||
-                    item.id ||
-                    ""
-                ) === String(id)
-        );
-
-    if (!report) {
-        showAdminMessage(
-            "রিপোর্ট পাওয়া যায়নি",
-            "নির্বাচিত রিপোর্টটি খুঁজে পাওয়া যায়নি।",
-            "error"
-        );
-
-        return;
-    }
-
-    showReportDetails(report);
-}
-
-function openReportEditById(id) {
-    const report =
-        allReports.find(
-            item =>
-                String(
-                    item.ID ||
-                    item.id ||
-                    ""
-                ) === String(id)
-        );
-
-    if (!report) {
-        showAdminMessage(
-            "রিপোর্ট পাওয়া যায়নি",
-            "নির্বাচিত রিপোর্টটি খুঁজে পাওয়া যায়নি।",
-            "error"
-        );
-
-        return;
-    }
-
-    openReportEdit(report);
-}
-
-async function deleteReportById(id) {
-    const report =
-        allReports.find(
-            item =>
-                String(
-                    item.ID ||
-                    item.id ||
-                    ""
-                ) === String(id)
-        );
-
-    if (!report) {
-        showAdminMessage(
-            "রিপোর্ট পাওয়া যায়নি",
-            "নির্বাচিত রিপোর্টটি খুঁজে পাওয়া যায়নি।",
-            "error"
-        );
-
-        return;
-    }
-
-    await deleteReport(report);
-}
-
-/* =========================
-   REPORT MODAL EVENTS
-========================= */
-
-function setupReportModalEvents() {
-    const modal =
-        document.getElementById(
-            "reportModal"
-        );
-
-    if (!modal) return;
-
-    modal
-        .querySelectorAll(
-            "[data-close-report-modal]"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                closeReportModal
-            );
-        });
-
-    const form =
-        document.getElementById(
-            "reportEditForm"
-        );
-
-    if (form) {
-        form.addEventListener(
-            "submit",
-            saveReportChanges
-        );
-    }
-}
-
-/* =========================
-   ADMIN UI HELPERS
-========================= */
-
-function normalizeStatus(status) {
-    const value =
-        String(
-            status || ""
-        )
-            .trim()
-            .toLowerCase();
-
-    if (
-        value === "pending" ||
-        value === "অপেক্ষমাণ" ||
-        value === "pending "
-    ) {
-        return "pending";
-    }
-
-    if (
-        value === "progress" ||
-        value === "in progress" ||
-        value === "processing" ||
-        value === "চলমান"
-    ) {
-        return "progress";
-    }
-
-    if (
-        value === "solved" ||
-        value === "resolved" ||
-        value === "completed" ||
-        value === "সমাধান"
-    ) {
-        return "solved";
-    }
-
-    return value;
-}
-
-function statusLabel(status) {
-    const normalized =
-        normalizeStatus(status);
-
-    if (normalized === "pending") {
-        return "অপেক্ষমাণ";
-    }
-
-    if (normalized === "progress") {
-        return "চলমান";
-    }
-
-    if (normalized === "solved") {
-        return "সমাধান হয়েছে";
-    }
-
-    return status || "অজানা";
-}
-
-function statusClass(status) {
-    const normalized =
-        normalizeStatus(status);
-
-    if (normalized === "pending") {
-        return "pending";
-    }
-
-    if (normalized === "progress") {
-        return "progress";
-    }
-
-    if (normalized === "solved") {
-        return "solved";
-    }
-
-    return "unknown";
-}
-
-/* =========================
-   KEYBOARD / MODAL SUPPORT
-========================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-        if (
-            event.key !== "Escape"
-        ) {
-            return;
-        }
-
-        const categoryModal =
-            document.getElementById(
-                "categoryModal"
-            );
-
-        if (
-            categoryModal &&
-            categoryModal.classList.contains(
-                "active"
-            )
-        ) {
-            closeCategoryModal();
-        }
-
-        const reportModal =
-            document.getElementById(
-                "reportModal"
-            );
-
-        if (
-            reportModal &&
-            reportModal.classList.contains(
-                "active"
-            )
-        ) {
-            closeReportModal();
-        }
-
-        const detailsModal =
-            document.getElementById(
-                "adminReportDetailsModal"
-            );
-
-        if (detailsModal) {
-            detailsModal.remove();
-        }
-    }
-);
-
-/* =========================
-   SAFE GLOBAL HELPERS
-========================= */
-
-window.showReportDetailsById =
-    showReportDetailsById;
-
-window.openReportEditById =
-    openReportEditById;
-
-window.deleteReportById =
-    deleteReportById;
-
-window.closeReportModal =
-    closeReportModal;
-
-window.closeCategoryModal =
-    closeCategoryModal;
-
-window.saveReportChanges =
-    saveReportChanges;
-
-window.saveCategory =
-    saveCategory;
-/* =========================
-   HEALTHCARE CRUD — PART 4
-========================= */
-
-async function saveHospital(event) {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    const submitButton =
-        form.querySelector('button[type="submit"]');
-
-    if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "সংরক্ষণ হচ্ছে...";
-    }
-
-    try {
-        const id =
-            document.getElementById("hospitalId")?.value || "";
-
-        const payload = {
-            name:
-                document.getElementById("hospitalName")
-                    ?.value.trim() || "",
-
-            type:
-                document.getElementById("hospitalType")
-                    ?.value || "সরকারি",
-
-            division:
-                document.getElementById("hospitalDivision")
-                    ?.value || "",
-
-            district:
-                document.getElementById("hospitalDistrict")
-                    ?.value || "",
-
-            upazila:
-                document.getElementById("hospitalUpazila")
-                    ?.value || "",
-
-            address:
-                document.getElementById("hospitalAddress")
-                    ?.value.trim() || "",
-
-            phone:
-                document.getElementById("hospitalPhone")
-                    ?.value.trim() || "",
-
-            emergency_phone:
-                document.getElementById(
-                    "hospitalEmergencyPhone"
-                )?.value.trim() || "",
-
-            emergency_available:
-                document.getElementById(
-                    "hospitalEmergencyAvailable"
-                )?.value === "true",
-
-            departments:
-                document.getElementById(
-                    "hospitalDepartments"
-                )?.value.trim() || "",
-
-            opening_hours:
-                document.getElementById(
-                    "hospitalOpeningHours"
-                )?.value.trim() || "",
-
-            latitude:
-                numberOrNull("hospitalLatitude"),
-
-            longitude:
-                numberOrNull("hospitalLongitude"),
-
-            map_url:
-                document.getElementById("hospitalMapUrl")
-                    ?.value.trim() || "",
-
-            website:
-                document.getElementById("hospitalWebsite")
-                    ?.value.trim() || "",
-
-            source_url:
-                document.getElementById("hospitalSourceUrl")
-                    ?.value.trim() || "",
-
-            verified_at:
-                document.getElementById("hospitalVerifiedAt")
-                    ?.value || null,
-
-            active:
-                document.getElementById("hospitalActive")
-                    ?.value === "true"
-        };
-
-        if (!payload.name) {
-            throw new Error(
-                "হাসপাতালের নাম লিখুন।"
-            );
-        }
-
-        const response = id
-            ? await supabaseClient
-                .from("Hospitals")
-                .update(payload)
-                .eq("id", id)
-            : await supabaseClient
-                .from("Hospitals")
-                .insert(payload);
-
-        if (response.error) {
-            throw response.error;
-        }
-
-        closeHealthcareModal();
-
-        showAdminMessage(
-            "সফল হয়েছে",
-            id
-                ? "হাসপাতালের তথ্য আপডেট হয়েছে।"
-                : "নতুন হাসপাতাল যোগ হয়েছে।",
-            "success"
-        );
-
-        if (
-            typeof loadHealthcareData ===
-            "function"
-        ) {
-            await loadHealthcareData();
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Hospital save error:",
-            error
-        );
-
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "হাসপাতালের তথ্য সংরক্ষণ করা যায়নি।",
-            "error"
-        );
-
-    } finally {
-
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.textContent =
-                "সংরক্ষণ";
-        }
-    }
-}
-
-
-/* =========================
-   DOCTOR PHOTO PREVIEW
-========================= */
-
-function setupDoctorPhotoPreview() {
-
-    const input =
-        document.getElementById(
-            "doctorPhoto"
-        );
-
-    if (!input) return;
-
-    input.addEventListener(
-        "change",
-        () => {
-
-            const file =
-                input.files?.[0];
-
-            const oldPreview =
-                document.getElementById(
-                    "doctorPhotoPreview"
-                );
-
-            if (oldPreview) {
-                oldPreview.remove();
-            }
-
-            if (!file) return;
-
-            if (
-                !file.type.startsWith(
-                    "image/"
-                )
-            ) {
-                showAdminMessage(
-                    "ভুল ফাইল",
-                    "শুধু image file নির্বাচন করুন।",
-                    "error"
-                );
-
-                input.value = "";
-                return;
-            }
-
-            const preview =
-                document.createElement(
-                    "img"
-                );
-
-            preview.id =
-                "doctorPhotoPreview";
-
-            preview.alt =
-                "Doctor photo preview";
-
-            preview.style.width =
-                "90px";
-
-            preview.style.height =
-                "90px";
-
-            preview.style.objectFit =
-                "cover";
-
-            preview.style.borderRadius =
-                "12px";
-
-            preview.style.marginTop =
-                "10px";
-
-            preview.src =
-                URL.createObjectURL(
-                    file
-                );
-
-            input.parentElement
-                ?.appendChild(preview);
-        }
-    );
-}
-
-
-/* =========================
-   LOCATION DROPDOWNS
-========================= */
-
-function setupHospitalLocationFields() {
-
-    const division =
-        document.getElementById(
-            "hospitalDivision"
-        );
-
-    const district =
-        document.getElementById(
-            "hospitalDistrict"
-        );
-
-    const upazila =
-        document.getElementById(
-            "hospitalUpazila"
-        );
-
-    if (
-        !division ||
-        !district ||
-        !upazila
-    ) {
-        return;
-    }
-
-    const data =
-        typeof locationData !==
-        "undefined"
-            ? locationData
-            : null;
-
-    if (!data) {
-        console.warn(
-            "locationData পাওয়া যায়নি।"
-        );
-        return;
-    }
-
-    const divisions =
-        Array.isArray(data)
-            ? data
-            : Object.keys(data);
-
-    division.innerHTML =
-        `<option value="">বিভাগ নির্বাচন করুন</option>`;
-
-    divisions.forEach(
-        divisionItem => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            if (
-                typeof divisionItem ===
-                "string"
-            ) {
-                option.value =
-                    divisionItem;
-
-                option.textContent =
-                    divisionItem;
-
-            } else {
-
-                option.value =
-                    divisionItem.name;
-
-                option.textContent =
-                    divisionItem.name;
-            }
-
-            division.appendChild(
-                option
-            );
-        }
-    );
-
-    division.addEventListener(
-        "change",
-        () => {
-
-            district.innerHTML =
-                `<option value="">জেলা নির্বাচন করুন</option>`;
-
-            upazila.innerHTML =
-                `<option value="">উপজেলা নির্বাচন করুন</option>`;
-
-            const selected =
-                division.value;
-
-            if (!selected) return;
-
-            let districts = null;
-
-            if (
-                !Array.isArray(data) &&
-                data[selected]
-            ) {
-                districts =
-                    data[selected];
-            }
-
-            if (
-                Array.isArray(data)
-            ) {
-
-                const item =
-                    data.find(
-                        x =>
-                            x.name ===
-                            selected
-                    );
-
-                districts =
-                    item?.districts ||
-                    item?.children ||
-                    [];
-            }
-
-            if (
-                !districts
-            ) {
-                return;
-            }
-
-            if (
-                Array.isArray(
-                    districts
-                )
-            ) {
-
-                districts.forEach(
-                    districtItem => {
-
-                        const name =
-                            typeof districtItem ===
-                            "string"
-                                ? districtItem
-                                : districtItem.name;
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-                        option.value =
-                            name;
-
-                        option.textContent =
-                            name;
-
-                        district.appendChild(
-                            option
-                        );
-                    }
-                );
-
-            } else {
-
-                Object.keys(
-                    districts
-                ).forEach(
-                    name => {
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-                        option.value =
-                            name;
-
-                        option.textContent =
-                            name;
-
-                        district.appendChild(
-                            option
-                        );
-                    }
-                );
-            }
-        }
-    );
-
-    district.addEventListener(
-        "change",
-        () => {
-
-            upazila.innerHTML =
-                `<option value="">উপজেলা নির্বাচন করুন</option>`;
-
-            const selectedDivision =
-                division.value;
-
-            const selectedDistrict =
-                district.value;
-
-            if (
-                !selectedDivision ||
-                !selectedDistrict
-            ) {
-                return;
-            }
-
-            let districts = null;
-
-            if (
-                !Array.isArray(data)
-            ) {
-                districts =
-                    data[
-                        selectedDivision
-                    ];
-            }
-
-            if (
-                Array.isArray(data)
-            ) {
-
-                const item =
-                    data.find(
-                        x =>
-                            x.name ===
-                            selectedDivision
-                    );
-
-                districts =
-                    item?.districts ||
-                    item?.children ||
-                    [];
-            }
-
-            let upazilas = null;
-
-            if (
-                Array.isArray(
-                    districts
-                )
-            ) {
-
-                const item =
-                    districts.find(
-                        x =>
-                            (
-                                typeof x ===
-                                "string"
-                                    ? x
-                                    : x.name
-                            ) ===
-                            selectedDistrict
-                    );
-
-                upazilas =
-                    item?.upazilas ||
-                    item?.children ||
-                    [];
-
-            } else {
-
-                upazilas =
-                    districts?.[
-                        selectedDistrict
-                    ];
-            }
-
-            if (
-                !upazilas
-            ) {
-                return;
-            }
-
-            if (
-                Array.isArray(
-                    upazilas
-                )
-            ) {
-
-                upazilas.forEach(
-                    item => {
-
-                        const name =
-                            typeof item ===
-                            "string"
-                                ? item
-                                : item.name;
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-                        option.value =
-                            name;
-
-                        option.textContent =
-                            name;
-
-                        upazila.appendChild(
-                            option
-                        );
-                    }
-                );
-
-            } else {
-
-                Object.keys(
-                    upazilas
-                ).forEach(
-                    name => {
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-                        option.value =
-                            name;
-
-                        option.textContent =
-                            name;
-
-                        upazila.appendChild(
-                            option
-                        );
-                    }
-                );
-            }
-        }
-    );
-}
-
-
-/* =========================
-   INITIALIZE HEALTHCARE FORMS
-========================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        setupDoctorPhotoPreview();
-
-        setupHospitalLocationFields();
-
-        const hospitalForm =
-            document.getElementById(
-                "hospitalForm"
-            );
-
-        if (hospitalForm) {
-            hospitalForm.addEventListener(
-                "submit",
-                saveHospital
-            );
-        }
-
-        const doctorForm =
-            document.getElementById(
-                "doctorForm"
-            );
-
-        if (
-            doctorForm &&
-            typeof saveDoctor ===
-                "function"
-        ) {
-            doctorForm.addEventListener(
-                "submit",
-                saveDoctor
-            );
-        }
-
-        const specializationForm =
-            document.getElementById(
-                "specializationForm"
-            );
-
-        if (
-            specializationForm &&
-            typeof saveSpecialization ===
-                "function"
-        ) {
-            specializationForm.addEventListener(
-                "submit",
-                saveSpecialization
-            );
-        }
-
-    }
-);
-
-
-/* =========================
-   FINAL GLOBAL EXPORTS
-========================= */
-
-window.saveHospital =
-    saveHospital;
-
-window.saveDoctor =
-    saveDoctor;
-
-window.saveSpecialization =
-    saveSpecialization;
-
-window.setupDoctorPhotoPreview =
-    setupDoctorPhotoPreview;
-
-window.setupHospitalLocationFields =
-    setupHospitalLocationFields;
