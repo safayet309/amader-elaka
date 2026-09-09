@@ -2,7 +2,7 @@
 // Amader Elaka - Main JavaScript
 // =====================================
 
-const API_URL = "https://sheetdb.io/api/v1/ahhzymfhcwy1u";
+const REPORT_TABLE = "Reports";
 const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
 const REPORT_CACHE_TIME = 60 * 1000; // 1 minute
 
@@ -21,20 +21,23 @@ async function loadHomeStatistics() {
     }
 
     try {
-        const response = await fetch(API_URL);
-
-        if (!response.ok) {
-            throw new Error("Failed to load reports");
+        if (typeof supabaseClient === "undefined") {
+            throw new Error("Supabase client is not loaded");
         }
 
-        const reports = await response.json();
+        const { data, error } = await supabaseClient
+            .from(REPORT_TABLE)
+            .select("*")
+            .order("Date", { ascending: true });
 
-        if (Array.isArray(reports)) {
-            saveCachedReports(reports);
-            updateHomeStatistics(reports);
-        } else {
-            updateHomeStatistics([]);
+        if (error) {
+            throw error;
         }
+
+        const reports = Array.isArray(data) ? data : [];
+
+        saveCachedReports(reports);
+        updateHomeStatistics(reports);
 
     } catch (error) {
         console.error("Home Statistics Error:", error);
