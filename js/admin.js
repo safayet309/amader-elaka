@@ -1,923 +1,204 @@
-const REPORT_TABLE = "Reports";
-const CATEGORY_TABLE = "Categories";
+/* =========================================================
+   STEP 4 — HEALTHCARE MANAGEMENT
+   Hospital + Doctor + Specialization
+   ========================================================= */
 
-const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
-const REPORT_CACHE_TIME = 60 * 1000;
+const HEALTHCARE_TABLES = {
+    hospitals: "Hospitals",
+    doctors: "Doctors",
+    specializations: "Specializations"
+};
 
-const CATEGORY_CACHE_KEY = "amaderElaka_categories_cache";
-const CATEGORY_CACHE_TIME = 10 * 60 * 1000;
+let healthcareHospitals = [];
+let healthcareDoctors = [];
+let healthcareSpecializations = [];
 
-let allReports = [];
-let categories = [];
-let editingReport = null;
-let editingCategoryIndex = null;
-let adminInitialized = false;
-let originalBodyDisplays = new Map();
+let healthcareInitialized = false;
+let healthcareCurrentEdit = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-    initializeAdminAuth();
-});
 
-/* =========================
-   ADMIN AUTH
-========================= */
+/* =========================================================
+   HEALTHCARE INITIALIZATION
+   ========================================================= */
 
-async function initializeAdminAuth() {
-    const loginScreen = document.getElementById("adminLoginScreen");
-    const loginForm = document.getElementById("adminLoginForm");
+const originalInitializeAdmin = initializeAdmin;
 
-    if (!loginScreen || !loginForm) {
-        console.error("Admin login screen not found.");
+initializeAdmin = async function (forceRefresh = false) {
+
+    await originalInitializeAdmin(forceRefresh);
+
+    await initializeHealthcareAdmin(forceRefresh);
+};
+
+
+async function initializeHealthcareAdmin(forceRefresh = false) {
+
+    if (!document.getElementById("healthcareSection")) {
         return;
     }
 
-    loginForm.addEventListener("submit", handleAdminLogin);
+    if (!healthcareInitialized) {
+        healthcareInitialized = true;
 
-    const { data, error } = await supabaseClient.auth.getSession();
-
-    if (error) {
-        console.error("Auth session error:", error);
-        showLoginScreen();
-        return;
+        setupHealthcareEvents();
+        setupHealthcareLocationFields();
     }
 
-    if (data?.session) {
-        await showAdminPanel();
-    } else {
-        showLoginScreen();
-    }
-
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            showAdminPanel();
-        } else {
-            adminInitialized = false;
-            allReports = [];
-            categories = [];
-            clearReportCache();
-            clearCategoryCache();
-            showLoginScreen();
-        }
-    });
+    await loadHealthcareData();
 }
 
-async function handleAdminLogin(event) {
-    event.preventDefault();
 
-    const emailInput = document.getElementById("adminEmail");
-    const passwordInput = document.getElementById("adminPassword");
-    const button = document.getElementById("adminLoginButton");
-    const errorElement = document.getElementById("adminLoginError");
+/* =========================================================
+   HEALTHCARE DATA LOAD
+   ========================================================= */
 
-    const email = String(emailInput?.value || "").trim();
-    const password = String(passwordInput?.value || "");
+async function loadHealthcareData() {
 
-    if (errorElement) {
-        errorElement.style.display = "none";
-        errorElement.textContent = "";
-    }
+    const container =
+        document.getElementById("healthcareHospitalsList");
 
-    if (button) {
-        button.disabled = true;
-        button.textContent = "লগইন হচ্ছে...";
+    if (container) {
+        container.innerHTML =
+            '<div class="admin-loading">Healthcare data লোড হচ্ছে...</div>';
     }
 
     try {
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-                email,
-                password
-            });
 
-        if (error) {
-            throw error;
-        }
-
-        if (!data?.session) {
-            throw new Error("লগইন সেশন তৈরি হয়নি।");
-        }
-
-        if (emailInput) emailInput.value = "";
-        if (passwordInput) passwordInput.value = "";
-
-        clearReportCache();
-        clearCategoryCache();
-
-        await showAdminPanel();
-
-    } catch (error) {
-        console.error("Admin login error:", error);
-
-        if (errorElement) {
-            errorElement.textContent =
-                error.message === "Invalid login credentials"
-                    ? "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।"
-                    : error.message || "লগইন করা যায়নি।";
-
-            errorElement.style.display = "block";
-        }
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = "লগইন করুন";
-        }
-    }
-}
-
-function showLoginScreen() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    saveAndHideAdminContent();
-
-    if (loginScreen) {
-        loginScreen.style.display = "flex";
-    }
-}
-
-async function showAdminPanel() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    if (loginScreen) {
-        loginScreen.style.display = "none";
-    }
-
-    restoreAdminContent();
-    setupLogoutButton();
-
-    if (!adminInitialized) {
-        adminInitialized = true;
-
-        clearReportCache();
-        clearCategoryCache();
-
-        await initializeAdmin(true);
-    } else {
-        await loadCategories(true);
-        await loadReports(true);
-    }
-}
-
-function saveAndHideAdminContent() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    document.querySelectorAll("body > *").forEach(element => {
-        if (
-            element === loginScreen ||
-            element.tagName === "SCRIPT"
-        ) {
-            return;
-        }
-
-        if (!originalBodyDisplays.has(element)) {
-            originalBodyDisplays.set(
-                element,
-                element.style.display
-            );
-        }
-
-        element.style.display = "none";
-    });
-}
-
-function restoreAdminContent() {
-    originalBodyDisplays.forEach((display, element) => {
-        if (
-            element &&
-            element !== document.getElementById("adminLoginScreen")
-        ) {
-            element.style.display = display;
-        }
-    });
-}
-
-/* =========================
-   LOGOUT
-========================= */
-
-function setupLogoutButton() {
-    const userBox =
-        document.querySelector(".admin-user");
-
-    if (!userBox) return;
-
-    let button =
-        document.getElementById("adminLogoutBtn");
-
-    if (button) return;
-
-    button = document.createElement("button");
-
-    button.id = "adminLogoutBtn";
-    button.type = "button";
-    button.textContent = "Logout";
-
-    button.style.marginLeft = "12px";
-    button.style.padding = "8px 12px";
-    button.style.border = "1px solid #d1d5db";
-    button.style.borderRadius = "8px";
-    button.style.background = "#fff";
-    button.style.color = "#374151";
-    button.style.fontSize = "13px";
-    button.style.fontWeight = "600";
-    button.style.cursor = "pointer";
-
-    button.addEventListener("click", async () => {
-        button.disabled = true;
-        button.textContent = "Logging out...";
-
-        try {
-            const { error } =
-                await supabaseClient.auth.signOut();
-
-            if (error) {
-                throw error;
-            }
-
-            allReports = [];
-            categories = [];
-            adminInitialized = false;
-
-            clearReportCache();
-            clearCategoryCache();
-
-        } catch (error) {
-            console.error("Logout error:", error);
-
-            button.disabled = false;
-            button.textContent = "Logout";
-
-            showAdminMessage(
-                "সমস্যা হয়েছে",
-                error.message || "Logout করা যায়নি।",
-                "error"
-            );
-        }
-    });
-
-    userBox.appendChild(button);
-}
-
-/* =========================
-   ADMIN INITIALIZE
-========================= */
-
-async function initializeAdmin(forceRefresh = false) {
-    setupNavigation();
-    setupReportEvents();
-    setupCategoryEvents();
-
-    await loadCategories(forceRefresh);
-    await loadReports(forceRefresh);
-}
-
-/* =========================
-   NAVIGATION
-========================= */
-
-function setupNavigation() {
-    document.querySelectorAll(".admin-nav-item").forEach(item => {
-        item.addEventListener("click", () => {
-            switchSection(item.dataset.section);
-        });
-    });
-
-    document.querySelectorAll("[data-section-target]").forEach(button => {
-        button.addEventListener("click", () => {
-            switchSection(button.dataset.sectionTarget);
-        });
-    });
-}
-
-function switchSection(section) {
-    document.querySelectorAll(".admin-nav-item").forEach(item => {
-        item.classList.toggle(
-            "active",
-            item.dataset.section === section
-        );
-    });
-
-    document.querySelectorAll(".admin-section").forEach(element => {
-        element.classList.remove("active");
-    });
-
-    const target =
-        document.getElementById(`${section}Section`);
-
-    if (target) {
-        target.classList.add("active");
-    }
-
-    const title =
-        document.getElementById("pageTitle");
-
-    const subtitle =
-        document.getElementById("pageSubtitle");
-
-    if (section === "overview") {
-        title.textContent = "ড্যাশবোর্ড";
-        subtitle.textContent =
-            "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
-    }
-
-    if (section === "reports") {
-        title.textContent = "রিপোর্টসমূহ";
-        subtitle.textContent =
-            "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
-    }
-
-    if (section === "categories") {
-        title.textContent = "ক্যাটাগরি";
-        subtitle.textContent =
-            "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
-    }
-}
-
-/* =========================
-   REPORT CACHE
-========================= */
-
-function getCachedReports(ignoreExpiry = false) {
-    try {
-        const cached =
-            localStorage.getItem(REPORT_CACHE_KEY);
-
-        if (!cached) return null;
-
-        const data = JSON.parse(cached);
-
-        if (
-            !data ||
-            !Array.isArray(data.reports) ||
-            !data.time
-        ) {
-            return null;
-        }
-
-        const age =
-            Date.now() - Number(data.time);
-
-        if (
-            !ignoreExpiry &&
-            age > REPORT_CACHE_TIME
-        ) {
-            return null;
-        }
-
-        return data.reports;
-
-    } catch (error) {
-        console.error(
-            "Report Cache Read Error:",
-            error
-        );
-
-        return null;
-    }
-}
-
-function saveCachedReports(reports) {
-    try {
-        localStorage.setItem(
-            REPORT_CACHE_KEY,
-            JSON.stringify({
-                time: Date.now(),
-                reports
-            })
-        );
-    } catch (error) {
-        console.error(
-            "Report Cache Save Error:",
-            error
-        );
-    }
-}
-
-function clearReportCache() {
-    try {
-        localStorage.removeItem(
-            REPORT_CACHE_KEY
-        );
-    } catch (error) {
-        console.error(
-            "Report Cache Clear Error:",
-            error
-        );
-    }
-}
-
-/* =========================
-   CATEGORY CACHE
-========================= */
-
-function getCachedCategories(ignoreExpiry = false) {
-    try {
-        const cached =
-            localStorage.getItem(
-                CATEGORY_CACHE_KEY
-            );
-
-        if (!cached) return null;
-
-        const data = JSON.parse(cached);
-
-        if (
-            !data ||
-            !Array.isArray(data.categories) ||
-            !data.time
-        ) {
-            return null;
-        }
-
-        const age =
-            Date.now() - Number(data.time);
-
-        if (
-            !ignoreExpiry &&
-            age > CATEGORY_CACHE_TIME
-        ) {
-            return null;
-        }
-
-        return data.categories;
-
-    } catch (error) {
-        console.error(
-            "Category Cache Read Error:",
-            error
-        );
-
-        return null;
-    }
-}
-
-function saveCachedCategories(data) {
-    try {
-        localStorage.setItem(
-            CATEGORY_CACHE_KEY,
-            JSON.stringify({
-                time: Date.now(),
-                categories: data
-            })
-        );
-    } catch (error) {
-        console.error(
-            "Category Cache Save Error:",
-            error
-        );
-    }
-}
-
-function clearCategoryCache() {
-    try {
-        localStorage.removeItem(
-            CATEGORY_CACHE_KEY
-        );
-    } catch (error) {
-        console.error(
-            "Category Cache Clear Error:",
-            error
-        );
-    }
-}
-
-/* =========================
-   REPORTS
-========================= */
-
-async function loadReports(forceRefresh = false) {
-    const table =
-        document.getElementById(
-            "adminReportsTable"
-        );
-
-    const recent =
-        document.getElementById(
-            "recentReports"
-        );
-
-    if (!forceRefresh) {
-        const cachedReports =
-            getCachedReports();
-
-        if (
-            Array.isArray(cachedReports) &&
-            cachedReports.length > 0
-        ) {
-            allReports = cachedReports;
-
-            updateStatistics();
-            createFilterOptions();
-            displayReports(allReports);
-            displayRecentReports();
-
-            return;
-        }
-    }
-
-    if (table) {
-        table.innerHTML =
-            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
-    }
-
-    if (recent) {
-        recent.innerHTML =
-            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
-    }
-
-    try {
-        const { data, error } =
-            await supabaseClient
-                .from(REPORT_TABLE)
+        const [
+            hospitalsResponse,
+            doctorsResponse,
+            specializationsResponse
+        ] = await Promise.all([
+
+            supabaseClient
+                .from(HEALTHCARE_TABLES.hospitals)
                 .select("*")
-                .order("Date", {
-                    ascending: true
-                });
+                .order("name", { ascending: true }),
 
-        if (error) {
-            throw error;
+            supabaseClient
+                .from(HEALTHCARE_TABLES.doctors)
+                .select("*")
+                .order("name", { ascending: true }),
+
+            supabaseClient
+                .from(HEALTHCARE_TABLES.specializations)
+                .select("*")
+                .order("name", { ascending: true })
+        ]);
+
+
+        if (hospitalsResponse.error) {
+            throw hospitalsResponse.error;
         }
 
-        allReports =
-            Array.isArray(data)
-                ? data
+        if (doctorsResponse.error) {
+            throw doctorsResponse.error;
+        }
+
+        if (specializationsResponse.error) {
+            throw specializationsResponse.error;
+        }
+
+
+        healthcareHospitals =
+            Array.isArray(hospitalsResponse.data)
+                ? hospitalsResponse.data
                 : [];
 
-        saveCachedReports(allReports);
 
-        updateStatistics();
-        createFilterOptions();
-        displayReports(allReports);
-        displayRecentReports();
+        healthcareDoctors =
+            Array.isArray(doctorsResponse.data)
+                ? doctorsResponse.data
+                : [];
+
+
+        healthcareSpecializations =
+            Array.isArray(specializationsResponse.data)
+                ? specializationsResponse.data
+                : [];
+
+
+        populateHealthcareSelects();
+        renderHealthcareList();
 
     } catch (error) {
+
         console.error(
-            "Report loading error:",
+            "Healthcare loading error:",
             error
         );
 
-        const oldReports =
-            getCachedReports(true);
+        if (container) {
 
-        if (
-            Array.isArray(oldReports) &&
-            oldReports.length > 0
-        ) {
-            allReports = oldReports;
-
-            updateStatistics();
-            createFilterOptions();
-            displayReports(allReports);
-            displayRecentReports();
-
-            return;
-        }
-
-        allReports = [];
-
-        updateStatistics();
-
-        if (table) {
-            table.innerHTML =
-                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
-        }
-
-        if (recent) {
-            recent.innerHTML =
-                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
+            container.innerHTML = `
+                <div class="admin-empty">
+                    <div class="admin-empty-icon">⚠️</div>
+                    Healthcare data লোড করা যায়নি।
+                    <br>
+                    <small>${safe(error.message || "")}</small>
+                </div>
+            `;
         }
     }
 }
 
-/* =========================
-   REPORT STATISTICS
-========================= */
 
-function updateStatistics() {
-    const total =
-        allReports.length;
+/* =========================================================
+   HEALTHCARE EVENTS
+   ========================================================= */
 
-    const pending =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "pending"
-        ).length;
+function setupHealthcareEvents() {
 
-    const progress =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "progress"
-        ).length;
-
-    const solved =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "solved"
-        ).length;
-
-    setNumber(
-        "adminTotalReports",
-        total
-    );
-
-    setNumber(
-        "adminPendingReports",
-        pending
-    );
-
-    setNumber(
-        "adminProgressReports",
-        progress
-    );
-
-    setNumber(
-        "adminSolvedReports",
-        solved
-    );
-}
-
-function setNumber(id, value) {
-    const element =
-        document.getElementById(id);
-
-    if (!element) return;
-
-    element.textContent = value;
-}
-
-/* =========================
-   STATUS
-========================= */
-
-function normalizeStatus(status) {
-    const value =
-        String(status || "")
-            .trim()
-            .toLowerCase();
-
-    if (value === "pending") {
-        return "pending";
-    }
-
-    if (
-        value === "কাজ চলছে" ||
-        value === "in progress" ||
-        value === "progress"
-    ) {
-        return "progress";
-    }
-
-    if (
-        value === "সমাধান হয়েছে" ||
-        value === "সমাধান হয়েছে" ||
-        value === "solved"
-    ) {
-        return "solved";
-    }
-
-    return "other";
-}
-
-function statusLabel(status) {
-    const type =
-        normalizeStatus(status);
-
-    if (type === "pending") {
-        return "Pending";
-    }
-
-    if (type === "progress") {
-        return "কাজ চলছে";
-    }
-
-    if (type === "solved") {
-        return "সমাধান হয়েছে";
-    }
-
-    return status || "Unknown";
-}
-
-function statusClass(status) {
-    const type =
-        normalizeStatus(status);
-
-    if (type === "pending") {
-        return "status-pending";
-    }
-
-    if (type === "progress") {
-        return "status-progress";
-    }
-
-    if (type === "solved") {
-        return "status-solved";
-    }
-
-    return "status-default";
-}
-
-/* =========================
-   FILTERS
-========================= */
-
-function createFilterOptions() {
-    const categorySelect =
-        document.getElementById(
-            "adminCategoryFilter"
-        );
-
-    const divisionSelect =
-        document.getElementById(
-            "adminDivisionFilter"
-        );
-
-    if (categorySelect) {
-        const currentValue =
-            categorySelect.value;
-
-        categorySelect.innerHTML =
-            '<option value="">সব ক্যাটাগরি</option>';
-
-        categories.forEach(category => {
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                category.Name;
-
-            option.textContent =
-                category.Name;
-
-            categorySelect.appendChild(
-                option
-            );
-        });
-
-        if (
-            [...categorySelect.options]
-                .some(
-                    option =>
-                        option.value ===
-                        currentValue
-                )
-        ) {
-            categorySelect.value =
-                currentValue;
-        }
-    }
-
-    if (divisionSelect) {
-        const currentValue =
-            divisionSelect.value;
-
-        divisionSelect.innerHTML =
-            '<option value="">সব বিভাগ</option>';
-
-        const divisions = [
-            ...new Set(
-                allReports
-                    .map(
-                        report =>
-                            String(
-                                report.Division ||
-                                ""
-                            ).trim()
-                    )
-                    .filter(Boolean)
-            )
-        ];
-
-        divisions.forEach(division => {
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                division;
-
-            option.textContent =
-                division;
-
-            divisionSelect.appendChild(
-                option
-            );
-        });
-
-        if (
-            [...divisionSelect.options]
-                .some(
-                    option =>
-                        option.value ===
-                        currentValue
-                )
-        ) {
-            divisionSelect.value =
-                currentValue;
-        }
-    }
-}
-
-function setupReportEvents() {
     const search =
-        document.getElementById(
-            "adminReportSearch"
-        );
+        document.getElementById("healthcareSearch");
 
-    const status =
-        document.getElementById(
-            "adminStatusFilter"
-        );
+    const typeFilter =
+        document.getElementById("healthcareTypeFilter");
 
-    const category =
-        document.getElementById(
-            "adminCategoryFilter"
-        );
-
-    const division =
-        document.getElementById(
-            "adminDivisionFilter"
-        );
-
-    const reset =
-        document.getElementById(
-            "resetAdminFilters"
-        );
+    const statusFilter =
+        document.getElementById("healthcareStatusFilter");
 
     const refresh =
-        document.getElementById(
-            "refreshReportsBtn"
-        );
+        document.getElementById("refreshHealthcareBtn");
+
+    const addHospital =
+        document.getElementById("addHospitalBtn");
+
+    const addDoctor =
+        document.getElementById("addDoctorBtn");
+
+    const addSpecialization =
+        document.getElementById("addSpecializationBtn");
+
 
     if (search) {
         search.addEventListener(
             "input",
-            applyReportFilters
+            renderHealthcareList
         );
     }
 
-    if (status) {
-        status.addEventListener(
+    if (typeFilter) {
+        typeFilter.addEventListener(
             "change",
-            applyReportFilters
+            renderHealthcareList
         );
     }
 
-    if (category) {
-        category.addEventListener(
+    if (statusFilter) {
+        statusFilter.addEventListener(
             "change",
-            applyReportFilters
+            renderHealthcareList
         );
     }
 
-    if (division) {
-        division.addEventListener(
-            "change",
-            applyReportFilters
-        );
-    }
-
-    if (reset) {
-        reset.addEventListener(
-            "click",
-            () => {
-                if (search) {
-                    search.value = "";
-                }
-
-                if (status) {
-                    status.value = "";
-                }
-
-                if (category) {
-                    category.value = "";
-                }
-
-                if (division) {
-                    division.value = "";
-                }
-
-                displayReports(
-                    allReports
-                );
-            }
-        );
-    }
 
     if (refresh) {
+
         refresh.addEventListener(
             "click",
             async () => {
+
                 refresh.disabled = true;
 
                 const oldText =
@@ -927,13 +208,11 @@ function setupReportEvents() {
                     "লোড হচ্ছে...";
 
                 try {
-                    clearReportCache();
-                    clearCategoryCache();
 
-                    await loadCategories(true);
-                    await loadReports(true);
+                    await loadHealthcareData();
 
                 } finally {
+
                     refresh.disabled = false;
                     refresh.textContent =
                         oldText;
@@ -941,1467 +220,2116 @@ function setupReportEvents() {
             }
         );
     }
+
+
+    if (addHospital) {
+
+        addHospital.addEventListener(
+            "click",
+            () => openHealthcareModal("hospital")
+        );
+    }
+
+
+    if (addDoctor) {
+
+        addDoctor.addEventListener(
+            "click",
+            () => openHealthcareModal("doctor")
+        );
+    }
+
+
+    if (addSpecialization) {
+
+        addSpecialization.addEventListener(
+            "click",
+            () => openHealthcareModal("specialization")
+        );
+    }
+
+
+    setupHealthcareModalEvents();
 }
 
-function applyReportFilters() {
+
+/* =========================================================
+   HEALTHCARE LOCATION DROPDOWNS
+   ========================================================= */
+
+function setupHealthcareLocationFields() {
+
+    const division =
+        document.getElementById("hospitalDivision");
+
+    const district =
+        document.getElementById("hospitalDistrict");
+
+    const upazila =
+        document.getElementById("hospitalUpazila");
+
+
+    if (!division || !district || !upazila) {
+        return;
+    }
+
+
+    division.innerHTML =
+        '<option value="">বিভাগ নির্বাচন করুন</option>';
+
+
+    if (typeof locationData !== "undefined") {
+
+        Object.keys(locationData).forEach(
+            divisionName => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    divisionName;
+
+                option.textContent =
+                    divisionName;
+
+                division.appendChild(option);
+            }
+        );
+    }
+
+
+    division.addEventListener(
+        "change",
+        () => {
+
+            district.innerHTML =
+                '<option value="">জেলা নির্বাচন করুন</option>';
+
+            upazila.innerHTML =
+                '<option value="">উপজেলা নির্বাচন করুন</option>';
+
+
+            const selectedDivision =
+                division.value;
+
+            if (
+                !selectedDivision ||
+                typeof locationData === "undefined"
+            ) {
+                return;
+            }
+
+
+            const districts =
+                locationData[selectedDivision];
+
+
+            Object.keys(districts || {}).forEach(
+                districtName => {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value =
+                        districtName;
+
+                    option.textContent =
+                        districtName;
+
+                    district.appendChild(option);
+                }
+            );
+        }
+    );
+
+
+    district.addEventListener(
+        "change",
+        () => {
+
+            upazila.innerHTML =
+                '<option value="">উপজেলা নির্বাচন করুন</option>';
+
+            const selectedDivision =
+                division.value;
+
+            const selectedDistrict =
+                district.value;
+
+
+            if (
+                !selectedDivision ||
+                !selectedDistrict ||
+                typeof locationData === "undefined"
+            ) {
+                return;
+            }
+
+
+            const upazilas =
+                locationData[
+                    selectedDivision
+                ]?.[
+                    selectedDistrict
+                ] || [];
+
+
+            upazilas.forEach(
+                upazilaName => {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value =
+                        upazilaName;
+
+                    option.textContent =
+                        upazilaName;
+
+                    upazila.appendChild(option);
+                }
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   POPULATE SELECTS
+   ========================================================= */
+
+function populateHealthcareSelects() {
+
+    const hospitalSelect =
+        document.getElementById("doctorHospital");
+
+    const specializationSelect =
+        document.getElementById("doctorSpecialization");
+
+
+    if (hospitalSelect) {
+
+        const current =
+            hospitalSelect.value;
+
+        hospitalSelect.innerHTML =
+            '<option value="">হাসপাতাল নির্বাচন করুন</option>';
+
+
+        healthcareHospitals
+            .filter(hospital => hospital.active !== false)
+            .forEach(hospital => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    hospital.id;
+
+                option.textContent =
+                    hospital.name;
+
+                hospitalSelect.appendChild(option);
+            });
+
+
+        if (current) {
+            hospitalSelect.value =
+                current;
+        }
+    }
+
+
+    if (specializationSelect) {
+
+        const current =
+            specializationSelect.value;
+
+        specializationSelect.innerHTML =
+            '<option value="">Specialization নির্বাচন করুন</option>';
+
+
+        healthcareSpecializations
+            .filter(item => item.active !== false)
+            .forEach(item => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    item.id;
+
+                option.textContent =
+                    `${item.icon || "🩺"} ${item.name}`;
+
+                specializationSelect.appendChild(
+                    option
+                );
+            });
+
+
+        if (current) {
+            specializationSelect.value =
+                current;
+        }
+    }
+}
+
+
+/* =========================================================
+   HEALTHCARE LIST
+   ========================================================= */
+
+function renderHealthcareList() {
+
+    const container =
+        document.getElementById(
+            "healthcareHospitalsList"
+        );
+
+    if (!container) return;
+
+
     const search =
         String(
             document.getElementById(
-                "adminReportSearch"
+                "healthcareSearch"
             )?.value || ""
         )
             .trim()
             .toLowerCase();
 
+
+    const type =
+        document.getElementById(
+            "healthcareTypeFilter"
+        )?.value || "";
+
+
     const status =
         document.getElementById(
-            "adminStatusFilter"
+            "healthcareStatusFilter"
         )?.value || "";
 
-    const category =
-        document.getElementById(
-            "adminCategoryFilter"
-        )?.value || "";
 
-    const division =
-        document.getElementById(
-            "adminDivisionFilter"
-        )?.value || "";
+    let hospitals =
+        healthcareHospitals.filter(
+            hospital => {
 
-    const filtered =
-        allReports.filter(report => {
-            const searchable = [
-                report.ID,
-                report.Area,
-                report.Description,
-                report.District,
-                report.Upazila,
-                report.Division,
-                report.Category,
-                report.Ward,
-                report.AdminNote
-            ]
-                .map(
-                    value =>
+                const searchable = [
+                    hospital.name,
+                    hospital.division,
+                    hospital.district,
+                    hospital.upazila,
+                    hospital.address,
+                    hospital.phone
+                ]
+                    .map(
+                        value =>
+                            String(
+                                value || ""
+                            ).toLowerCase()
+                    )
+                    .join(" ");
+
+
+                return (
+                    (!search ||
+                        searchable.includes(search)) &&
+
+                    (!type ||
                         String(
-                            value || ""
-                        ).toLowerCase()
-                )
-                .join(" ");
+                            hospital.type || ""
+                        ) === type) &&
 
-            return (
-                (!search ||
-                    searchable.includes(
-                        search
-                    )) &&
-                (!status ||
-                    normalizeStatus(
-                        report.Status
-                    ) ===
-                    normalizeStatus(
-                        status
-                    )) &&
-                (!category ||
-                    String(
-                        report.Category ||
-                        ""
-                    ) === category) &&
-                (!division ||
-                    String(
-                        report.Division ||
-                        ""
-                    ) === division)
-            );
-        });
-
-    displayReports(filtered);
-}
-
-/* =========================
-   DISPLAY REPORTS
-========================= */
-
-function displayReports(reports) {
-    const container =
-        document.getElementById(
-            "adminReportsTable"
+                    (
+                        status === "" ||
+                        String(
+                            hospital.active !== false
+                        ) === status
+                    )
+                );
+            }
         );
 
-    if (!container) return;
 
-    if (!reports.length) {
+    if (!hospitals.length) {
+
         container.innerHTML = `
             <div class="admin-empty">
-                <div class="admin-empty-icon">📭</div>
-                কোনো রিপোর্ট পাওয়া যায়নি।
+                <div class="admin-empty-icon">🏥</div>
+                কোনো হাসপাতাল পাওয়া যায়নি।
             </div>
         `;
 
         return;
     }
 
-    let html = `
-        <div class="admin-report-row admin-report-header">
-            <div>রিপোর্ট</div>
-            <div>লোকেশন</div>
-            <div>ক্যাটাগরি</div>
-            <div>স্ট্যাটাস</div>
-            <div>তারিখ</div>
-            <div>অ্যাকশন</div>
-        </div>
-    `;
-
-    reports.forEach(report => {
-        html += `
-            <div class="admin-report-row">
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.ID ||
-                        "N/A"
-                    )}</strong>
-
-                    <small>${safe(
-                        report.Description ||
-                        "কোনো বিবরণ নেই"
-                    )}</small>
-                </div>
-
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Area ||
-                        "—"
-                    )}</strong>
-
-                    <small>
-                        ${safe(
-                            report.District ||
-                            ""
-                        )}
-                        ${
-                            report.Division
-                                ? " • " +
-                                  safe(
-                                      report.Division
-                                  )
-                                : ""
-                        }
-                    </small>
-                </div>
-
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Category ||
-                        "—"
-                    )}</strong>
-                </div>
-
-                <div class="admin-report-cell">
-                    <span class="status-badge ${statusClass(
-                        report.Status
-                    )}">
-                        ${safe(
-                            statusLabel(
-                                report.Status
-                            )
-                        )}
-                    </span>
-                </div>
-
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Date ||
-                        "—"
-                    )}</strong>
-                </div>
-
-                <div class="admin-report-actions">
-                    <button
-                        class="admin-btn admin-btn-secondary edit-report-btn"
-                        data-id="${escapeAttribute(
-                            report.ID
-                        )}"
-                    >
-                        ✏️
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-
-    container
-        .querySelectorAll(
-            ".edit-report-btn"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    const report =
-                        allReports.find(
-                            item =>
-                                String(
-                                    item.ID
-                                ) ===
-                                String(
-                                    button.dataset
-                                        .id
-                                )
-                        );
-
-                    if (report) {
-                        openReportEditModal(
-                            report
-                        );
-                    }
-                }
-            );
-        });
-}
-
-/* =========================
-   RECENT REPORTS
-========================= */
-
-function displayRecentReports() {
-    const container =
-        document.getElementById(
-            "recentReports"
-        );
-
-    if (!container) return;
-
-    const reports =
-        [...allReports]
-            .reverse()
-            .slice(0, 5);
-
-    if (!reports.length) {
-        container.innerHTML =
-            '<div class="admin-empty">কোনো রিপোর্ট নেই।</div>';
-
-        return;
-    }
 
     container.innerHTML =
-        reports
-            .map(
-                report => `
-            <div class="recent-report-item">
-                <div class="recent-report-info">
-                    <strong>${safe(
-                        report.Category ||
-                        "রিপোর্ট"
-                    )}</strong>
+        hospitals
+            .map(hospital => {
 
-                    <small>
-                        ${safe(
-                            report.Area ||
-                            "লোকেশন নেই"
-                        )}
+                const doctors =
+                    healthcareDoctors.filter(
+                        doctor =>
+                            Number(
+                                doctor.hospital_id
+                            ) ===
+                            Number(
+                                hospital.id
+                            )
+                    );
+
+
+                return `
+                    <div class="category-admin-item"
+                         style="display:block;margin-bottom:14px;">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:15px;
+                            align-items:flex-start;
+                            flex-wrap:wrap;
+                        ">
+
+                            <div class="category-admin-left">
+
+                                <div class="category-admin-icon">
+                                    🏥
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        ${safe(
+                                            hospital.name ||
+                                            "নাম নেই"
+                                        )}
+                                    </strong>
+
+                                    <div style="
+                                        margin-top:5px;
+                                        color:#6b7280;
+                                        font-size:13px;
+                                    ">
+                                        ${safe(
+                                            hospital.type ||
+                                            ""
+                                        )}
+
+                                        ${
+                                            hospital.district
+                                                ? " • " +
+                                                  safe(
+                                                      hospital.district
+                                                  )
+                                                : ""
+                                        }
+
+                                        ${
+                                            hospital.upazila
+                                                ? " • " +
+                                                  safe(
+                                                      hospital.upazila
+                                                  )
+                                                : ""
+                                        }
+                                    </div>
+
+                                    ${
+                                        hospital.phone
+                                            ? `
+                                                <div style="
+                                                    margin-top:5px;
+                                                    font-size:13px;
+                                                ">
+                                                    📞 ${safe(
+                                                        hospital.phone
+                                                    )}
+                                                </div>
+                                              `
+                                            : ""
+                                    }
+
+                                    <div style="
+                                        margin-top:6px;
+                                        font-size:12px;
+                                        color:#6b7280;
+                                    ">
+                                        Doctor:
+                                        ${doctors.length}
+                                        •
+                                        ${
+                                            hospital.active !== false
+                                                ? "Active"
+                                                : "Inactive"
+                                        }
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="category-admin-actions">
+
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn-secondary"
+                                    onclick="openHealthcareModal('hospital', ${Number(hospital.id)})"
+                                >
+                                    ✏️ Edit
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn-secondary"
+                                    onclick="toggleHospitalActive(${Number(hospital.id)})"
+                                >
+                                    ${
+                                        hospital.active !== false
+                                            ? "⏸️ Inactive"
+                                            : "▶️ Active"
+                                    }
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn-danger"
+                                    onclick="deleteHospital(${Number(hospital.id)})"
+                                >
+                                    🗑️ Delete
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
                         ${
-                            report.District
-                                ? " • " +
-                                  safe(
-                                      report.District
-                                  )
-                                : ""
-                        }
-                    </small>
-                </div>
+                            doctors.length
+                                ? `
+                                    <div style="
+                                        margin-top:15px;
+                                        padding-top:12px;
+                                        border-top:1px solid #e5e7eb;
+                                    ">
 
-                <span class="status-badge ${statusClass(
-                    report.Status
-                )}">
-                    ${safe(
-                        statusLabel(
-                            report.Status
-                        )
-                    )}
-                </span>
-            </div>
-        `
-            )
+                                        <strong style="
+                                            display:block;
+                                            margin-bottom:8px;
+                                            font-size:14px;
+                                        ">
+                                            👨‍⚕️ Doctors (${doctors.length})
+                                        </strong>
+
+                                        ${doctors
+                                            .map(
+                                                doctor => {
+
+                                                    const specialization =
+                                                        healthcareSpecializations.find(
+                                                            item =>
+                                                                Number(
+                                                                    item.id
+                                                                ) ===
+                                                                Number(
+                                                                    doctor.specialization_id
+                                                                )
+                                                        );
+
+
+                                                    return `
+                                                        <div style="
+                                                            display:flex;
+                                                            justify-content:space-between;
+                                                            gap:12px;
+                                                            align-items:center;
+                                                            padding:9px 0;
+                                                            border-top:1px solid #f1f5f9;
+                                                            flex-wrap:wrap;
+                                                        ">
+
+                                                            <div>
+
+                                                                <strong>
+                                                                    ${safe(
+                                                                        doctor.name
+                                                                    )}
+                                                                </strong>
+
+                                                                <small style="
+                                                                    display:block;
+                                                                    color:#6b7280;
+                                                                    margin-top:3px;
+                                                                ">
+
+                                                                    ${
+                                                                        specialization
+                                                                            ? safe(
+                                                                                specialization.name
+                                                                            )
+                                                                            : "Specialization নেই"
+                                                                    }
+
+                                                                    ${
+                                                                        doctor.designation
+                                                                            ? " • " +
+                                                                              safe(
+                                                                                  doctor.designation
+                                                                              )
+                                                                            : ""
+                                                                    }
+
+                                                                </small>
+
+                                                            </div>
+
+                                                            <div class="category-admin-actions">
+
+                                                                <button
+                                                                    type="button"
+                                                                    class="admin-btn admin-btn-secondary"
+                                                                    onclick="openHealthcareModal('doctor', ${Number(doctor.id)})"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    class="admin-btn admin-btn-secondary"
+                                                                    onclick="toggleDoctorActive(${Number(doctor.id)})"
+                                                                >
+                                                                    ${
+                                                                        doctor.active !== false
+                                                                            ? "⏸️"
+                                                                            : "▶️"
+                                                                    }
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    class="admin-btn admin-btn-danger"
+                                                                    onclick="deleteDoctor(${Number(doctor.id)})"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+
+                                                            </div>
+
+                                                        </div>
+                                                    `;
+                                                }
+                                            )
+                                            .join("")}
+
+                                    </div>
+                                `
+                                : `
+                                    <div style="
+                                        margin-top:12px;
+                                        color:#9ca3af;
+                                        font-size:13px;
+                                    ">
+                                        এই হাসপাতালে এখনো কোনো Doctor যোগ করা হয়নি।
+                                    </div>
+                                `
+                        }
+
+                    </div>
+                `;
+            })
             .join("");
 }
 
-/* =========================
-   REPORT EDIT
-========================= */
 
-function openReportEditModal(report) {
-    editingReport = report;
+/* =========================================================
+   MODAL EVENTS
+   ========================================================= */
 
-    const modal =
-        document.getElementById(
-            "reportEditModal"
-        );
+function setupHealthcareModalEvents() {
 
-    if (!modal) return;
+    const modalConfigs = [
 
-    document.getElementById(
-        "editReportId"
-    ).value =
-        report.ID || "";
+        [
+            "hospitalModal",
+            "closeHospitalModal",
+            "cancelHospital"
+        ],
 
-    document.getElementById(
-        "editId"
-    ).value =
-        report.ID || "";
+        [
+            "doctorModal",
+            "closeDoctorModal",
+            "cancelDoctor"
+        ],
 
-    const statusType =
-        normalizeStatus(
-            report.Status
-        );
+        [
+            "specializationModal",
+            "closeSpecializationModal",
+            "cancelSpecialization"
+        ]
+    ];
 
-    document.getElementById(
-        "editStatus"
-    ).value =
-        statusType === "progress"
-            ? "কাজ চলছে"
-            : statusType === "solved"
-            ? "সমাধান হয়েছে"
-            : "Pending";
 
-    document.getElementById(
-        "editDivision"
-    ).value =
-        report.Division || "";
+    modalConfigs.forEach(
+        ([modalId, closeId, cancelId]) => {
 
-    document.getElementById(
-        "editDistrict"
-    ).value =
-        report.District || "";
+            const modal =
+                document.getElementById(modalId);
 
-    document.getElementById(
-        "editUpazila"
-    ).value =
-        report.Upazila || "";
+            const close =
+                document.getElementById(closeId);
 
-    document.getElementById(
-        "editArea"
-    ).value =
-        report.Area || "";
+            const cancel =
+                document.getElementById(cancelId);
 
-    document.getElementById(
-        "editWard"
-    ).value =
-        report.Ward || "";
+            const overlay =
+                modal?.querySelector(
+                    ".admin-modal-overlay"
+                );
 
-    document.getElementById(
-        "editDescription"
-    ).value =
-        report.Description || "";
 
-    document.getElementById(
-        "editAdminNote"
-    ).value =
-        report.AdminNote || "";
+            if (close) {
+                close.addEventListener(
+                    "click",
+                    closeHealthcareModal
+                );
+            }
 
-    populateEditCategory(
-        report.Category
+            if (cancel) {
+                cancel.addEventListener(
+                    "click",
+                    closeHealthcareModal
+                );
+            }
+
+            if (overlay) {
+                overlay.addEventListener(
+                    "click",
+                    closeHealthcareModal
+                );
+            }
+        }
     );
 
-    modal.classList.add("active");
-    document.body.style.overflow =
-        "hidden";
-}
 
-function populateEditCategory(selected) {
-    const select =
+    const hospitalForm =
         document.getElementById(
-            "editCategory"
+            "hospitalForm"
         );
 
-    if (!select) return;
-
-    select.innerHTML = "";
-
-    categories.forEach(category => {
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value =
-            category.Name;
-
-        option.textContent =
-            `${category.Icon || "📌"} ${category.Name}`;
-
-        if (
-            category.Name ===
-            selected
-        ) {
-            option.selected = true;
-        }
-
-        select.appendChild(
-            option
-        );
-    });
-
-    if (
-        selected &&
-        !categories.some(
-            category =>
-                category.Name ===
-                selected
-        )
-    ) {
-        const oldOption =
-            document.createElement(
-                "option"
-            );
-
-        oldOption.value =
-            selected;
-
-        oldOption.textContent =
-            selected;
-
-        oldOption.selected =
-            true;
-
-        select.appendChild(
-            oldOption
-        );
-    }
-}
-
-function setupEditModal() {
-    const modal =
+    const doctorForm =
         document.getElementById(
-            "reportEditModal"
+            "doctorForm"
         );
 
-    const close =
+    const specializationForm =
         document.getElementById(
-            "closeReportModal"
+            "specializationForm"
         );
 
-    const cancel =
-        document.getElementById(
-            "cancelReportEdit"
-        );
 
-    const overlay =
-        modal?.querySelector(
-            ".admin-modal-overlay"
-        );
-
-    if (close) {
-        close.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    if (cancel) {
-        cancel.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    if (overlay) {
-        overlay.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    const form =
-        document.getElementById(
-            "reportEditForm"
-        );
-
-    if (form) {
-        form.addEventListener(
+    if (hospitalForm) {
+        hospitalForm.addEventListener(
             "submit",
-            saveReportChanges
+            saveHospital
+        );
+    }
+
+    if (doctorForm) {
+        doctorForm.addEventListener(
+            "submit",
+            saveDoctor
+        );
+    }
+
+    if (specializationForm) {
+        specializationForm.addEventListener(
+            "submit",
+            saveSpecialization
         );
     }
 }
 
-async function saveReportChanges(event) {
-    event.preventDefault();
 
-    if (!editingReport) return;
+/* =========================================================
+   OPEN MODAL
+   ========================================================= */
 
-    const button =
-        document.getElementById(
-            "saveReportBtn"
-        );
+async function openHealthcareModal(
+    type,
+    id = null
+) {
 
-    if (button) {
-        button.disabled = true;
-        button.textContent =
-            "সংরক্ষণ হচ্ছে...";
-    }
-
-    const id =
-        editingReport.ID;
-
-    const updatedData = {
-        Division:
-            document
-                .getElementById(
-                    "editDivision"
-                )
-                .value
-                .trim(),
-
-        District:
-            document
-                .getElementById(
-                    "editDistrict"
-                )
-                .value
-                .trim(),
-
-        Upazila:
-            document
-                .getElementById(
-                    "editUpazila"
-                )
-                .value
-                .trim(),
-
-        Area:
-            document
-                .getElementById(
-                    "editArea"
-                )
-                .value
-                .trim(),
-
-        Ward:
-            document
-                .getElementById(
-                    "editWard"
-                )
-                .value
-                .trim(),
-
-        Category:
-            document.getElementById(
-                "editCategory"
-            ).value,
-
-        Description:
-            document
-                .getElementById(
-                    "editDescription"
-                )
-                .value
-                .trim(),
-
-        Status:
-            document.getElementById(
-                "editStatus"
-            ).value,
-
-        AdminNote:
-            document
-                .getElementById(
-                    "editAdminNote"
-                )
-                .value
-                .trim()
+    healthcareCurrentEdit = {
+        type,
+        id
     };
 
-    try {
-        const { error } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .update(updatedData)
-                .eq("ID", id);
 
-        if (error) {
-            throw error;
-        }
+    if (type === "hospital") {
 
-        clearReportCache();
-
-        closeReportEditModal();
-
-        showAdminMessage(
-            "সফল হয়েছে",
-            "রিপোর্টের পরিবর্তন সংরক্ষণ হয়েছে।",
-            "success"
-        );
-
-        await loadReports(true);
-
-    } catch (error) {
-        console.error(
-            "Report update error:",
-            error
-        );
-
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "রিপোর্ট আপডেট করা যায়নি।",
-            "error"
-        );
-
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                "পরিবর্তন সংরক্ষণ";
-        }
-    }
-}
-
-function closeReportEditModal() {
-    const modal =
-        document.getElementById(
-            "reportEditModal"
-        );
-
-    if (modal) {
-        modal.classList.remove(
-            "active"
-        );
-    }
-
-    editingReport = null;
-
-    document.body.style.overflow =
-        "";
-}
-
-/* =========================
-   CATEGORIES
-========================= */
-
-async function loadCategories(
-    forceRefresh = false
-) {
-    if (!forceRefresh) {
-        const cachedCategories =
-            getCachedCategories();
-
-        if (
-            Array.isArray(
-                cachedCategories
-            ) &&
-            cachedCategories.length > 0
-        ) {
-            categories =
-                cachedCategories;
-
-            renderCategories();
-            createFilterOptions();
-
-            return;
-        }
-    }
-
-    try {
-        const { data, error } =
-            await supabaseClient
-                .from(CATEGORY_TABLE)
-                .select(
-                    "ID, Name, Icon, Active"
-                )
-                .eq("Active", true)
-                .order("ID", {
-                    ascending: true
-                });
-
-        if (error) {
-            throw error;
-        }
-
-        categories =
-            Array.isArray(data)
-                ? data
-                : [];
-
-        saveCachedCategories(
-            categories
-        );
-
-        renderCategories();
-        createFilterOptions();
-
-    } catch (error) {
-        console.error(
-            "Category loading error:",
-            error
-        );
-
-        const oldCategories =
-            getCachedCategories(
-                true
+        const modal =
+            document.getElementById(
+                "hospitalModal"
             );
 
-        if (
-            Array.isArray(
-                oldCategories
-            ) &&
-            oldCategories.length > 0
-        ) {
-            categories =
-                oldCategories;
+        if (!modal) return;
 
-            renderCategories();
-            createFilterOptions();
 
-            return;
+        resetHospitalForm();
+
+
+        if (id) {
+
+            const hospital =
+                healthcareHospitals.find(
+                    item =>
+                        Number(item.id) ===
+                        Number(id)
+                );
+
+
+            if (!hospital) return;
+
+
+            fillHospitalForm(
+                hospital
+            );
+
+
+            document.getElementById(
+                "hospitalModalTitle"
+            ).textContent =
+                "হাসপাতাল সম্পাদনা";
+
+        } else {
+
+            document.getElementById(
+                "hospitalModalTitle"
+            ).textContent =
+                "নতুন হাসপাতাল";
         }
 
-        categories = [];
 
-        renderCategories();
+        modal.classList.add("active");
 
-        showAdminMessage(
-            "সমস্যা",
-            "Categories লোড করা যায়নি।",
-            "error"
-        );
-    }
-}
-
-/* =========================
-   CATEGORY DISPLAY
-========================= */
-
-function renderCategories() {
-    const container =
-        document.getElementById(
-            "categoriesList"
-        );
-
-    if (!container) return;
-
-    if (!categories.length) {
-        container.innerHTML = `
-            <div class="admin-empty">
-                <div class="admin-empty-icon">🏷️</div>
-                কোনো category পাওয়া যায়নি।
-            </div>
-        `;
+        document.body.style.overflow =
+            "hidden";
 
         return;
     }
 
-    container.innerHTML =
-        categories
-            .map(
-                (category, index) => `
-            <div class="category-admin-item">
-                <div class="category-admin-left">
-                    <div class="category-admin-icon">
-                        ${safe(
-                            category.Icon ||
-                            "📌"
-                        )}
-                    </div>
 
-                    <div>
-                        <strong>${safe(
-                            category.Name
-                        )}</strong>
-                    </div>
-                </div>
+    if (type === "doctor") {
 
-                <div class="category-admin-actions">
-                    <button
-                        class="admin-btn admin-btn-secondary edit-category-btn"
-                        data-index="${index}"
-                    >
-                        ✏️ Edit
-                    </button>
-
-                    <button
-                        class="admin-btn admin-btn-danger delete-category-btn"
-                        data-index="${index}"
-                    >
-                        🗑️ Delete
-                    </button>
-                </div>
-            </div>
-        `
-            )
-            .join("");
-
-    container
-        .querySelectorAll(
-            ".edit-category-btn"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    openCategoryModal(
-                        Number(
-                            button.dataset
-                                .index
-                        )
-                    );
-                }
+        const modal =
+            document.getElementById(
+                "doctorModal"
             );
-        });
 
-    container
-        .querySelectorAll(
-            ".delete-category-btn"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    deleteCategory(
-                        Number(
-                            button.dataset
-                                .index
-                        )
-                    );
-                }
+        if (!modal) return;
+
+
+        resetDoctorForm();
+
+        populateHealthcareSelects();
+
+
+        if (id) {
+
+            const doctor =
+                healthcareDoctors.find(
+                    item =>
+                        Number(item.id) ===
+                        Number(id)
+                );
+
+
+            if (!doctor) return;
+
+
+            fillDoctorForm(
+                doctor
             );
-        });
+
+
+            document.getElementById(
+                "doctorModalTitle"
+            ).textContent =
+                "ডাক্তার সম্পাদনা";
+
+        } else {
+
+            document.getElementById(
+                "doctorModalTitle"
+            ).textContent =
+                "নতুন ডাক্তার";
+        }
+
+
+        modal.classList.add("active");
+
+        document.body.style.overflow =
+            "hidden";
+
+        return;
+    }
+
+
+    if (type === "specialization") {
+
+        const modal =
+            document.getElementById(
+                "specializationModal"
+            );
+
+        if (!modal) return;
+
+
+        resetSpecializationForm();
+
+
+        modal.classList.add("active");
+
+        document.body.style.overflow =
+            "hidden";
+    }
 }
 
-/* =========================
-   CATEGORY EVENTS
-========================= */
 
-function setupCategoryEvents() {
-    const add =
-        document.getElementById(
-            "addCategoryBtn"
-        );
+/* =========================================================
+   CLOSE MODAL
+   ========================================================= */
 
-    const form =
-        document.getElementById(
-            "categoryForm"
-        );
+function closeHealthcareModal() {
 
-    const close =
-        document.getElementById(
-            "closeCategoryModal"
-        );
+    [
+        "hospitalModal",
+        "doctorModal",
+        "specializationModal"
+    ].forEach(id => {
 
-    const cancel =
-        document.getElementById(
-            "cancelCategory"
-        );
+        const modal =
+            document.getElementById(id);
 
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
+        if (modal) {
+            modal.classList.remove("active");
+        }
+    });
 
-    const overlay =
-        modal?.querySelector(
-            ".admin-modal-overlay"
-        );
 
-    if (add) {
-        add.addEventListener(
-            "click",
-            () =>
-                openCategoryModal()
-        );
-    }
-
-    if (form) {
-        form.addEventListener(
-            "submit",
-            saveCategory
-        );
-    }
-
-    if (close) {
-        close.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    if (cancel) {
-        cancel.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    if (overlay) {
-        overlay.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    setupEditModal();
-}
-
-/* =========================
-   CATEGORY MODAL
-========================= */
-
-function openCategoryModal(
-    index = null
-) {
-    editingCategoryIndex =
-        index;
-
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
-
-    const title =
-        document.getElementById(
-            "categoryModalTitle"
-        );
-
-    const name =
-        document.getElementById(
-            "categoryName"
-        );
-
-    const icon =
-        document.getElementById(
-            "categoryIcon"
-        );
-
-    if (!modal) return;
-
-    if (index === null) {
-        title.textContent =
-            "নতুন ক্যাটাগরি";
-
-        name.value = "";
-        icon.value = "";
-
-    } else {
-        const category =
-            categories[index];
-
-        if (!category) return;
-
-        title.textContent =
-            "ক্যাটাগরি সম্পাদনা";
-
-        name.value =
-            category.Name || "";
-
-        icon.value =
-            category.Icon || "";
-    }
-
-    modal.classList.add(
-        "active"
-    );
-
-    document.body.style.overflow =
-        "hidden";
-
-    setTimeout(() => {
-        name.focus();
-    }, 100);
-}
-
-function closeCategoryModal() {
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
-
-    if (modal) {
-        modal.classList.remove(
-            "active"
-        );
-    }
-
-    editingCategoryIndex =
+    healthcareCurrentEdit =
         null;
 
     document.body.style.overflow =
         "";
 }
 
-/* =========================
-   ADD / EDIT CATEGORY
-========================= */
 
-async function saveCategory(event) {
+/* =========================================================
+   HOSPITAL FORM
+   ========================================================= */
+
+function resetHospitalForm() {
+
+    const form =
+        document.getElementById(
+            "hospitalForm"
+        );
+
+    if (form) {
+        form.reset();
+    }
+
+
+    const id =
+        document.getElementById(
+            "hospitalId"
+        );
+
+    if (id) {
+        id.value = "";
+    }
+
+
+    const division =
+        document.getElementById(
+            "hospitalDivision"
+        );
+
+    const district =
+        document.getElementById(
+            "hospitalDistrict"
+        );
+
+    const upazila =
+        document.getElementById(
+            "hospitalUpazila"
+        );
+
+
+    if (division) {
+
+        division.value = "";
+
+        if (
+            typeof locationData !== "undefined"
+        ) {
+
+            district.innerHTML =
+                '<option value="">জেলা নির্বাচন করুন</option>';
+
+            upazila.innerHTML =
+                '<option value="">উপজেলা নির্বাচন করুন</option>';
+        }
+    }
+}
+
+
+function fillHospitalForm(
+    hospital
+) {
+
+    document.getElementById(
+        "hospitalId"
+    ).value =
+        hospital.id || "";
+
+
+    document.getElementById(
+        "hospitalName"
+    ).value =
+        hospital.name || "";
+
+
+    document.getElementById(
+        "hospitalType"
+    ).value =
+        hospital.type || "সরকারি";
+
+
+    const division =
+        document.getElementById(
+            "hospitalDivision"
+        );
+
+    const district =
+        document.getElementById(
+            "hospitalDistrict"
+        );
+
+    const upazila =
+        document.getElementById(
+            "hospitalUpazila"
+        );
+
+
+    if (division) {
+
+        division.value =
+            hospital.division || "";
+
+        division.dispatchEvent(
+            new Event("change")
+        );
+    }
+
+
+    if (district) {
+
+        district.value =
+            hospital.district || "";
+
+        district.dispatchEvent(
+            new Event("change")
+        );
+    }
+
+
+    if (upazila) {
+
+        upazila.value =
+            hospital.upazila || "";
+    }
+
+
+    document.getElementById(
+        "hospitalPhone"
+    ).value =
+        hospital.phone || "";
+
+
+    document.getElementById(
+        "hospitalEmergencyPhone"
+    ).value =
+        hospital.emergency_phone || "";
+
+
+    document.getElementById(
+        "hospitalOpeningHours"
+    ).value =
+        hospital.opening_hours || "";
+
+
+    document.getElementById(
+        "hospitalVerifiedAt"
+    ).value =
+        hospital.verified_at || "";
+
+
+    document.getElementById(
+        "hospitalAddress"
+    ).value =
+        hospital.address || "";
+
+
+    document.getElementById(
+        "hospitalDepartments"
+    ).value =
+        hospital.departments || "";
+
+
+    document.getElementById(
+        "hospitalEmergencyAvailable"
+    ).value =
+        hospital.emergency_available
+            ? "true"
+            : "false";
+
+
+    document.getElementById(
+        "hospitalSourceUrl"
+    ).value =
+        hospital.source_url || "";
+
+
+    document.getElementById(
+        "hospitalWebsite"
+    ).value =
+        hospital.website || "";
+
+
+    document.getElementById(
+        "hospitalMapUrl"
+    ).value =
+        hospital.map_url || "";
+
+
+    document.getElementById(
+        "hospitalLatitude"
+    ).value =
+        hospital.latitude ?? "";
+
+
+    document.getElementById(
+        "hospitalLongitude"
+    ).value =
+        hospital.longitude ?? "";
+
+
+    document.getElementById(
+        "hospitalActive"
+    ).value =
+        hospital.active === false
+            ? "false"
+            : "true";
+}
+
+
+/* =========================================================
+   SAVE HOSPITAL
+   ========================================================= */
+
+async function saveHospital(event) {
+
     event.preventDefault();
 
-    const name =
-        document
-            .getElementById(
-                "categoryName"
-            )
-            .value
-            .trim();
 
-    const icon =
-        document
-            .getElementById(
-                "categoryIcon"
-            )
-            .value
-            .trim() ||
-        "📌";
-
-    if (!name) {
-        showAdminMessage(
-            "তথ্য প্রয়োজন",
-            "ক্যাটাগরির নাম লিখুন।",
-            "error"
+    const button =
+        event.currentTarget.querySelector(
+            'button[type="submit"]'
         );
 
-        return;
+
+    if (button) {
+
+        button.disabled = true;
+        button.textContent =
+            "সংরক্ষণ হচ্ছে...";
     }
 
-    const duplicate =
-        categories.some(
-            (category, index) =>
-                String(
-                    category.Name ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase() ===
-                    name.toLowerCase() &&
-                index !==
-                    editingCategoryIndex
-        );
-
-    if (duplicate) {
-        showAdminMessage(
-            "ইতিমধ্যে আছে",
-            "এই ক্যাটাগরিটি আগে থেকেই আছে।",
-            "error"
-        );
-
-        return;
-    }
 
     try {
-        if (
-            editingCategoryIndex ===
-            null
-        ) {
-            await createCategory(
-                name,
-                icon
-            );
-        } else {
-            await updateCategory(
-                editingCategoryIndex,
-                name,
-                icon
+
+        const id =
+            document.getElementById(
+                "hospitalId"
+            )?.value;
+
+
+        const payload = {
+
+            name:
+                document.getElementById(
+                    "hospitalName"
+                ).value.trim(),
+
+            type:
+                document.getElementById(
+                    "hospitalType"
+                ).value,
+
+            division:
+                document.getElementById(
+                    "hospitalDivision"
+                ).value,
+
+            district:
+                document.getElementById(
+                    "hospitalDistrict"
+                ).value,
+
+            upazila:
+                document.getElementById(
+                    "hospitalUpazila"
+                ).value,
+
+            address:
+                document.getElementById(
+                    "hospitalAddress"
+                ).value.trim(),
+
+            phone:
+                document.getElementById(
+                    "hospitalPhone"
+                ).value.trim(),
+
+            emergency_phone:
+                document.getElementById(
+                    "hospitalEmergencyPhone"
+                ).value.trim(),
+
+            emergency_available:
+                document.getElementById(
+                    "hospitalEmergencyAvailable"
+                ).value === "true",
+
+            departments:
+                document.getElementById(
+                    "hospitalDepartments"
+                ).value.trim(),
+
+            opening_hours:
+                document.getElementById(
+                    "hospitalOpeningHours"
+                ).value.trim(),
+
+            latitude:
+                numberOrNull(
+                    "hospitalLatitude"
+                ),
+
+            longitude:
+                numberOrNull(
+                    "hospitalLongitude"
+                ),
+
+            map_url:
+                document.getElementById(
+                    "hospitalMapUrl"
+                ).value.trim(),
+
+            website:
+                document.getElementById(
+                    "hospitalWebsite"
+                ).value.trim(),
+
+            source_url:
+                document.getElementById(
+                    "hospitalSourceUrl"
+                ).value.trim(),
+
+            verified_at:
+                document.getElementById(
+                    "hospitalVerifiedAt"
+                ).value || null,
+
+            active:
+                document.getElementById(
+                    "hospitalActive"
+                ).value === "true"
+        };
+
+
+        if (!payload.name) {
+            throw new Error(
+                "হাসপাতালের নাম লিখুন।"
             );
         }
 
-        closeCategoryModal();
 
-        clearCategoryCache();
+        let response;
 
-        await loadCategories(
-            true
-        );
 
-        await loadReports(
-            true
-        );
+        if (id) {
+
+            response =
+                await supabaseClient
+                    .from(
+                        HEALTHCARE_TABLES.hospitals
+                    )
+                    .update(payload)
+                    .eq("id", id);
+
+        } else {
+
+            response =
+                await supabaseClient
+                    .from(
+                        HEALTHCARE_TABLES.hospitals
+                    )
+                    .insert(payload);
+        }
+
+
+        if (response.error) {
+            throw response.error;
+        }
+
+
+        closeHealthcareModal();
 
         showAdminMessage(
             "সফল হয়েছে",
-            "ক্যাটাগরি স্থায়ীভাবে সংরক্ষণ হয়েছে।",
+            id
+                ? "হাসপাতালের তথ্য আপডেট হয়েছে।"
+                : "নতুন হাসপাতাল যোগ হয়েছে।",
             "success"
         );
 
+
+        await loadHealthcareData();
+
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Hospital save error:",
+            error
+        );
 
         showAdminMessage(
             "সমস্যা হয়েছে",
             error.message ||
-                "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
+                "হাসপাতালের তথ্য সংরক্ষণ করা যায়নি।",
             "error"
         );
-    }
-}
 
-/* =========================
-   CREATE CATEGORY
-========================= */
+    } finally {
 
-async function createCategory(
-    name,
-    icon
-) {
-    const id =
-        generateCategoryID();
+        if (button) {
 
-    const { error } =
-        await supabaseClient
-            .from(CATEGORY_TABLE)
-            .insert({
-                ID: id,
-                Name: name,
-                Icon: icon,
-                Active: true
-            });
-
-    if (error) {
-        throw new Error(
-            error.message ||
-                "নতুন category Supabase-এ save করা যায়নি।"
-        );
-    }
-}
-
-/* =========================
-   GENERATE CATEGORY ID
-========================= */
-
-function generateCategoryID() {
-    let maxNumber = 0;
-
-    categories.forEach(
-        category => {
-            const id =
-                String(
-                    category.ID ||
-                    ""
-                ).trim();
-
-            const match =
-                id.match(
-                    /^CAT-(\d+)$/i
-                );
-
-            if (match) {
-                const number =
-                    Number(
-                        match[1]
-                    );
-
-                if (
-                    number >
-                    maxNumber
-                ) {
-                    maxNumber =
-                        number;
-                }
-            }
+            button.disabled = false;
+            button.textContent =
+                "সংরক্ষণ";
         }
-    );
-
-    const nextNumber =
-        maxNumber + 1;
-
-    return `CAT-${String(
-        nextNumber
-    ).padStart(3, "0")}`;
+    }
 }
 
-/* =========================
-   UPDATE CATEGORY
-========================= */
 
-async function updateCategory(
-    index,
-    newName,
-    newIcon
-) {
-    const category =
-        categories[index];
+/* =========================================================
+   DOCTOR FORM
+   ========================================================= */
 
-    if (!category) {
-        throw new Error(
-            "Category পাওয়া যায়নি।"
+function resetDoctorForm() {
+
+    const form =
+        document.getElementById(
+            "doctorForm"
         );
+
+    if (form) {
+        form.reset();
     }
 
-    const oldName =
-        category.Name;
 
     const id =
-        category.ID;
-
-    const { error } =
-        await supabaseClient
-            .from(CATEGORY_TABLE)
-            .update({
-                Name: newName,
-                Icon: newIcon,
-                Active: true
-            })
-            .eq("ID", id);
-
-    if (error) {
-        throw new Error(
-            error.message ||
-                "Category update করা যায়নি।"
+        document.getElementById(
+            "doctorId"
         );
+
+    if (id) {
+        id.value = "";
+    }
+}
+
+
+function fillDoctorForm(
+    doctor
+) {
+
+    document.getElementById(
+        "doctorId"
+    ).value =
+        doctor.id || "";
+
+
+    document.getElementById(
+        "doctorHospital"
+    ).value =
+        doctor.hospital_id || "";
+
+
+    document.getElementById(
+        "doctorSpecialization"
+    ).value =
+        doctor.specialization_id || "";
+
+
+    document.getElementById(
+        "doctorName"
+    ).value =
+        doctor.name || "";
+
+
+    document.getElementById(
+        "doctorDegrees"
+    ).value =
+        doctor.degrees || "";
+
+
+    document.getElementById(
+        "doctorDesignation"
+    ).value =
+        doctor.designation || "";
+
+
+    document.getElementById(
+        "doctorDepartment"
+    ).value =
+        doctor.department || "";
+
+
+    document.getElementById(
+        "doctorExperience"
+    ).value =
+        doctor.experience || "";
+
+
+    document.getElementById(
+        "doctorChamber"
+    ).value =
+        doctor.chamber || "";
+
+
+    document.getElementById(
+        "doctorVisitingDays"
+    ).value =
+        doctor.visiting_days || "";
+
+
+    document.getElementById(
+        "doctorVisitingHours"
+    ).value =
+        doctor.visiting_hours || "";
+
+
+    document.getElementById(
+        "doctorConsultationFee"
+    ).value =
+        doctor.consultation_fee ?? "";
+
+
+    document.getElementById(
+        "doctorPhone"
+    ).value =
+        doctor.phone || "";
+
+
+    document.getElementById(
+        "doctorVerifiedAt"
+    ).value =
+        doctor.verified_at || "";
+
+
+    document.getElementById(
+        "doctorSourceUrl"
+    ).value =
+        doctor.source_url || "";
+
+
+    document.getElementById(
+        "doctorActive"
+    ).value =
+        doctor.active === false
+            ? "false"
+            : "true";
+}
+
+
+/* =========================================================
+   SAVE DOCTOR
+   ========================================================= */
+
+async function saveDoctor(event) {
+
+    event.preventDefault();
+
+
+    const button =
+        event.currentTarget.querySelector(
+            'button[type="submit"]'
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+        button.textContent =
+            "সংরক্ষণ হচ্ছে...";
     }
 
-    if (
-        oldName !==
-        newName
-    ) {
-        const {
-            error: reportError
-        } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .update({
-                    Category:
-                        newName
-                })
-                .eq(
-                    "Category",
-                    oldName
-                );
 
-        if (reportError) {
+    try {
+
+        const id =
+            document.getElementById(
+                "doctorId"
+            )?.value;
+
+
+        const hospitalId =
+            document.getElementById(
+                "doctorHospital"
+            ).value;
+
+
+        const name =
+            document.getElementById(
+                "doctorName"
+            ).value.trim();
+
+
+        if (!hospitalId) {
             throw new Error(
-                reportError.message ||
-                    "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
+                "হাসপাতাল নির্বাচন করুন।"
             );
         }
 
-        clearReportCache();
-    }
 
-    clearCategoryCache();
-}
+        if (!name) {
+            throw new Error(
+                "ডাক্তারের নাম লিখুন।"
+            );
+        }
 
-/* =========================
-   DELETE CATEGORY
-========================= */
 
-async function deleteCategory(
-    index
-) {
-    const category =
-        categories[index];
+        /*
+         * IMPORTANT:
+         * এখন কোনো ছবি upload করা হচ্ছে না।
+         *
+         * doctorPhoto input থাকলেও file select না করলে
+         * কোনো Storage upload হবে না।
+         *
+         * Existing photo_url edit করার সময় অপরিবর্তিত থাকবে।
+         */
 
-    if (!category) return;
+        let existingPhotoUrl = null;
 
-    const used =
-        allReports.some(
-            report =>
-                String(
-                    report.Category ||
-                    ""
-                ).trim() ===
-                String(
-                    category.Name ||
-                    ""
-                ).trim()
+
+        if (id) {
+
+            const oldDoctor =
+                healthcareDoctors.find(
+                    doctor =>
+                        Number(
+                            doctor.id
+                        ) ===
+                        Number(id)
+                );
+
+
+            if (oldDoctor) {
+                existingPhotoUrl =
+                    oldDoctor.photo_url || null;
+            }
+        }
+
+
+        const payload = {
+
+            hospital_id:
+                Number(hospitalId),
+
+            specialization_id:
+                document.getElementById(
+                    "doctorSpecialization"
+                ).value
+                    ? Number(
+                        document.getElementById(
+                            "doctorSpecialization"
+                        ).value
+                    )
+                    : null,
+
+            name,
+
+            degrees:
+                document.getElementById(
+                    "doctorDegrees"
+                ).value.trim(),
+
+            designation:
+                document.getElementById(
+                    "doctorDesignation"
+                ).value.trim(),
+
+            department:
+                document.getElementById(
+                    "doctorDepartment"
+                ).value.trim(),
+
+            experience:
+                document.getElementById(
+                    "doctorExperience"
+                ).value.trim(),
+
+            chamber:
+                document.getElementById(
+                    "doctorChamber"
+                ).value.trim(),
+
+            visiting_days:
+                document.getElementById(
+                    "doctorVisitingDays"
+                ).value.trim(),
+
+            visiting_hours:
+                document.getElementById(
+                    "doctorVisitingHours"
+                ).value.trim(),
+
+            consultation_fee:
+                numberOrNull(
+                    "doctorConsultationFee"
+                ),
+
+            phone:
+                document.getElementById(
+                    "doctorPhone"
+                ).value.trim(),
+
+            photo_url:
+                existingPhotoUrl,
+
+            source_url:
+                document.getElementById(
+                    "doctorSourceUrl"
+                ).value.trim(),
+
+            verified_at:
+                document.getElementById(
+                    "doctorVerifiedAt"
+                ).value || null,
+
+            active:
+                document.getElementById(
+                    "doctorActive"
+                ).value === "true"
+        };
+
+
+        let response;
+
+
+        if (id) {
+
+            response =
+                await supabaseClient
+                    .from(
+                        HEALTHCARE_TABLES.doctors
+                    )
+                    .update(payload)
+                    .eq("id", id);
+
+        } else {
+
+            response =
+                await supabaseClient
+                    .from(
+                        HEALTHCARE_TABLES.doctors
+                    )
+                    .insert(payload);
+        }
+
+
+        if (response.error) {
+            throw response.error;
+        }
+
+
+        closeHealthcareModal();
+
+
+        showAdminMessage(
+            "সফল হয়েছে",
+            id
+                ? "ডাক্তারের তথ্য আপডেট হয়েছে।"
+                : "নতুন ডাক্তার যোগ হয়েছে।",
+            "success"
         );
 
-    if (used) {
+
+        await loadHealthcareData();
+
+    } catch (error) {
+
+        console.error(
+            "Doctor save error:",
+            error
+        );
+
         showAdminMessage(
-            "Category ব্যবহার হচ্ছে",
-            "এই category-তে report আছে। আগে সেই report-গুলোর category পরিবর্তন করুন।",
+            "সমস্যা হয়েছে",
+            error.message ||
+                "ডাক্তারের তথ্য সংরক্ষণ করা যায়নি।",
             "error"
         );
 
-        return;
+    } finally {
+
+        if (button) {
+
+            button.disabled = false;
+            button.textContent =
+                "সংরক্ষণ";
+        }
     }
+}
+
+
+/* =========================================================
+   SPECIALIZATION FORM
+   ========================================================= */
+
+function resetSpecializationForm() {
+
+    const form =
+        document.getElementById(
+            "specializationForm"
+        );
+
+    if (form) {
+        form.reset();
+    }
+}
+
+
+async function saveSpecialization(event) {
+
+    event.preventDefault();
+
+
+    const button =
+        event.currentTarget.querySelector(
+            'button[type="submit"]'
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+        button.textContent =
+            "সংরক্ষণ হচ্ছে...";
+    }
+
+
+    try {
+
+        const name =
+            document.getElementById(
+                "specializationName"
+            ).value.trim();
+
+
+        const icon =
+            document.getElementById(
+                "specializationIcon"
+            ).value.trim() ||
+            "🩺";
+
+
+        if (!name) {
+            throw new Error(
+                "Specialization-এর নাম লিখুন।"
+            );
+        }
+
+
+        const duplicate =
+            healthcareSpecializations.some(
+                item =>
+                    String(
+                        item.name || ""
+                    )
+                        .trim()
+                        .toLowerCase() ===
+                    name.toLowerCase()
+            );
+
+
+        if (duplicate) {
+            throw new Error(
+                "এই Specialization ইতিমধ্যে আছে।"
+            );
+        }
+
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from(
+                    HEALTHCARE_TABLES.specializations
+                )
+                .insert({
+                    name,
+                    icon,
+                    active: true
+                });
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        closeHealthcareModal();
+
+
+        showAdminMessage(
+            "সফল হয়েছে",
+            "নতুন Specialization যোগ হয়েছে।",
+            "success"
+        );
+
+
+        await loadHealthcareData();
+
+    } catch (error) {
+
+        console.error(
+            "Specialization save error:",
+            error
+        );
+
+        showAdminMessage(
+            "সমস্যা হয়েছে",
+            error.message ||
+                "Specialization সংরক্ষণ করা যায়নি।",
+            "error"
+        );
+
+    } finally {
+
+        if (button) {
+
+            button.disabled = false;
+            button.textContent =
+                "সংরক্ষণ";
+        }
+    }
+}
+
+
+/* =========================================================
+   ACTIVE / INACTIVE
+   ========================================================= */
+
+async function toggleHospitalActive(id) {
+
+    const hospital =
+        healthcareHospitals.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!hospital) return;
+
+
+    await setHealthcareActive(
+        HEALTHCARE_TABLES.hospitals,
+        id,
+        hospital.active === false
+    );
+}
+
+
+async function toggleDoctorActive(id) {
+
+    const doctor =
+        healthcareDoctors.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!doctor) return;
+
+
+    await setHealthcareActive(
+        HEALTHCARE_TABLES.doctors,
+        id,
+        doctor.active === false
+    );
+}
+
+
+async function setHealthcareActive(
+    table,
+    id,
+    active
+) {
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from(table)
+                .update({
+                    active
+                })
+                .eq("id", id);
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showAdminMessage(
+            "সফল হয়েছে",
+            active
+                ? "Active করা হয়েছে।"
+                : "Inactive করা হয়েছে।",
+            "success"
+        );
+
+
+        await loadHealthcareData();
+
+    } catch (error) {
+
+        console.error(
+            "Healthcare status error:",
+            error
+        );
+
+        showAdminMessage(
+            "সমস্যা হয়েছে",
+            error.message ||
+                "Status পরিবর্তন করা যায়নি।",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   DELETE
+   ========================================================= */
+
+async function deleteHospital(id) {
+
+    const hospital =
+        healthcareHospitals.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!hospital) return;
+
 
     const confirmed =
         confirm(
-            `"${category.Name}" category-টি permanently delete করতে চান?`
+            `"${hospital.name}" হাসপাতালটি delete করতে চান?\n\nএই হাসপাতালের সাথে যুক্ত Doctor-গুলোও delete হবে।`
         );
+
 
     if (!confirmed) return;
 
+
+    await deleteHealthcareRecord(
+        HEALTHCARE_TABLES.hospitals,
+        id,
+        "হাসপাতাল"
+    );
+}
+
+
+async function deleteDoctor(id) {
+
+    const doctor =
+        healthcareDoctors.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!doctor) return;
+
+
+    const confirmed =
+        confirm(
+            `"${doctor.name}" ডাক্তারকে delete করতে চান?`
+        );
+
+
+    if (!confirmed) return;
+
+
+    await deleteHealthcareRecord(
+        HEALTHCARE_TABLES.doctors,
+        id,
+        "ডাক্তার"
+    );
+}
+
+
+async function deleteSpecialization(id) {
+
+    const specialization =
+        healthcareSpecializations.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!specialization) return;
+
+
+    const confirmed =
+        confirm(
+            `"${specialization.name}" Specialization delete করতে চান?`
+        );
+
+
+    if (!confirmed) return;
+
+
+    await deleteHealthcareRecord(
+        HEALTHCARE_TABLES.specializations,
+        id,
+        "Specialization"
+    );
+}
+
+
+async function deleteHealthcareRecord(
+    table,
+    id,
+    label
+) {
+
     try {
-        const { error } =
+
+        const {
+            error
+        } =
             await supabaseClient
-                .from(CATEGORY_TABLE)
+                .from(table)
                 .delete()
-                .eq(
-                    "ID",
-                    category.ID
-                );
+                .eq("id", id);
+
 
         if (error) {
-            throw new Error(
-                error.message ||
-                    "Category delete করা যায়নি।"
-            );
+            throw error;
         }
 
-        clearCategoryCache();
-
-        await loadCategories(
-            true
-        );
-
-        await loadReports(
-            true
-        );
 
         showAdminMessage(
             "সফল হয়েছে",
-            "Category permanently delete হয়েছে।",
+            `${label} delete হয়েছে।`,
             "success"
         );
 
+
+        await loadHealthcareData();
+
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Healthcare delete error:",
+            error
+        );
 
         showAdminMessage(
             "সমস্যা হয়েছে",
             error.message ||
-                "Category delete করা যায়নি।",
+                `${label} delete করা যায়নি।`,
             "error"
         );
     }
 }
 
-/* =========================
-   MESSAGE
-========================= */
 
-function showAdminMessage(
-    title,
-    message,
-    type
-) {
-    const old =
-        document.querySelector(
-            ".admin-toast"
-        );
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
-    if (old) {
-        old.remove();
+function numberOrNull(id) {
+
+    const value =
+        String(
+            document.getElementById(id)?.value ||
+            ""
+        ).trim();
+
+
+    if (value === "") {
+        return null;
     }
 
-    const toast =
-        document.createElement(
-            "div"
-        );
 
-    toast.className =
-        "admin-toast";
+    const number =
+        Number(value);
 
-    toast.innerHTML = `
-        <strong>${safe(
-            title
-        )}</strong>
-        <span>${safe(
-            message
-        )}</span>
-    `;
 
-    toast.style.position =
-        "fixed";
-
-    toast.style.right =
-        "20px";
-
-    toast.style.bottom =
-        "20px";
-
-    toast.style.zIndex =
-        "5000";
-
-    toast.style.background =
-        "#fff";
-
-    toast.style.border =
-        "1px solid #dfe5e1";
-
-    toast.style.borderLeft =
-        type === "success"
-            ? "4px solid #166534"
-            : "4px solid #b91c1c";
-
-    toast.style.borderRadius =
-        "10px";
-
-    toast.style.padding =
-        "14px 17px";
-
-    toast.style.boxShadow =
-        "0 15px 40px rgba(0,0,0,.12)";
-
-    toast.style.display =
-        "flex";
-
-    toast.style.flexDirection =
-        "column";
-
-    toast.style.gap =
-        "2px";
-
-    toast.style.minWidth =
-        "250px";
-
-    document.body.appendChild(
-        toast
-    );
-
-    setTimeout(() => {
-        toast.style.opacity =
-            "0";
-
-        toast.style.transform =
-            "translateY(8px)";
-
-        toast.style.transition =
-            ".3s ease";
-
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-
-    }, 3000);
+    return Number.isFinite(number)
+        ? number
+        : null;
 }
 
-/* =========================
-   HELPERS
-========================= */
 
-function safe(value) {
-    return escapeHTML(
-        String(value ?? "")
-    );
-}
+/* =========================================================
+   PUBLIC FUNCTIONS
+   ========================================================= */
 
-function escapeHTML(value) {
-    return value
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-}
+window.openHealthcareModal =
+    openHealthcareModal;
 
-function escapeAttribute(value) {
-    return escapeHTML(
-        String(value ?? "")
-    );
-}
+window.toggleHospitalActive =
+    toggleHospitalActive;
+
+window.toggleDoctorActive =
+    toggleDoctorActive;
+
+window.deleteHospital =
+    deleteHospital;
+
+window.deleteDoctor =
+    deleteDoctor;
+
+window.deleteSpecialization =
+    deleteSpecialization;
