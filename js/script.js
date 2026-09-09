@@ -1,4 +1,4 @@
-// =====================================
+ // =====================================
 // Amader Elaka - Main JavaScript
 // =====================================
 
@@ -169,6 +169,71 @@ function updateHomeStatistics(reports) {
     animateNumber(pendingReports, pending);
     animateNumber(progressReports, progress);
     animateNumber(solvedReports, solved);
+
+    renderHomeRecentReports(reports);
+}
+
+// =====================================
+// Home Recent Reports
+// =====================================
+
+function escapeHomeHTML(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function getHomeStatusMeta(status) {
+    const value = String(status || "").trim().toLowerCase();
+    if (value === "solved" || value === "সমাধান হয়েছে" || value === "সমাধান হয়েছে") {
+        return { label: "সমাধান হয়েছে", className: "solved", icon: "✓" };
+    }
+    if (value === "কাজ চলছে" || value === "in progress" || value === "progress") {
+        return { label: "কাজ চলছে", className: "progress", icon: "◷" };
+    }
+    return { label: "চলমান", className: "pending", icon: "!" };
+}
+
+function getHomeCategoryIcon(category) {
+    const icons = {
+        "রাস্তা": "🛣️", "ড্রেন ও জলাবদ্ধতা": "🌊", "ড্রেনেজ": "🌊",
+        "ময়লা-আবর্জনা": "🗑️", "ময়লা-আবর্জনা": "🗑️", "রাস্তার বাতি": "💡",
+        "বিদ্যুৎ": "⚡", "পানি": "💧", "পানির সমস্যা": "💧", "পরিবেশ": "🌳",
+        "নিরাপত্তা": "🛡️"
+    };
+    return icons[category] || "📌";
+}
+
+function renderHomeRecentReports(reports) {
+    const container = document.getElementById("homeRecentReports");
+    if (!container) return;
+
+    const latest = Array.isArray(reports) ? [...reports].reverse().slice(0, 4) : [];
+    if (!latest.length) {
+        container.innerHTML = '<div class="home-recent-empty">এখনও কোনো রিপোর্ট পাওয়া যায়নি।</div>';
+        return;
+    }
+
+    container.innerHTML = latest.map(report => {
+        const status = getHomeStatusMeta(report.Status);
+        const category = report.Category || "অন্যান্য";
+        const title = report.Description || category || "নাগরিক সমস্যা";
+        const location = [report.Area, report.Upazila, report.District].filter(Boolean).slice(0,2).join(", ") || report.Division || "এলাকা উল্লেখ নেই";
+        return `
+            <a class="home-recent-card" href="dashboard.html#reports" aria-label="${escapeHomeHTML(title)}">
+                <div class="home-recent-icon">${getHomeCategoryIcon(category)}</div>
+                <div class="home-recent-content">
+                    <div class="home-recent-top"><span class="home-status ${status.className}">${status.icon} ${status.label}</span><span class="home-recent-category">${escapeHomeHTML(category)}</span></div>
+                    <h3>${escapeHomeHTML(title).slice(0, 120)}</h3>
+                    <p>📍 ${escapeHomeHTML(location)}</p>
+                    <small>🕒 ${escapeHomeHTML(report.Date || "তারিখ নেই")}</small>
+                </div>
+                <span class="home-recent-arrow" aria-hidden="true">→</span>
+            </a>`;
+    }).join("");
 }
 
 // =====================================
