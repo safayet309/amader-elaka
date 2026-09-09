@@ -1,4 +1,4 @@
-const REPORT_TABLE = "Reports";
+ const REPORT_TABLE = "Reports";
 const CATEGORY_TABLE = "Categories";
 
 const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
@@ -723,6 +723,7 @@ function statusClass(status) {
 
     return "status-default";
 }
+
 /* =========================
    FILTERS
 ========================= */
@@ -1434,14 +1435,14 @@ async function saveReportChanges(event) {
             "saveReportBtn"
         );
 
-if (button) {
-    button.disabled = true;
-    button.textContent =
-        "সংরক্ষণ হচ্ছে...";
-}
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "সংরক্ষণ হচ্ছে...";
+    }
 
-const id =
-    editingReport.ID;
+    const id =
+        editingReport.ID;
 
     const updatedData = {
         Division:
@@ -2020,9 +2021,19 @@ async function saveCategory(event) {
             "success"
         );
 
-    }
+    } catch (error) {
+        console.error(error);
 
-        /* =========================
+        showAdminMessage(
+            "সমস্যা হয়েছে",
+            error.message ||
+                "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
+            "error"
+        );
+    }
+}
+
+/* =========================
    CREATE CATEGORY
 ========================= */
 
@@ -2254,15 +2265,143 @@ async function deleteCategory(
         );
     }
 }
-    
-    catch (error) {
-        console.error(error);
 
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
-            "error"
+/* =========================
+   MESSAGE
+========================= */
+
+function showAdminMessage(
+    title,
+    message,
+    type
+) {
+    const old =
+        document.querySelector(
+            ".admin-toast"
         );
+
+    if (old) {
+        old.remove();
     }
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.className =
+        "admin-toast";
+
+    toast.innerHTML = `
+        <strong>${safe(
+            title
+        )}</strong>
+        <span>${safe(
+            message
+        )}</span>
+    `;
+
+    toast.style.position =
+        "fixed";
+
+    toast.style.right =
+        "20px";
+
+    toast.style.bottom =
+        "20px";
+
+    toast.style.zIndex =
+        "5000";
+
+    toast.style.background =
+        "#fff";
+
+    toast.style.border =
+        "1px solid #dfe5e1";
+
+    toast.style.borderLeft =
+        type === "success"
+            ? "4px solid #166534"
+            : "4px solid #b91c1c";
+
+    toast.style.borderRadius =
+        "10px";
+
+    toast.style.padding =
+        "14px 17px";
+
+    toast.style.boxShadow =
+        "0 15px 40px rgba(0,0,0,.12)";
+
+    toast.style.display =
+        "flex";
+
+    toast.style.flexDirection =
+        "column";
+
+    toast.style.gap =
+        "2px";
+
+    toast.style.minWidth =
+        "250px";
+
+    document.body.appendChild(
+        toast
+    );
+
+    setTimeout(() => {
+        toast.style.opacity =
+            "0";
+
+        toast.style.transform =
+            "translateY(8px)";
+
+        toast.style.transition =
+            ".3s ease";
+
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+
+    }, 3000);
 }
+
+/* =========================
+   HELPERS
+========================= */
+
+function safe(value) {
+    return escapeHTML(
+        String(value ?? "")
+    );
+}
+
+function escapeHTML(value) {
+    return value
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+function escapeAttribute(value) {
+    return escapeHTML(
+        String(value ?? "")
+    );
+                            }
