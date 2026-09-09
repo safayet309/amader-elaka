@@ -960,3 +960,536 @@ body{font-family:"Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-ser
 .admin-stat-card:hover{transform:translateY(-3px)!important;box-shadow:0 18px 38px rgba(6,78,59,.1)!important}.admin-stat-icon{border-radius:14px!important;background:#ecfdf5!important;color:#059669!important}
 .admin-card-header{border-bottom-color:#eef2f0!important}.admin-modal,.admin-modal-content{border-radius:22px!important}
 @media(max-width:900px){.admin-sidebar{width:210px}.admin-main{margin-left:210px;width:calc(100% - 210px);padding-left:18px;padding-right:18px}}
+
+/* =========================================================
+   STEP 4 — HEALTHCARE ADMIN PANEL
+   Premium Healthcare Management UI
+   ========================================================= */
+
+#healthcareSection {
+    animation: healthcareFadeIn 0.25s ease;
+}
+
+@keyframes healthcareFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Healthcare toolbar */
+
+.healthcare-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.healthcare-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.healthcare-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+
+/* Search */
+
+#healthcareSearch {
+    min-width: 240px;
+}
+
+
+/* Filters */
+
+#healthcareTypeFilter,
+#healthcareStatusFilter {
+    min-width: 150px;
+}
+
+
+/* Healthcare cards */
+
+.healthcare-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.healthcare-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    border-color: #d1d5db;
+}
+
+
+/* Hospital item */
+
+.healthcare-hospital-item {
+    position: relative;
+}
+
+.healthcare-hospital-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.healthcare-hospital-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+}
+
+.healthcare-hospital-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #ecfdf5;
+    font-size: 24px;
+}
+
+.healthcare-hospital-name {
+    margin: 0;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.healthcare-hospital-meta {
+    margin-top: 5px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+/* Doctor list */
+
+.healthcare-doctors {
+    margin-top: 17px;
+    padding-top: 15px;
+    border-top: 1px solid #eef2f7;
+}
+
+.healthcare-doctors-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.healthcare-doctor-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-top: 1px solid #f3f4f6;
+}
+
+.healthcare-doctor-item:first-child {
+    border-top: 0;
+}
+
+.healthcare-doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.healthcare-doctor-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 18px;
+}
+
+.healthcare-doctor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.healthcare-doctor-name {
+    color: #111827;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.healthcare-doctor-meta {
+    margin-top: 3px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* Action buttons */
+
+.healthcare-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.healthcare-actions button {
+    white-space: nowrap;
+}
+
+
+/* Empty state */
+
+.healthcare-empty {
+    padding: 45px 20px;
+    text-align: center;
+    border: 1px dashed #d1d5db;
+    border-radius: 16px;
+    background: #f9fafb;
+    color: #6b7280;
+}
+
+.healthcare-empty-icon {
+    margin-bottom: 8px;
+    font-size: 34px;
+}
+
+
+/* Status */
+
+.healthcare-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.healthcare-status.active {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.healthcare-status.inactive {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+
+/* Healthcare modal */
+
+.healthcare-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.healthcare-modal.active {
+    display: flex;
+}
+
+.healthcare-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(5px);
+}
+
+.healthcare-modal-content {
+    position: relative;
+    z-index: 2;
+    width: min(760px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 25px 70px rgba(15, 23, 42, 0.22);
+    animation: healthcareModalIn 0.2s ease;
+}
+
+@keyframes healthcareModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.healthcare-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 20px 22px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.healthcare-modal-title {
+    margin: 0;
+    color: #111827;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.healthcare-modal-close {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #374151;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.healthcare-modal-close:hover {
+    background: #e5e7eb;
+}
+
+
+/* Form */
+
+.healthcare-form {
+    padding: 22px;
+}
+
+.healthcare-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.healthcare-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.healthcare-form-group.full {
+    grid-column: 1 / -1;
+}
+
+.healthcare-form-label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.healthcare-form-label .required {
+    color: #dc2626;
+}
+
+.healthcare-form input,
+.healthcare-form select,
+.healthcare-form textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.healthcare-form textarea {
+    min-height: 95px;
+    resize: vertical;
+}
+
+.healthcare-form input:focus,
+.healthcare-form select:focus,
+.healthcare-form textarea:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+.healthcare-form-help {
+    color: #6b7280;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+/* Modal footer */
+
+.healthcare-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    padding-top: 20px;
+    margin-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* Photo field */
+
+.healthcare-photo-upload {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.healthcare-photo-preview {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.healthcare-photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* Loading */
+
+.admin-loading {
+    padding: 35px 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+    .healthcare-toolbar {
+        align-items: stretch;
+    }
+
+    .healthcare-toolbar-left,
+    .healthcare-toolbar-right {
+        width: 100%;
+    }
+
+    #healthcareSearch,
+    #healthcareTypeFilter,
+    #healthcareStatusFilter {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .healthcare-toolbar-right button {
+        flex: 1;
+    }
+
+    .healthcare-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .healthcare-form-group.full {
+        grid-column: auto;
+    }
+
+    .healthcare-modal {
+        padding: 10px;
+    }
+
+    .healthcare-modal-content {
+        max-height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .healthcare-modal-header {
+        padding: 16px;
+    }
+
+    .healthcare-form {
+        padding: 16px;
+    }
+
+    .healthcare-hospital-header {
+        flex-direction: column;
+    }
+
+    .healthcare-actions {
+        width: 100%;
+    }
+
+    .healthcare-actions button {
+        flex: 1;
+    }
+
+    .healthcare-doctor-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .healthcare-doctor-item .healthcare-actions {
+        width: 100%;
+    }
+
+    .healthcare-doctor-item .healthcare-actions button {
+        flex: 1;
+    }
+}
