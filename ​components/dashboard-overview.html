@@ -1,0 +1,46 @@
+<section class="dashboard-overview">
+    <div class="overview-grid">
+        <!-- Category Summary -->
+        <div class="overview-card">
+            <h2>🏷️ বিষয়ভিত্তিক রিপোর্ট</h2>
+            <p>কোন ধরনের সমস্যা সবচেয়ে বেশি রিপোর্ট হচ্ছে।</p>
+
+            <div id="topCategory" class="top-category">
+                <span class="top-category-label">সবচেয়ে বেশি রিপোর্ট</span>
+                <span id="topCategoryName" class="top-category-name">তথ্য লোড হচ্ছে...</span>
+                <span id="topCategoryCount" class="top-category-count">—</span>
+            </div>
+
+            <div id="categorySummary" class="summary-list">
+                <div class="summary-item">
+                    <span class="summary-name">তথ্য লোড হচ্ছে...</span>
+                    <span class="summary-count">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Summary -->
+        <div class="overview-card">
+            <h2>📍 এলাকাভিত্তিক রিপোর্ট</h2>
+            <p>কোন বিভাগে কতটি রিপোর্ট রয়েছে।</p>
+
+            <div class="summary-list">
+                <div id="divisionSummary">
+                    <div class="summary-item">
+                        <span class="summary-name">তথ্য লোড হচ্ছে...</span>
+                        <span class="summary-count">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="location-summary">
+                <div class="location-search">
+                    <input type="search" id="locationSearch" placeholder="বিভাগ, জেলা বা উপজেলা লিখুন..." autocomplete="off">
+                    <button type="button" id="locationSearchButton">খুঁজুন</button>
+                </div>
+
+                <div id="locationResult" class="location-result"></div>
+            </div>
+        </div>
+    </div>
+</section>
