@@ -1,1851 +1,2412 @@
- <!DOCTYPE html><html lang="bn"><head>
-    <meta charset="UTF-8"><meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<meta
-    name="description"
-    content="আমাদের এলাকা — নাগরিক সেবা, জরুরি সহায়তা ও গুরুত্বপূর্ণ তথ্যের সহজ প্ল্যাটফর্ম।"
->
-
-<meta
-    name="theme-color"
-    content="#064E3B"
->
-
-<title>আমাদের এলাকা</title>
-
-<!-- =========================
-     Main Styles
-========================== -->
-
-<link
-    rel="stylesheet"
-    href="css/style.css"
->
-
-<link
-    rel="stylesheet"
-    href="css/premium.css"
->
-
-
-<!-- =========================
-     PWA
-========================== -->
-
-<link
-    rel="manifest"
-    href="manifest.json"
->
-
-<meta
-    name="mobile-web-app-capable"
-    content="yes"
->
-
-<meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
->
-
-<meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="default"
->
-
-<link
-    rel="apple-touch-icon"
-    href="icons/icon-192.png"
->
-
-
-<!-- =========================
-     Home Slider + Emergency
-     Temporary page-specific
-     styling
-========================== -->
-
-<style>
-
-    /* =====================================
-       HOME SLIDER
-    ====================================== */
-
-    .home-slider-section {
-        padding: 18px 0 0;
-    }
-
-    .home-slider {
-        position: relative;
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        aspect-ratio: 16 / 7;
-        min-height: 220px;
-        overflow: hidden;
-        border-radius: 20px;
-        background: #eef2f0;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    }
-
-    .home-slide {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateX(100%);
-        transition:
-            transform 0.8s cubic-bezier(0.65, 0, 0.35, 1),
-            opacity 0.8s ease;
-        z-index: 1;
-    }
-
-    .home-slide.active {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(0);
-        z-index: 3;
-    }
-
-    .home-slide.previous {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-100%);
-        z-index: 2;
-    }
-
-    .home-slide.next-ready {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(100%);
-        z-index: 2;
-    }
-
-    .home-slider-dots {
-        position: absolute;
-        left: 50%;
-        bottom: 14px;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        transform: translateX(-50%);
-        padding: 7px 11px;
-        background: rgba(0, 0, 0, 0.28);
-        border-radius: 999px;
-        backdrop-filter: blur(5px);
-    }
-
-    .home-slider-dot {
-        width: 7px;
-        height: 7px;
-        padding: 0;
-        border: none;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        transition:
-            width 0.25s ease,
-            background 0.25s ease;
-    }
-
-    .home-slider-dot.active {
-        width: 22px;
-        border-radius: 999px;
-        background: #ffffff;
-    }
-
-    .home-slider-loading,
-    .home-slider-empty {
-        position: absolute;
-        inset: 0;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: #6b7280;
-        font-size: 14px;
-        background: #eef2f0;
-    }
-
-
-    /* =====================================
-       NOTICE MARQUEE
-    ====================================== */
-
-    .demo-marquee-section {
-        width: 100%;
-        overflow: hidden;
-        background: #fff7f7;
-        border-top: 1px solid #fee2e2;
-        border-bottom: 1px solid #fee2e2;
-        margin-top: 10px;
-    }
-
-    .demo-marquee {
-        width: 100%;
-        overflow: hidden;
-        white-space: nowrap;
-    }
-
-    .demo-marquee-track {
-        display: inline-flex;
-        width: max-content;
-        animation: demoMarqueeRight 22s linear infinite;
-    }
-
-    .demo-marquee-text {
-        display: inline-block;
-        padding: 10px 25px;
-        color: #dc2626;
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    @keyframes demoMarqueeRight {
-
-        0% {
-            transform: translateX(-50%);
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-
-    }
-
-
-    /* =====================================
-       EMERGENCY NAV BUTTON
-    ====================================== */
-
-    .emergency-nav-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        min-height: 40px;
-        padding: 0 14px;
-        border: 1px solid #fecaca;
-        border-radius: 9px;
-        background: #fff7f7;
-        color: #dc2626;
-        font: inherit;
-        font-weight: 700;
-        text-decoration: none;
-        cursor: pointer;
-        transition:
-            background 0.2s ease,
-            color 0.2s ease,
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .emergency-nav-button:hover {
-        background: #dc2626;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow:
-            0 5px 15px rgba(220, 38, 38, 0.18);
-    }
-
-    .emergency-nav-button:active {
-        transform: translateY(0);
-    }
-
-
-    /* =====================================
-       EMERGENCY MODAL
-    ====================================== */
-
-    .emergency-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 18px;
-        background: rgba(15, 23, 42, 0.58);
-        backdrop-filter: blur(6px);
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition:
-            opacity 0.25s ease,
-            visibility 0.25s ease;
-    }
-
-    .emergency-overlay.show {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    .emergency-modal {
-        width: min(720px, 100%);
-        max-height: min(86vh, 760px);
-        overflow: hidden;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        box-shadow:
-            0 24px 70px rgba(15, 23, 42, 0.22);
-        transform: translateY(18px) scale(0.98);
-        transition: transform 0.25s ease;
-    }
-
-    .emergency-overlay.show .emergency-modal {
-        transform: translateY(0) scale(1);
-    }
-
-    .emergency-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 18px 20px;
-        border-bottom: 1px solid #eef2f0;
-    }
-
-    .emergency-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-    }
-
-    .emergency-title-icon {
-        width: 44px;
-        height: 44px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background: #fee2e2;
-        font-size: 22px;
-    }
-
-    .emergency-title h2 {
-        margin: 0 0 3px;
-        color: #111827;
-        font-size: 21px;
-    }
-
-    .emergency-title p {
-        margin: 0;
-        color: #6b7280;
-        font-size: 13px;
-    }
-
-    .emergency-close {
-        width: 38px;
-        height: 38px;
-        flex-shrink: 0;
-        border: 1px solid #e5e7eb;
-        border-radius: 9px;
-        background: #f8fafc;
-        color: #374151;
-        font-size: 24px;
-        line-height: 1;
-        cursor: pointer;
-        transition:
-            background 0.2s ease,
-            color 0.2s ease,
-            transform 0.2s ease;
-    }
-
-    .emergency-close:hover {
-        background: #fee2e2;
-        color: #dc2626;
-        transform: translateY(-1px);
-    }
-
-    .emergency-body {
-        max-height: calc(min(86vh, 760px) - 82px);
-        overflow-y: auto;
-        padding: 16px 20px 20px;
-    }
-
-    .emergency-notice {
-        margin-bottom: 12px;
-        padding: 11px 13px;
-        border: 1px solid #fee2e2;
-        border-radius: 10px;
-        background: #fff7f7;
-        color: #991b1b;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-    .emergency-list {
-        display: grid;
-        gap: 10px;
-    }
-
-    .emergency-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 13px;
-        border: 1px solid #e5e7eb;
-        border-radius: 13px;
-        background: #ffffff;
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            border-color 0.2s ease;
-    }
-
-    .emergency-card:hover {
-        transform: translateY(-1px);
-        box-shadow:
-            0 6px 18px rgba(15, 23, 42, 0.07);
-        border-color: #d1d5db;
-    }
-
-    .emergency-card-info {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        min-width: 0;
-    }
-
-    .emergency-card-icon {
-        width: 42px;
-        height: 42px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 11px;
-        background: #f3f4f6;
-        font-size: 20px;
-    }
-
-    .emergency-card h3 {
-        margin: 0 0 3px;
-        color: #374151;
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    .emergency-card strong {
-        color: #111827;
-        font-size: 18px;
-        letter-spacing: 0.3px;
-    }
-
-    .emergency-card-actions {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        flex-shrink: 0;
-    }
-
-    .emergency-call,
-    .emergency-copy {
-        min-height: 36px;
-        padding: 0 11px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        font: inherit;
-        font-size: 12px;
-        font-weight: 700;
-        text-decoration: none;
-        cursor: pointer;
-        transition:
-            transform 0.2s ease,
-            background 0.2s ease,
-            border-color 0.2s ease;
-    }
-
-    .emergency-call {
-        border: 1px solid #166534;
-        background: #166534;
-        color: #ffffff;
-    }
-
-    .emergency-call:hover {
-        background: #14532d;
-        transform: translateY(-1px);
-    }
-
-    .emergency-copy {
-        border: 1px solid #d1d5db;
-        background: #f8fafc;
-        color: #374151;
-    }
-
-    .emergency-copy:hover {
-        background: #f3f4f6;
-        border-color: #9ca3af;
-        transform: translateY(-1px);
-    }
-
-    .emergency-card.important {
-        border-color: #fecaca;
-        background:
-            linear-gradient(135deg, #fff7f7, #ffffff);
-        box-shadow:
-            0 6px 20px rgba(220, 38, 38, 0.08);
-    }
-
-    .emergency-card.important
-    .emergency-card-icon {
-        background: #fee2e2;
-    }
-
-    .emergency-card.important h3 {
-        color: #b91c1c;
-    }
-
-    .emergency-card.important strong {
-        color: #dc2626;
-        font-size: 21px;
-    }
-
-    .emergency-footer {
-        margin-top: 12px;
-        color: #6b7280;
-        font-size: 12px;
-        line-height: 1.6;
-        text-align: center;
-    }
-
-
-    /* =====================================
-       MOBILE
-    ====================================== */
-
-    @media (max-width: 768px) {
+ <!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="আমাদের এলাকা — আপনার এলাকার নাগরিক ও সরকারি সেবার তথ্য এক জায়গায়।"
+    >
+
+    <meta
+        name="theme-color"
+        content="#064E3B"
+    >
+
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default"
+    >
+
+    <title>আমাদের এলাকা</title>
+
+    <!-- Main CSS -->
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    <!-- Premium CSS -->
+    <link
+        rel="stylesheet"
+        href="css/premium.css"
+    >
+
+    <!-- PWA -->
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="apple-touch-icon"
+        href="icons/icon-192.png"
+    >
+
+    <style>
+        /* ==================================================
+           HOME PAGE
+        ================================================== */
 
         .home-slider-section {
-            padding: 14px 0 0;
+            padding: 24px 0 10px;
         }
 
         .home-slider {
-            aspect-ratio: 16 / 8;
-            min-height: 180px;
-            border-radius: 16px;
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+
+            aspect-ratio: 16 / 7;
+            min-height: 220px;
+
+            overflow: hidden;
+
+            border-radius: 20px;
+
+            background: #eef2f0;
+
+            border: 1px solid #e5e7eb;
+
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .home-slide {
+            position: absolute;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+            opacity: 0;
+            visibility: hidden;
+
+            transform: translateX(100%);
+
+            transition:
+                transform 0.8s cubic-bezier(
+                    0.65,
+                    0,
+                    0.35,
+                    1
+                ),
+                opacity 0.8s ease;
+
+            z-index: 1;
+        }
+
+        .home-slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            z-index: 3;
+        }
+
+        .home-slide.previous {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-100%);
+            z-index: 2;
+        }
+
+        .home-slide.next-ready {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(100%);
+            z-index: 2;
         }
 
         .home-slider-dots {
-            bottom: 10px;
+            position: absolute;
+
+            left: 50%;
+            bottom: 14px;
+
+            z-index: 10;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            transform: translateX(-50%);
+
+            padding: 7px 11px;
+
+            background: rgba(0, 0, 0, 0.28);
+
+            border-radius: 999px;
+
+            backdrop-filter: blur(5px);
         }
 
-        .emergency-nav-button {
-            padding: 0 11px;
+        .home-slider-dot {
+            width: 7px;
+            height: 7px;
+
+            padding: 0;
+
+            border: none;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255, 255, 255, 0.6);
+
+            cursor: pointer;
+
+            transition:
+                width 0.25s ease,
+                background 0.25s ease;
+        }
+
+        .home-slider-dot.active {
+            width: 22px;
+
+            border-radius: 999px;
+
+            background: #ffffff;
+        }
+
+        .home-slider-loading,
+        .home-slider-empty {
+            position: absolute;
+
+            inset: 0;
+
+            z-index: 20;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+            background: #eef2f0;
+        }
+
+
+        /* ==================================================
+           HOME HERO
+        ================================================== */
+
+        .home-hero {
+            padding: 72px 0 76px;
+
+            text-align: center;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #ffffff 0%,
+                    #f7faf8 100%
+                );
+        }
+
+        .home-hero-content {
+            max-width: 820px;
+
+            margin: 0 auto;
+        }
+
+        .home-hero-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            margin-bottom: 18px;
+
+            padding: 7px 13px;
+
+            border:
+                1px solid #d9ebe1;
+
+            border-radius: 999px;
+
+            background: #f0f8f4;
+
+            color: #166534;
+
             font-size: 13px;
+
+            font-weight: 700;
         }
 
-    }
+        .home-hero h1 {
+            margin: 0;
+
+            color: #123b2b;
+
+            font-size:
+                clamp(
+                    32px,
+                    5vw,
+                    58px
+                );
+
+            line-height: 1.2;
+
+            letter-spacing: -1px;
+        }
+
+        .home-hero p {
+            max-width: 680px;
+
+            margin:
+                20px auto 0;
+
+            color: #64748b;
+
+            font-size:
+                clamp(
+                    15px,
+                    2vw,
+                    18px
+                );
+
+            line-height: 1.8;
+        }
+
+        .home-hero-actions {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            margin-top: 28px;
+        }
+
+        .home-action-card {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 48px;
+
+            padding: 0 20px;
+
+            border-radius: 11px;
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .home-action-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .home-action-primary {
+            background: #166534;
+
+            color: #ffffff;
+
+            box-shadow:
+                0 8px 22px
+                rgba(22, 101, 52, 0.18);
+        }
+
+        .home-action-primary:hover {
+            background: #14532d;
+        }
+
+        .home-action-secondary {
+            background: #ffffff;
+
+            color: #166534;
+
+            border:
+                1px solid #d9e5de;
+        }
+
+        .home-action-secondary:hover {
+            background: #f5faf7;
+        }
 
 
-    @media (max-width: 600px) {
+        /* ==================================================
+           SERVICE INTRO
+        ================================================== */
 
-        .home-slider {
-            border-radius: 15px;
+        .home-services-section {
+            padding: 64px 0 72px;
+
+            background: #ffffff;
+        }
+
+        .home-section-heading {
+            max-width: 680px;
+
+            margin: 0 auto 30px;
+
+            text-align: center;
+        }
+
+        .home-section-label {
+            display: inline-block;
+
+            margin-bottom: 8px;
+
+            color: #2f6b4f;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+        }
+
+        .home-section-heading h2 {
+            margin: 0;
+
+            color: #17251f;
+
+            font-size:
+                clamp(
+                    25px,
+                    4vw,
+                    34px
+                );
+
+            line-height: 1.3;
+        }
+
+        .home-section-heading p {
+            margin: 10px 0 0;
+
+            color: #6b7280;
+
+            font-size: 15px;
+
+            line-height: 1.7;
+        }
+
+        .home-service-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(0, 1fr)
+                );
+
+            gap: 18px;
+        }
+
+        .home-service-card {
+            display: block;
+
+            padding: 24px;
+
+            border:
+                1px solid #e5ebe7;
+
+            border-radius: 16px;
+
+            background: #ffffff;
+
+            text-decoration: none;
+
+            box-shadow:
+                0 5px 20px
+                rgba(15, 23, 42, 0.04);
+
+            transition:
+                transform 0.22s ease,
+                box-shadow 0.22s ease,
+                border-color 0.22s ease;
+        }
+
+        .home-service-card:hover {
+            transform: translateY(-4px);
+
+            border-color: #cfe1d7;
+
+            box-shadow:
+                0 14px 30px
+                rgba(15, 23, 42, 0.08);
+        }
+
+        .home-service-icon {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 15px;
+
+            border-radius: 13px;
+
+            background: #eff7f2;
+
+            font-size: 23px;
+        }
+
+        .home-service-card h3 {
+            margin: 0 0 6px;
+
+            color: #1f2937;
+
+            font-size: 17px;
+        }
+
+        .home-service-card p {
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+            line-height: 1.65;
+        }
+
+
+        /* ==================================================
+           DEMO NOTICE
+        ================================================== */
+
+        .demo-marquee-section {
+            width: 100%;
+
+            overflow: hidden;
+
+            background: #fff7f7;
+
+            border-top:
+                1px solid #fee2e2;
+
+            border-bottom:
+                1px solid #fee2e2;
+        }
+
+        .demo-marquee {
+            width: 100%;
+
+            overflow: hidden;
+
+            white-space: nowrap;
+        }
+
+        .demo-marquee-track {
+            display: inline-flex;
+
+            width: max-content;
+
+            animation:
+                demoMarqueeRight
+                22s linear infinite;
         }
 
         .demo-marquee-text {
-            font-size: 13px;
-            padding: 9px 20px;
+            display: inline-block;
+
+            padding: 10px 25px;
+
+            color: #dc2626;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        @keyframes demoMarqueeRight {
+
+            0% {
+                transform:
+                    translateX(-50%);
+            }
+
+            100% {
+                transform:
+                    translateX(0);
+            }
+
+        }
+
+
+        /* ==================================================
+           EMERGENCY NAV BUTTON
+        ================================================== */
+
+        .emergency-nav-button {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 6px;
+
+            min-height: 40px;
+
+            padding: 0 14px;
+
+            border:
+                1px solid #fecaca;
+
+            border-radius: 9px;
+
+            background: #fff7f7;
+
+            color: #dc2626;
+
+            font: inherit;
+
+            font-weight: 700;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .emergency-nav-button:hover {
+            background: #dc2626;
+
+            color: #ffffff;
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 5px 15px
+                rgba(220, 38, 38, 0.18);
+        }
+
+
+        /* ==================================================
+           EMERGENCY MODAL
+        ================================================== */
+
+        .emergency-overlay {
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 9999;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 18px;
+
+            background:
+                rgba(15, 23, 42, 0.58);
+
+            backdrop-filter: blur(6px);
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            transition:
+                opacity 0.25s ease,
+                visibility 0.25s ease;
+        }
+
+        .emergency-overlay.show {
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: auto;
         }
 
         .emergency-modal {
-            border-radius: 15px;
+            width:
+                min(
+                    720px,
+                    100%
+                );
+
+            max-height:
+                min(
+                    86vh,
+                    760px
+                );
+
+            overflow: hidden;
+
+            background: #ffffff;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 24px 70px
+                rgba(15, 23, 42, 0.22);
+
+            transform:
+                translateY(18px)
+                scale(0.98);
+
+            transition:
+                transform 0.25s ease;
+        }
+
+        .emergency-overlay.show
+        .emergency-modal {
+            transform:
+                translateY(0)
+                scale(1);
         }
 
         .emergency-header {
-            padding: 15px;
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 14px;
+
+            padding: 18px 20px;
+
+            border-bottom:
+                1px solid #eef2f0;
+        }
+
+        .emergency-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            min-width: 0;
+        }
+
+        .emergency-title-icon {
+            width: 44px;
+            height: 44px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: #fee2e2;
+
+            font-size: 22px;
+        }
+
+        .emergency-title h2 {
+            margin: 0 0 3px;
+
+            color: #111827;
+
+            font-size: 21px;
+        }
+
+        .emergency-title p {
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 13px;
+        }
+
+        .emergency-close {
+            width: 38px;
+            height: 38px;
+
+            flex-shrink: 0;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 9px;
+
+            background: #f8fafc;
+
+            color: #374151;
+
+            font-size: 24px;
+
+            line-height: 1;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .emergency-close:hover {
+            background: #fee2e2;
+
+            color: #dc2626;
+
+            transform:
+                translateY(-1px);
         }
 
         .emergency-body {
-            padding: 13px 15px 16px;
+            max-height:
+                calc(
+                    min(86vh, 760px) - 82px
+                );
+
+            overflow-y: auto;
+
+            padding:
+                16px 20px 20px;
+        }
+
+        .emergency-notice {
+            margin-bottom: 12px;
+
+            padding: 11px 13px;
+
+            border:
+                1px solid #fee2e2;
+
+            border-radius: 10px;
+
+            background: #fff7f7;
+
+            color: #991b1b;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+        .emergency-list {
+            display: grid;
+
+            gap: 10px;
         }
 
         .emergency-card {
-            align-items: stretch;
-            flex-direction: column;
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 14px;
+
+            padding: 13px;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 13px;
+
+            background: #ffffff;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .emergency-card:hover {
+            transform:
+                translateY(-1px);
+
+            box-shadow:
+                0 6px 18px
+                rgba(15, 23, 42, 0.07);
+
+            border-color:
+                #d1d5db;
+        }
+
+        .emergency-card-info {
+            display: flex;
+
+            align-items: center;
+
             gap: 11px;
+
+            min-width: 0;
+        }
+
+        .emergency-card-icon {
+            width: 42px;
+            height: 42px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: #f3f4f6;
+
+            font-size: 20px;
+        }
+
+        .emergency-card h3 {
+            margin: 0 0 3px;
+
+            color: #374151;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        .emergency-card strong {
+            color: #111827;
+
+            font-size: 18px;
+
+            letter-spacing: 0.3px;
         }
 
         .emergency-card-actions {
-            width: 100%;
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            flex-shrink: 0;
         }
 
         .emergency-call,
         .emergency-copy {
-            flex: 1;
-        }
+            min-height: 36px;
 
-    }
+            padding: 0 11px;
 
+            display: inline-flex;
 
-    @media (max-width: 480px) {
+            align-items: center;
+            justify-content: center;
 
-        .home-slider {
-            aspect-ratio: 16 / 9;
-            min-height: 150px;
-            border-radius: 13px;
-        }
+            border-radius: 8px;
 
-        .home-slider-dots {
-            gap: 5px;
-            bottom: 8px;
-            padding: 6px 9px;
-        }
+            font: inherit;
 
-        .home-slider-dot {
-            width: 6px;
-            height: 6px;
-        }
-
-        .home-slider-dot.active {
-            width: 18px;
-        }
-
-    }
-
-
-    @media (max-width: 420px) {
-
-        .emergency-overlay {
-            padding: 10px;
-        }
-
-        .emergency-title h2 {
-            font-size: 18px;
-        }
-
-        .emergency-title p {
             font-size: 12px;
+
+            font-weight: 700;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease;
         }
 
-        .emergency-card {
-            padding: 11px;
+        .emergency-call {
+            border:
+                1px solid #166534;
+
+            background: #166534;
+
+            color: #ffffff;
         }
 
+        .emergency-call:hover {
+            background: #14532d;
+
+            transform:
+                translateY(-1px);
+        }
+
+        .emergency-copy {
+            border:
+                1px solid #d1d5db;
+
+            background: #f8fafc;
+
+            color: #374151;
+        }
+
+        .emergency-copy:hover {
+            background: #f3f4f6;
+
+            border-color: #9ca3af;
+
+            transform:
+                translateY(-1px);
+        }
+
+        .emergency-card.important {
+            border-color: #fecaca;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff7f7,
+                    #ffffff
+                );
+
+            box-shadow:
+                0 6px 20px
+                rgba(220, 38, 38, 0.08);
+        }
+
+        .emergency-card.important
         .emergency-card-icon {
-            width: 38px;
-            height: 38px;
+            background: #fee2e2;
         }
 
-        .emergency-card h3 {
-            font-size: 13px;
-        }
-
-        .emergency-card strong {
-            font-size: 17px;
+        .emergency-card.important h3 {
+            color: #b91c1c;
         }
 
         .emergency-card.important strong {
-            font-size: 20px;
+            color: #dc2626;
+
+            font-size: 21px;
         }
 
-    }
+        .emergency-footer {
+            margin-top: 12px;
 
+            color: #6b7280;
 
-    @media (prefers-reduced-motion: reduce) {
+            font-size: 12px;
 
-        .home-slide {
-            transition: none;
+            line-height: 1.6;
+
+            text-align: center;
         }
 
-        .demo-marquee-track {
-            animation: none;
+
+        /* ==================================================
+           RESPONSIVE
+        ================================================== */
+
+        @media (max-width: 900px) {
+
+            .home-service-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
         }
 
-    }
+        @media (max-width: 768px) {
 
-</style>
+            .home-slider-section {
+                padding: 14px 0 8px;
+            }
 
-</head><body><!-- =====================================
-     EMERGENCY HOTLINE POPUP
-====================================== -->
+            .home-slider {
+                aspect-ratio: 16 / 8;
 
-<div
-    class="emergency-overlay"
-    id="emergencyOverlay"
-    aria-hidden="true"
->
+                min-height: 180px;
+
+                border-radius: 16px;
+            }
+
+            .home-hero {
+                padding: 55px 0 60px;
+            }
+
+            .home-hero h1 {
+                letter-spacing: -0.5px;
+            }
+
+            .home-slider-dots {
+                bottom: 10px;
+            }
+
+            .emergency-nav-button {
+                padding: 0 11px;
+
+                font-size: 13px;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .home-service-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .home-hero-actions {
+                flex-direction: column;
+            }
+
+            .home-action-card {
+                width: 100%;
+            }
+
+            .demo-marquee-text {
+                font-size: 13px;
+
+                padding:
+                    9px 20px;
+            }
+
+            .emergency-modal {
+                border-radius: 15px;
+            }
+
+            .emergency-header {
+                padding: 15px;
+            }
+
+            .emergency-body {
+                padding:
+                    13px 15px 16px;
+            }
+
+            .emergency-card {
+                align-items: stretch;
+
+                flex-direction: column;
+
+                gap: 11px;
+            }
+
+            .emergency-card-actions {
+                width: 100%;
+            }
+
+            .emergency-call,
+            .emergency-copy {
+                flex: 1;
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            .home-slider {
+                aspect-ratio: 16 / 9;
+
+                min-height: 150px;
+
+                border-radius: 13px;
+            }
+
+            .home-slider-dots {
+                gap: 5px;
+
+                bottom: 8px;
+
+                padding:
+                    6px 9px;
+            }
+
+            .home-slider-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .home-slider-dot.active {
+                width: 18px;
+            }
+
+        }
+
+        @media (max-width: 420px) {
+
+            .home-hero {
+                padding:
+                    45px 0 50px;
+            }
+
+            .home-hero h1 {
+                font-size: 30px;
+            }
+
+            .emergency-overlay {
+                padding: 10px;
+            }
+
+            .emergency-title h2 {
+                font-size: 18px;
+            }
+
+            .emergency-title p {
+                font-size: 12px;
+            }
+
+            .emergency-card {
+                padding: 11px;
+            }
+
+            .emergency-card-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .emergency-card h3 {
+                font-size: 13px;
+            }
+
+            .emergency-card strong {
+                font-size: 17px;
+            }
+
+            .emergency-card.important strong {
+                font-size: 20px;
+            }
+
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .home-slide {
+                transition: none;
+            }
+
+            .demo-marquee-track {
+                animation: none;
+            }
+
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- ==================================================
+         EMERGENCY MODAL
+    ================================================== -->
 
     <div
-        class="emergency-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="emergencyTitle"
+        class="emergency-overlay"
+        id="emergencyOverlay"
+        aria-hidden="true"
     >
 
-        <div class="emergency-header">
+        <div
+            class="emergency-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="emergencyTitle"
+        >
 
-            <div class="emergency-title">
+            <div class="emergency-header">
 
-                <div class="emergency-title-icon">
-                    🚨
+                <div class="emergency-title">
+
+                    <div class="emergency-title-icon">
+                        🚨
+                    </div>
+
+                    <div>
+
+                        <h2 id="emergencyTitle">
+                            জরুরি নম্বর
+                        </h2>
+
+                        <p>
+                            প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন
+                        </p>
+
+                    </div>
+
                 </div>
 
-                <div>
-
-                    <h2 id="emergencyTitle">
-                        জরুরি নম্বর
-                    </h2>
-
-                    <p>
-                        প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন
-                    </p>
-
-                </div>
+                <button
+                    type="button"
+                    class="emergency-close"
+                    id="emergencyClose"
+                    aria-label="বন্ধ করুন"
+                >
+                    ×
+                </button>
 
             </div>
 
 
-            <button
-                type="button"
-                class="emergency-close"
-                id="emergencyClose"
-                aria-label="বন্ধ করুন"
-            >
-                ×
-            </button>
+            <div class="emergency-body">
 
-        </div>
+                <div class="emergency-notice">
+                    🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।
+                </div>
 
+                <div
+                    class="emergency-list"
+                    id="emergencyList"
+                ></div>
 
-        <div class="emergency-body">
+                <div class="emergency-footer">
+                    জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।
+                </div>
 
-            <div class="emergency-notice">
-                🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।
-            </div>
-
-            <div
-                class="emergency-list"
-                id="emergencyList"
-            ></div>
-
-            <div class="emergency-footer">
-                জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।
             </div>
 
         </div>
 
     </div>
 
-</div>
 
+    <!-- ==================================================
+         HEADER
+    ================================================== -->
 
+    <header class="header">
 
-<!-- =====================================
-     HEADER
-====================================== -->
-
-<header class="header">
-
-    <div class="container header-inner">
-
-
-        <!-- Logo -->
-
-        <a
-            href="index.html"
-            class="logo"
-        >
-
-            <span class="logo-icon">
-                🏠
-            </span>
-
-            <span>
-                আমাদের এলাকা
-            </span>
-
-        </a>
-
-
-
-        <!-- Mobile Actions -->
-
-        <div
-            class="mobile-header-actions"
-            aria-label="মোবাইল হেডার অ্যাকশন"
-        >
-
-            <button
-                type="button"
-                class="mobile-menu-toggle"
-                id="mobileMenuToggle"
-                aria-label="মেনু খুলুন"
-                aria-expanded="false"
-                aria-controls="mobile-navigation"
-            >
-                ☰
-            </button>
-
-        </div>
-
-
-
-        <!-- Navigation -->
-
-        <nav
-            class="nav"
-            id="mobile-navigation"
-        >
+        <div class="container header-inner">
 
             <a
                 href="index.html"
-                class="active"
+                class="logo"
             >
-                হোম
+
+                <span class="logo-icon">
+                    🏠
+                </span>
+
+                <span>
+                    আমাদের এলাকা
+                </span>
+
             </a>
 
-
-            <a href="dashboard.html">
-                ড্যাশবোর্ড
-            </a>
-
-
-            <a href="government.html">
-                🌐 সেবা
-            </a>
-
-
-            <a
-                href="#"
-                class="emergency-nav-button"
-                id="emergencyButton"
-            >
-                🚨 জরুরি নম্বর
-            </a>
-
-        </nav>
-
-    </div>
-
-</header>
-
-
-
-<!-- =====================================
-     MAIN
-====================================== -->
-
-<main>
-
-
-    <!-- =================================
-         IMAGE SLIDER
-    ================================== -->
-
-    <section
-        class="home-slider-section"
-        aria-label="ছবির স্লাইডার"
-    >
-
-        <div class="container">
 
             <div
-                class="home-slider"
-                id="homeSlider"
+                class="mobile-header-actions"
+                aria-label="মোবাইল হেডার অ্যাকশন"
             >
 
-                <div
-                    class="home-slider-loading"
-                    id="homeSliderLoading"
+                <button
+                    type="button"
+                    class="mobile-search-button"
+                    id="mobileSearchButton"
+                    aria-label="সার্চ"
                 >
-                    ছবি লোড হচ্ছে...
-                </div>
+                    ⌕
+                </button>
 
-
-                <div
-                    class="home-slider-dots"
-                    id="homeSliderDots"
-                    style="display: none;"
-                ></div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================
-         HERO
-    ================================== -->
-
-    <section class="hero">
-
-        <div class="container">
-
-            <div class="hero-content">
-
-
-                <span class="hero-badge">
-                    🇧🇩 আপনার এলাকার জন্য
-                </span>
-
-
-                <h1>
-                    আপনার এলাকার সেবা,
-                    <br>
-                    এখন আরও সহজে
-                </h1>
-
-
-                <p>
-                    জরুরি সহায়তা, সরকারি সেবা এবং
-                    এলাকার গুরুত্বপূর্ণ তথ্য এক জায়গায়।
-                </p>
-
-
-                <div class="hero-buttons">
-
-
-                    <a
-                        href="dashboard.html"
-                        class="btn btn-primary"
-                    >
-                        ড্যাশবোর্ড
-                    </a>
-
-
-                    <a
-                        href="government.html"
-                        class="btn btn-secondary"
-                    >
-                        সরকারি সেবা
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================
-         NOTICE
-    ================================== -->
-
-    <section
-        class="demo-marquee-section"
-        aria-label="গুরুত্বপূর্ণ নোটিশ"
-    >
-
-        <div class="demo-marquee">
-
-            <div class="demo-marquee-track">
-
-                <span class="demo-marquee-text">
-                    🇧🇩 আমাদের এলাকা • নাগরিক সেবা • জরুরি সহায়তা • সরকারি তথ্য • এলাকার উন্নয়নে একসাথে
-                </span>
-
-
-                <span
-                    class="demo-marquee-text"
-                    aria-hidden="true"
+                <button
+                    type="button"
+                    class="mobile-menu-toggle"
+                    id="mobileMenuToggle"
+                    aria-label="মেনু খুলুন"
+                    aria-expanded="false"
+                    aria-controls="mobile-navigation"
                 >
-                    🇧🇩 আমাদের এলাকা • নাগরিক সেবা • জরুরি সহায়তা • সরকারি তথ্য • এলাকার উন্নয়নে একসাথে
-                </span>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================
-         QUICK ACCESS
-    ================================== -->
-
-    <section class="categories-section">
-
-        <div class="container">
-
-
-            <div class="section-heading">
-
-                <span class="section-label">
-                    দ্রুত প্রবেশ
-                </span>
-
-                <h2>
-                    আপনার প্রয়োজনীয় সেবা
-                </h2>
-
-                <p>
-                    গুরুত্বপূর্ণ সেবা ও তথ্য দ্রুত খুঁজে নিন।
-                </p>
+                    ☰
+                </button>
 
             </div>
 
 
-
-            <div class="category-grid">
-
-
-                <!-- Dashboard -->
-
-                <a
-                    href="dashboard.html"
-                    class="category-card"
-                >
-
-                    <span>
-                        📊
-                    </span>
-
-                    <h3>
-                        ড্যাশবোর্ড
-                    </h3>
-
-                    <p>
-                        গুরুত্বপূর্ণ তথ্য ও ভবিষ্যৎ সেবাগুলো এক জায়গায়।
-                    </p>
-
-                </a>
-
-
-
-                <!-- Government Services -->
-
-                <a
-                    href="government.html"
-                    class="category-card"
-                >
-
-                    <span>
-                        🏛️
-                    </span>
-
-                    <h3>
-                        সরকারি সেবা
-                    </h3>
-
-                    <p>
-                        বিভিন্ন সরকারি সেবা ও প্রয়োজনীয় তথ্য।
-                    </p>
-
-                </a>
-
-
-
-                <!-- Emergency -->
-
-                <a
-                    href="#"
-                    class="category-card"
-                    id="emergencyCardButton"
-                >
-
-                    <span>
-                        🚨
-                    </span>
-
-                    <h3>
-                        জরুরি সেবা
-                    </h3>
-
-                    <p>
-                        জরুরি প্রয়োজনে গুরুত্বপূর্ণ নম্বরগুলো দেখুন।
-                    </p>
-
-                </a>
-
-
-
-                <!-- Information -->
-
-                <a
-                    href="government.html"
-                    class="category-card"
-                >
-
-                    <span>
-                        ℹ️
-                    </span>
-
-                    <h3>
-                        প্রয়োজনীয় তথ্য
-                    </h3>
-
-                    <p>
-                        নাগরিক জীবনের প্রয়োজনীয় তথ্য ও সহায়তা।
-                    </p>
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================
-         SERVICE CTA
-    ================================== -->
-
-    <section class="cta-section">
-
-        <div class="container">
-
-            <div class="cta-box">
-
-                <div>
-
-                    <h2>
-                        প্রয়োজনীয় সেবা সহজেই খুঁজে নিন
-                    </h2>
-
-                    <p>
-                        আমাদের এলাকার সরকারি ও গুরুত্বপূর্ণ নাগরিক সেবাগুলো এক জায়গা থেকে ব্যবহার করুন।
-                    </p>
-
-                </div>
-
-
-                <a
-                    href="government.html"
-                    class="btn btn-primary"
-                >
-                    সেবা দেখুন
-                </a>
-
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-
-<!-- =====================================
-     FOOTER
-====================================== -->
-
-<footer class="footer">
-
-    <div class="container">
-
-        <div class="footer-inner">
-
-
-            <div>
+            <nav
+                class="nav"
+                id="mobile-navigation"
+            >
 
                 <a
                     href="index.html"
-                    class="logo"
+                    class="active"
                 >
-
-                    <span class="logo-icon">
-                        🏠
-                    </span>
-
-                    <span>
-                        আমাদের এলাকা
-                    </span>
-
-                </a>
-
-
-                <p>
-                    নাগরিক সেবা, জরুরি সহায়তা ও গুরুত্বপূর্ণ তথ্যের সহজ প্ল্যাটফর্ম।
-                </p>
-
-            </div>
-
-
-
-            <div class="footer-links">
-
-                <a href="index.html">
                     হোম
                 </a>
-
 
                 <a href="dashboard.html">
                     ড্যাশবোর্ড
                 </a>
 
-
                 <a href="government.html">
-                    সেবা
+                    🌐 সরকারি সেবা
                 </a>
-
 
                 <a
                     href="#"
-                    id="footerEmergencyButton"
+                    class="emergency-nav-button"
+                    id="emergencyButton"
                 >
                     🚨 জরুরি নম্বর
                 </a>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    <main>
+
+
+        <!-- ==================================================
+             IMAGE SLIDER
+        ================================================== -->
+
+        <section
+            class="home-slider-section"
+            aria-label="ছবির স্লাইডার"
+        >
+
+            <div class="container">
+
+                <div
+                    class="home-slider"
+                    id="homeSlider"
+                >
+
+                    <div
+                        class="home-slider-loading"
+                        id="homeSliderLoading"
+                    >
+                        ছবি লোড হচ্ছে...
+                    </div>
+
+                    <div
+                        class="home-slider-dots"
+                        id="homeSliderDots"
+                        style="display:none;"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             HERO
+        ================================================== -->
+
+        <section class="home-hero">
+
+            <div class="container">
+
+                <div class="home-hero-content">
+
+                    <span class="home-hero-badge">
+                        🇧🇩 আপনার এলাকার জন্য ডিজিটাল প্ল্যাটফর্ম
+                    </span>
+
+                    <h1>
+                        আপনার এলাকার সেবা,
+                        <br>
+                        এখন এক জায়গায়
+                    </h1>
+
+                    <p>
+                        এলাকার গুরুত্বপূর্ণ তথ্য, সরকারি সেবা,
+                        নাগরিক সুবিধা এবং জরুরি সহায়তার তথ্য
+                        সহজে খুঁজে নিন।
+                    </p>
+
+
+                    <div class="home-hero-actions">
+
+                        <a
+                            href="dashboard.html"
+                            class="home-action-card home-action-primary"
+                        >
+                            📊 ড্যাশবোর্ড দেখুন
+                        </a>
+
+                        <a
+                            href="government.html"
+                            class="home-action-card home-action-secondary"
+                        >
+                            🌐 সরকারি সেবা
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             DEMO NOTICE
+        ================================================== -->
+
+        <section
+            class="demo-marquee-section"
+            aria-label="ডেমো সাইট নোটিশ"
+        >
+
+            <div class="demo-marquee">
+
+                <div class="demo-marquee-track">
+
+                    <span class="demo-marquee-text">
+                        এটা একটি ডেমো সাইট • আমাদের এলাকার বিভিন্ন নাগরিক ও সরকারি সেবা সহজে ব্যবহার করুন • জরুরি প্রয়োজনে জরুরি নম্বর ব্যবহার করুন •
+                    </span>
+
+                    <span
+                        class="demo-marquee-text"
+                        aria-hidden="true"
+                    >
+                        এটা একটি ডেমো সাইট • আমাদের এলাকার বিভিন্ন নাগরিক ও সরকারি সেবা সহজে ব্যবহার করুন • জরুরি প্রয়োজনে জরুরি নম্বর ব্যবহার করুন •
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             SERVICES INTRO
+        ================================================== -->
+
+        <section class="home-services-section">
+
+            <div class="container">
+
+                <div class="home-section-heading">
+
+                    <span class="home-section-label">
+                        আমাদের সেবা
+                    </span>
+
+                    <h2>
+                        আপনার প্রয়োজনীয় সেবা দ্রুত খুঁজে নিন
+                    </h2>
+
+                    <p>
+                        গুরুত্বপূর্ণ তথ্য ও সেবাগুলো এক জায়গা থেকে
+                        সহজেই ব্যবহার করুন।
+                    </p>
+
+                </div>
+
+
+                <div class="home-service-grid">
+
+                    <a
+                        href="dashboard.html"
+                        class="home-service-card"
+                    >
+
+                        <div class="home-service-icon">
+                            📊
+                        </div>
+
+                        <h3>
+                            ড্যাশবোর্ড
+                        </h3>
+
+                        <p>
+                            এলাকার গুরুত্বপূর্ণ তথ্য ও
+                            সেবাগুলো এক নজরে দেখুন।
+                        </p>
+
+                    </a>
+
+
+                    <a
+                        href="government.html"
+                        class="home-service-card"
+                    >
+
+                        <div class="home-service-icon">
+                            🌐
+                        </div>
+
+                        <h3>
+                            সরকারি সেবা
+                        </h3>
+
+                        <p>
+                            বিভিন্ন সরকারি অনলাইন সেবার
+                            গুরুত্বপূর্ণ লিংক ও তথ্য পান।
+                        </p>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        class="home-service-card"
+                        id="homeEmergencyCard"
+                    >
+
+                        <div class="home-service-icon">
+                            🚨
+                        </div>
+
+                        <h3>
+                            জরুরি সেবা
+                        </h3>
+
+                        <p>
+                            জরুরি পরিস্থিতিতে প্রয়োজনীয়
+                            হেল্পলাইন নম্বর দ্রুত ব্যবহার করুন।
+                        </p>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================================================
+         FOOTER
+    ================================================== -->
+
+    <footer class="footer">
+
+        <div class="container">
+
+            <div class="footer-inner">
+
+                <div>
+
+                    <a
+                        href="index.html"
+                        class="logo"
+                    >
+
+                        <span class="logo-icon">
+                            🏠
+                        </span>
+
+                        <span>
+                            আমাদের এলাকা
+                        </span>
+
+                    </a>
+
+                    <p>
+                        নাগরিকদের জন্য এলাকার গুরুত্বপূর্ণ তথ্য,
+                        সরকারি সেবা ও জরুরি সহায়তার সহজ প্ল্যাটফর্ম।
+                    </p>
+
+                </div>
+
+
+                <div class="footer-links">
+
+                    <a href="index.html">
+                        হোম
+                    </a>
+
+                    <a href="dashboard.html">
+                        ড্যাশবোর্ড
+                    </a>
+
+                    <a href="government.html">
+                        সরকারি সেবা
+                    </a>
+
+                    <a
+                        href="#"
+                        id="footerEmergencyButton"
+                    >
+                        জরুরি নম্বর
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                © 2026 আমাদের এলাকা —
+                নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
 
             </div>
 
         </div>
 
+    </footer>
 
 
-        <div class="footer-bottom">
+    <!-- ==================================================
+         HOME IMAGE SLIDER
+    ================================================== -->
 
-            © 2026 আমাদের এলাকা —
-            নাগরিক সেবা, এলাকার উন্নয়ন।
+    <script>
 
-        </div>
+        const SLIDER_FOLDER =
+            "images/slider/";
 
-    </div>
+        const MAX_SLIDES =
+            15;
 
-</footer>
+        const SLIDE_INTERVAL =
+            3000;
 
-
-
-<!-- =====================================
-     HOME SLIDER JAVASCRIPT
-====================================== -->
-
-<script>
-
-    const SLIDER_FOLDER = "images/slider/";
-
-    const MAX_SLIDES = 15;
-
-    const SLIDE_INTERVAL = 3000;
-
-    const SLIDE_DURATION = 800;
+        const SLIDE_DURATION =
+            800;
 
 
-    let homeSlides = [];
+        let homeSlides = [];
 
-    let homeCurrentSlide = 0;
+        let homeCurrentSlide =
+            0;
 
-    let homeSliderTimer = null;
+        let homeSliderTimer =
+            null;
 
-    let homeSliderInitialized = false;
-
-
-
-    function checkSliderImage(index) {
-
-        return new Promise(function(resolve) {
-
-            const image = new Image();
+        let homeSliderInitialized =
+            false;
 
 
-            image.onload = function() {
+        function checkSliderImage(index) {
 
-                resolve({
+            return new Promise(
+                function(resolve) {
 
-                    index: index,
+                    const image =
+                        new Image();
 
-                    src:
+                    image.onload =
+                        function() {
+
+                            resolve({
+                                index: index,
+
+                                src:
+                                    SLIDER_FOLDER +
+                                    "slide" +
+                                    index +
+                                    ".webp"
+                            });
+
+                        };
+
+                    image.onerror =
+                        function() {
+
+                            resolve(null);
+
+                        };
+
+                    image.src =
                         SLIDER_FOLDER +
                         "slide" +
                         index +
-                        ".webp"
+                        ".webp";
 
-                });
-
-            };
-
-
-            image.onerror = function() {
-
-                resolve(null);
-
-            };
-
-
-            image.src =
-                SLIDER_FOLDER +
-                "slide" +
-                index +
-                ".webp";
-
-        });
-
-    }
-
-
-
-    async function loadHomeSlider() {
-
-        const slider =
-            document.getElementById("homeSlider");
-
-        const loading =
-            document.getElementById("homeSliderLoading");
-
-        const dots =
-            document.getElementById("homeSliderDots");
-
-
-        if (!slider) {
-            return;
-        }
-
-
-        const checks = [];
-
-
-        for (
-            let i = 1;
-            i <= MAX_SLIDES;
-            i++
-        ) {
-
-            checks.push(
-                checkSliderImage(i)
+                }
             );
 
         }
 
 
-        const results =
-            await Promise.all(checks);
+        async function loadHomeSlider() {
+
+            const slider =
+                document.getElementById(
+                    "homeSlider"
+                );
+
+            const loading =
+                document.getElementById(
+                    "homeSliderLoading"
+                );
+
+            const dots =
+                document.getElementById(
+                    "homeSliderDots"
+                );
 
 
-        homeSlides =
-            results
-                .filter(Boolean)
-                .sort(function(a, b) {
-
-                    return a.index - b.index;
-
-                });
+            if (!slider) {
+                return;
+            }
 
 
-        if (loading) {
-            loading.remove();
-        }
+            const checks = [];
 
 
-        if (!homeSlides.length) {
+            for (
+                let i = 1;
+                i <= MAX_SLIDES;
+                i++
+            ) {
 
-            const empty =
-                document.createElement("div");
-
-            empty.className =
-                "home-slider-empty";
-
-            empty.textContent =
-                "কোনো Slider ছবি পাওয়া যায়নি।";
-
-            slider.appendChild(empty);
-
-            return;
-        }
-
-
-
-        /* Create slides */
-
-        homeSlides.forEach(
-            function(slide, index) {
-
-                const image =
-                    document.createElement("img");
-
-
-                image.className =
-                    "home-slide" +
-                    (
-                        index === 0
-                            ? " active"
-                            : ""
-                    );
-
-
-                image.src = slide.src;
-
-
-                image.alt =
-                    "আমাদের এলাকা Slide " +
-                    (index + 1);
-
-
-                image.decoding = "async";
-
-
-                if (index === 0) {
-
-                    image.loading =
-                        "eager";
-
-                } else {
-
-                    image.loading =
-                        "lazy";
-
-                }
-
-
-                slider.insertBefore(
-                    image,
-                    dots
+                checks.push(
+                    checkSliderImage(i)
                 );
 
             }
-        );
 
 
+            const results =
+                await Promise.all(
+                    checks
+                );
 
-        /* Create dots */
 
-        if (dots) {
+            homeSlides =
+                results
+                    .filter(Boolean)
+                    .sort(
+                        function(a, b) {
 
-            dots.innerHTML = "";
+                            return (
+                                a.index -
+                                b.index
+                            );
+
+                        }
+                    );
+
+
+            if (loading) {
+                loading.remove();
+            }
+
+
+            if (!homeSlides.length) {
+
+                const empty =
+                    document.createElement(
+                        "div"
+                    );
+
+                empty.className =
+                    "home-slider-empty";
+
+                empty.textContent =
+                    "কোনো Slider ছবি পাওয়া যায়নি।";
+
+                slider.appendChild(
+                    empty
+                );
+
+                return;
+            }
 
 
             homeSlides.forEach(
                 function(slide, index) {
 
-                    const dot =
-                        document.createElement("button");
+                    const image =
+                        document.createElement(
+                            "img"
+                        );
 
-
-                    dot.type = "button";
-
-
-                    dot.className =
-                        "home-slider-dot" +
+                    image.className =
+                        "home-slide" +
                         (
                             index === 0
                                 ? " active"
                                 : ""
                         );
 
+                    image.src =
+                        slide.src;
 
-                    dot.setAttribute(
-                        "aria-label",
-                        "Slide " + (index + 1)
+                    image.alt =
+                        "আমাদের এলাকা Slide " +
+                        (index + 1);
+
+                    image.decoding =
+                        "async";
+
+                    image.loading =
+                        index === 0
+                            ? "eager"
+                            : "lazy";
+
+
+                    slider.insertBefore(
+                        image,
+                        dots
                     );
-
-
-                    dot.addEventListener(
-                        "click",
-                        function() {
-
-                            showHomeSlide(index);
-
-                            startHomeSlider();
-
-                        }
-                    );
-
-
-                    dots.appendChild(dot);
 
                 }
             );
 
 
-            dots.style.display = "flex";
+            if (dots) {
+
+                dots.innerHTML = "";
+
+
+                homeSlides.forEach(
+                    function(slide, index) {
+
+                        const dot =
+                            document.createElement(
+                                "button"
+                            );
+
+                        dot.type =
+                            "button";
+
+                        dot.className =
+                            "home-slider-dot" +
+                            (
+                                index === 0
+                                    ? " active"
+                                    : ""
+                            );
+
+                        dot.setAttribute(
+                            "aria-label",
+                            "Slide " +
+                            (index + 1)
+                        );
+
+
+                        dot.addEventListener(
+                            "click",
+                            function() {
+
+                                showHomeSlide(
+                                    index
+                                );
+
+                                startHomeSlider();
+
+                            }
+                        );
+
+
+                        dots.appendChild(
+                            dot
+                        );
+
+                    }
+                );
+
+
+                dots.style.display =
+                    "flex";
+
+            }
+
+
+            homeSliderInitialized =
+                true;
+
+
+            if (homeSlides.length > 1) {
+
+                startHomeSlider();
+
+            }
 
         }
 
 
-        homeSliderInitialized = true;
-
-
-        if (homeSlides.length > 1) {
-
-            startHomeSlider();
-
-        }
-
-    }
-
-
-
-    function showHomeSlide(nextIndex) {
-
-        const slides =
-            document.querySelectorAll(".home-slide");
-
-        const dots =
-            document.querySelectorAll(".home-slider-dot");
-
-
-        if (
-            !slides.length ||
-            slides.length <= 1
+        function showHomeSlide(
+            nextIndex
         ) {
 
-            return;
-
-        }
-
-
-        const oldIndex =
-            homeCurrentSlide;
-
-
-        const newIndex =
-            (
-                nextIndex +
-                slides.length
-            ) %
-            slides.length;
-
-
-        if (oldIndex === newIndex) {
-            return;
-        }
-
-
-        const currentSlide =
-            slides[oldIndex];
-
-        const nextSlide =
-            slides[newIndex];
-
-
-        currentSlide.classList.remove(
-            "active"
-        );
-
-        currentSlide.classList.add(
-            "previous"
-        );
-
-
-        nextSlide.classList.add(
-            "next-ready"
-        );
-
-
-        void nextSlide.offsetWidth;
-
-
-        nextSlide.classList.remove(
-            "next-ready"
-        );
-
-        nextSlide.classList.add(
-            "active"
-        );
-
-
-        dots.forEach(
-            function(dot, index) {
-
-                dot.classList.toggle(
-                    "active",
-                    index === newIndex
+            const slides =
+                document.querySelectorAll(
+                    ".home-slide"
                 );
+
+            const dots =
+                document.querySelectorAll(
+                    ".home-slider-dot"
+                );
+
+
+            if (
+                slides.length <= 1
+            ) {
+                return;
+            }
+
+
+            const oldIndex =
+                homeCurrentSlide;
+
+
+            const newIndex =
+                (
+                    nextIndex +
+                    slides.length
+                ) %
+                slides.length;
+
+
+            if (
+                oldIndex === newIndex
+            ) {
+                return;
+            }
+
+
+            const currentSlide =
+                slides[oldIndex];
+
+            const nextSlide =
+                slides[newIndex];
+
+
+            currentSlide.classList.remove(
+                "active"
+            );
+
+            currentSlide.classList.add(
+                "previous"
+            );
+
+
+            nextSlide.classList.add(
+                "next-ready"
+            );
+
+
+            void nextSlide.offsetWidth;
+
+
+            nextSlide.classList.remove(
+                "next-ready"
+            );
+
+            nextSlide.classList.add(
+                "active"
+            );
+
+
+            dots.forEach(
+                function(dot, index) {
+
+                    dot.classList.toggle(
+                        "active",
+                        index === newIndex
+                    );
+
+                }
+            );
+
+
+            homeCurrentSlide =
+                newIndex;
+
+
+            setTimeout(
+                function() {
+
+                    currentSlide.classList.remove(
+                        "previous"
+                    );
+
+                },
+                SLIDE_DURATION
+            );
+
+        }
+
+
+        function startHomeSlider() {
+
+            stopHomeSlider();
+
+
+            if (
+                !homeSliderInitialized ||
+                homeSlides.length <= 1
+            ) {
+                return;
+            }
+
+
+            homeSliderTimer =
+                setInterval(
+                    function() {
+
+                        showHomeSlide(
+                            homeCurrentSlide + 1
+                        );
+
+                    },
+                    SLIDE_INTERVAL
+                );
+
+        }
+
+
+        function stopHomeSlider() {
+
+            if (homeSliderTimer) {
+
+                clearInterval(
+                    homeSliderTimer
+                );
+
+                homeSliderTimer =
+                    null;
+
+            }
+
+        }
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function() {
+
+                loadHomeSlider();
 
             }
         );
 
-
-        homeCurrentSlide =
-            newIndex;
+    </script>
 
 
-        setTimeout(
-            function() {
+    <!-- ==================================================
+         EMERGENCY
+    ================================================== -->
 
-                currentSlide.classList.remove(
-                    "previous"
-                );
+    <script>
 
+        const emergencyNumbers = [
+
+            {
+                name: "জাতীয় জরুরি সেবা",
+                number: "999",
+                icon: "🚨",
+                important: true
             },
-            SLIDE_DURATION
-        );
 
-    }
+            {
+                name: "সরকারি তথ্য ও সেবা",
+                number: "333",
+                icon: "📞"
+            },
+
+            {
+                name: "ফায়ার সার্ভিস",
+                number: "102",
+                icon: "🚒"
+            },
+
+            {
+                name: "নারী ও শিশু সহায়তা",
+                number: "109",
+                icon: "👩"
+            },
+
+            {
+                name: "শিশু সহায়তা",
+                number: "1098",
+                icon: "👶"
+            },
+
+            {
+                name: "স্বাস্থ্য বাতায়ন",
+                number: "16263",
+                icon: "🏥"
+            },
+
+            {
+                name: "কৃষি কল সেন্টার",
+                number: "16123",
+                icon: "🌾"
+            },
+
+            {
+                name: "সরকারি আইনি সহায়তা",
+                number: "16699",
+                icon: "⚖️"
+            },
+
+            {
+                name: "দুর্নীতি দমন কমিশন",
+                number: "106",
+                icon: "🔍"
+            },
+
+            {
+                name: "দুর্যোগ পূর্বাভাস",
+                number: "1090",
+                icon: "🌪️"
+            },
+
+            {
+                name: "বাংলাদেশ রেলওয়ে",
+                number: "131",
+                icon: "🚂"
+            },
+
+            {
+                name: "ঢাকা ওয়াসা",
+                number: "16162",
+                icon: "💧"
+            }
+
+        ];
 
 
+        const emergencyButton =
+            document.getElementById(
+                "emergencyButton"
+            );
 
-    function startHomeSlider() {
+        const emergencyOverlay =
+            document.getElementById(
+                "emergencyOverlay"
+            );
 
-        stopHomeSlider();
+        const emergencyClose =
+            document.getElementById(
+                "emergencyClose"
+            );
+
+        const emergencyList =
+            document.getElementById(
+                "emergencyList"
+            );
+
+        const homeEmergencyCard =
+            document.getElementById(
+                "homeEmergencyCard"
+            );
+
+        const footerEmergencyButton =
+            document.getElementById(
+                "footerEmergencyButton"
+            );
 
 
-        if (
-            !homeSliderInitialized ||
-            homeSlides.length <= 1
+        function renderEmergencyNumbers() {
+
+            if (!emergencyList) {
+                return;
+            }
+
+
+            emergencyList.innerHTML =
+                emergencyNumbers
+                    .map(
+                        function(service) {
+
+                            return `
+                                <div
+                                    class="emergency-card
+                                    ${
+                                        service.important
+                                            ? "important"
+                                            : ""
+                                    }"
+                                >
+
+                                    <div
+                                        class="emergency-card-info"
+                                    >
+
+                                        <div
+                                            class="emergency-card-icon"
+                                        >
+                                            ${service.icon}
+                                        </div>
+
+                                        <div>
+
+                                            <h3>
+                                                ${service.name}
+                                            </h3>
+
+                                            <strong>
+                                                ${service.number}
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="emergency-card-actions"
+                                    >
+
+                                        <a
+                                            href="tel:${service.number}"
+                                            class="emergency-call"
+                                        >
+                                            📞 কল করুন
+                                        </a>
+
+                                        <button
+                                            type="button"
+                                            class="emergency-copy"
+                                            data-number="${service.number}"
+                                        >
+                                            📋 কপি
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            `;
+
+                        }
+                    )
+                    .join("");
+
+        }
+
+
+        function openEmergencyPopup() {
+
+            if (!emergencyOverlay) {
+                return;
+            }
+
+
+            emergencyOverlay.classList.add(
+                "show"
+            );
+
+            emergencyOverlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            document.body.style.overflow =
+                "hidden";
+
+        }
+
+
+        function closeEmergencyPopup() {
+
+            if (!emergencyOverlay) {
+                return;
+            }
+
+
+            emergencyOverlay.classList.remove(
+                "show"
+            );
+
+            emergencyOverlay.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            document.body.style.overflow =
+                "";
+
+        }
+
+
+        async function copyEmergencyNumber(
+            number,
+            button
         ) {
 
-            return;
+            try {
 
-        }
+                await navigator.clipboard
+                    .writeText(number);
 
+            } catch (error) {
 
-        homeSliderTimer =
-            setInterval(
-                function() {
-
-                    showHomeSlide(
-                        homeCurrentSlide + 1
+                const textarea =
+                    document.createElement(
+                        "textarea"
                     );
 
-                },
-                SLIDE_INTERVAL
-            );
+                textarea.value =
+                    number;
 
-    }
+                textarea.style.position =
+                    "fixed";
 
+                textarea.style.opacity =
+                    "0";
 
+                document.body.appendChild(
+                    textarea
+                );
 
-    function stopHomeSlider() {
+                textarea.select();
 
-        if (homeSliderTimer) {
 
-            clearInterval(
-                homeSliderTimer
-            );
+                try {
 
-            homeSliderTimer = null;
+                    document.execCommand(
+                        "copy"
+                    );
 
-        }
+                } catch (copyError) {
 
-    }
+                    console.error(
+                        "Copy Error:",
+                        copyError
+                    );
 
+                }
 
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function() {
+                textarea.remove();
 
-            loadHomeSlider();
-
-        }
-    );
-
-</script>
-
-
-
-<!-- =====================================
-     EMERGENCY
-====================================== -->
-
-<script>
-
-    const emergencyNumbers = [
-
-        {
-            name: "জাতীয় জরুরি সেবা",
-            number: "999",
-            icon: "🚨",
-            important: true
-        },
-
-        {
-            name: "সরকারি তথ্য ও সেবা",
-            number: "333",
-            icon: "📞"
-        },
-
-        {
-            name: "ফায়ার সার্ভিস",
-            number: "102",
-            icon: "🚒"
-        },
-
-        {
-            name: "নারী ও শিশু সহায়তা",
-            number: "109",
-            icon: "👩"
-        },
-
-        {
-            name: "শিশু সহায়তা",
-            number: "1098",
-            icon: "👶"
-        },
-
-        {
-            name: "স্বাস্থ্য বাতায়ন",
-            number: "16263",
-            icon: "🏥"
-        },
-
-        {
-            name: "কৃষি কল সেন্টার",
-            number: "16123",
-            icon: "🌾"
-        },
-
-        {
-            name: "সরকারি আইনি সহায়তা",
-            number: "16699",
-            icon: "⚖️"
-        },
-
-        {
-            name: "দুর্নীতি দমন কমিশন",
-            number: "106",
-            icon: "🔍"
-        },
-
-        {
-            name: "দুর্যোগ পূর্বাভাস",
-            number: "1090",
-            icon: "🌪️"
-        },
-
-        {
-            name: "বাংলাদেশ রেলওয়ে",
-            number: "131",
-            icon: "🚂"
-        },
-
-        {
-            name: "ঢাকা ওয়াসা",
-            number: "16162",
-            icon: "💧"
-        }
-
-    ];
-
-
-
-    const emergencyButton =
-        document.getElementById(
-            "emergencyButton"
-        );
-
-
-    const emergencyCardButton =
-        document.getElementById(
-            "emergencyCardButton"
-        );
-
-
-    const footerEmergencyButton =
-        document.getElementById(
-            "footerEmergencyButton"
-        );
-
-
-    const emergencyOverlay =
-        document.getElementById(
-            "emergencyOverlay"
-        );
-
-
-    const emergencyClose =
-        document.getElementById(
-            "emergencyClose"
-        );
-
-
-    const emergencyList =
-        document.getElementById(
-            "emergencyList"
-        );
-
-
-
-    function renderEmergencyNumbers() {
-
-        if (!emergencyList) {
-            return;
-        }
-
-
-        emergencyList.innerHTML =
-            emergencyNumbers
-                .map(function(service) {
-
-                    return `
-
-                        <div
-                            class="emergency-card ${
-                                service.important
-                                    ? "important"
-                                    : ""
-                            }"
-                        >
-
-                            <div class="emergency-card-info">
-
-                                <div class="emergency-card-icon">
-                                    ${service.icon}
-                                </div>
-
-                                <div>
-
-                                    <h3>
-                                        ${service.name}
-                                    </h3>
-
-                                    <strong>
-                                        ${service.number}
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="emergency-card-actions">
-
-                                <a
-                                    href="tel:${service.number}"
-                                    class="emergency-call"
-                                >
-                                    📞 কল করুন
-                                </a>
-
-
-                                <button
-                                    type="button"
-                                    class="emergency-copy"
-                                    data-number="${service.number}"
-                                >
-                                    📋 কপি
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                })
-                .join("");
-
-    }
-
-
-
-    async function copyEmergencyNumber(
-        number,
-        button
-    ) {
-
-        try {
-
-            await navigator.clipboard.writeText(
-                number
-            );
+            }
 
 
             const oldText =
@@ -1863,134 +2424,124 @@
                         oldText;
 
                 },
-                1200
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Copy failed:",
-                error
+                1500
             );
 
         }
 
-    }
 
+        if (emergencyButton) {
 
+            emergencyButton.addEventListener(
+                "click",
+                function(event) {
 
-    function openEmergencyPopup() {
+                    event.preventDefault();
 
-        if (!emergencyOverlay) {
-            return;
+                    openEmergencyPopup();
+
+                }
+            );
+
         }
 
 
-        renderEmergencyNumbers();
+        if (homeEmergencyCard) {
 
+            homeEmergencyCard.addEventListener(
+                "click",
+                function(event) {
 
-        emergencyOverlay.classList.add(
-            "show"
-        );
+                    event.preventDefault();
 
+                    openEmergencyPopup();
 
-        emergencyOverlay.setAttribute(
-            "aria-hidden",
-            "false"
-        );
+                }
+            );
 
-
-        document.body.style.overflow =
-            "hidden";
-
-    }
-
-
-
-    function closeEmergencyPopup() {
-
-        if (!emergencyOverlay) {
-            return;
         }
 
 
-        emergencyOverlay.classList.remove(
-            "show"
-        );
+        if (footerEmergencyButton) {
 
+            footerEmergencyButton.addEventListener(
+                "click",
+                function(event) {
 
-        emergencyOverlay.setAttribute(
-            "aria-hidden",
-            "true"
-        );
+                    event.preventDefault();
 
+                    openEmergencyPopup();
 
-        document.body.style.overflow =
-            "";
+                }
+            );
 
-    }
-
-
-
-    function attachEmergencyTrigger(
-        element
-    ) {
-
-        if (!element) {
-            return;
         }
 
 
-        element.addEventListener(
-            "click",
-            function(event) {
+        if (emergencyClose) {
 
-                event.preventDefault();
+            emergencyClose.addEventListener(
+                "click",
+                closeEmergencyPopup
+            );
 
-                openEmergencyPopup();
-
-            }
-        );
-
-    }
+        }
 
 
+        if (emergencyOverlay) {
 
-    attachEmergencyTrigger(
-        emergencyButton
-    );
+            emergencyOverlay.addEventListener(
+                "click",
+                function(event) {
 
+                    if (
+                        event.target ===
+                        emergencyOverlay
+                    ) {
 
-    attachEmergencyTrigger(
-        emergencyCardButton
-    );
+                        closeEmergencyPopup();
 
+                    }
 
-    attachEmergencyTrigger(
-        footerEmergencyButton
-    );
+                }
+            );
 
-
-    if (emergencyClose) {
-
-        emergencyClose.addEventListener(
-            "click",
-            closeEmergencyPopup
-        );
-
-    }
+        }
 
 
-    if (emergencyOverlay) {
+        if (emergencyList) {
 
-        emergencyOverlay.addEventListener(
-            "click",
+            emergencyList.addEventListener(
+                "click",
+                function(event) {
+
+                    const button =
+                        event.target.closest(
+                            ".emergency-copy"
+                        );
+
+
+                    if (button) {
+
+                        copyEmergencyNumber(
+                            button.dataset.number,
+                            button
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        document.addEventListener(
+            "keydown",
             function(event) {
 
                 if (
-                    event.target ===
-                    emergencyOverlay
+                    event.key === "Escape"
                 ) {
 
                     closeEmergencyPopup();
@@ -2000,69 +2551,26 @@
             }
         );
 
-    }
+
+        renderEmergencyNumbers();
+
+    </script>
 
 
-    if (emergencyList) {
+    <!-- ==================================================
+         MAIN JAVASCRIPT
+    ================================================== -->
 
-        emergencyList.addEventListener(
-            "click",
-            function(event) {
+    <script src="js/script.js"></script>
 
-                const button =
-                    event.target.closest(
-                        ".emergency-copy"
-                    );
+    <!-- Mobile Navigation -->
+    <script src="js/mobile-nav.js"></script>
 
+    <!-- Emergency -->
+    <script src="js/emergency.js"></script>
 
-                if (!button) {
-                    return;
-                }
+    <!-- PWA -->
+    <script src="js/pwa.js"></script>
 
-
-                copyEmergencyNumber(
-                    button.dataset.number,
-                    button
-                );
-
-            }
-        );
-
-    }
-
-
-
-    document.addEventListener(
-        "keydown",
-        function(event) {
-
-            if (
-                event.key === "Escape" &&
-                emergencyOverlay &&
-                emergencyOverlay.classList.contains(
-                    "show"
-                )
-            ) {
-
-                closeEmergencyPopup();
-
-            }
-
-        }
-    );
-
-</script>
-
-
-
-<!-- =====================================
-     MAIN SITE JS
-====================================== -->
-
-<script src="js/script.js"></script>
-
-<script src="js/mobile-nav.js"></script>
-
-<script src="js/pwa.js"></script>
-
-</body></html>
+</body>
+</html>
