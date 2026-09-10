@@ -447,9 +447,7 @@ function applyFilters() {
             );
         });
 
-    displayReports(
-        filteredReports
-    );
+    window.DashboardReports.displayReports(reports);
 }
 
 // =====================================
