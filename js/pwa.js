@@ -1,128 +1,135 @@
-// =====================================
-// Amader Elaka - PWA JavaScript
-// =====================================
-
-(() => {
-    "use strict";
-
-    // -------------------------------------
-    // PWA Configuration
+// -------------------------------------
+    // Install Prompt (Premium Banner)
     // -------------------------------------
 
-    const SERVICE_WORKER_PATH = "./service-worker.js";
+    let deferredInstallPrompt = null;
 
+    function injectInstallBannerStyles() {
+        if (document.getElementById("ae-install-banner-styles")) return;
 
-    // -------------------------------------
-    // Register Service Worker
-    // -------------------------------------
-
-    function registerServiceWorker() {
-        if (!("serviceWorker" in navigator)) {
-            console.info("Service Worker is not supported by this browser.");
-            return;
-        }
-
-        window.addEventListener("load", async () => {
-            try {
-                const registration =
-                    await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
-
-                console.info(
-                    "Amader Elaka PWA: Service Worker registered successfully.",
-                    registration.scope
-                );
-
-                // Check for updates periodically
-                setupServiceWorkerUpdates(registration);
-
-            } catch (error) {
-                console.warn(
-                    "Amader Elaka PWA: Service Worker registration failed.",
-                    error
-                );
+        const style = document.createElement("style");
+        style.id = "ae-install-banner-styles";
+        style.textContent = `
+            #ae-install-banner {
+                position: fixed;
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                background: #064E3B;
+                color: #F8FAFC;
+                border-radius: 14px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                font-family: inherit;
+                max-width: 480px;
+                margin: 0 auto;
+                animation: ae-install-slide-up 0.3s ease-out;
             }
-        });
+            @keyframes ae-install-slide-up {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            #ae-install-banner p {
+                margin: 0;
+                font-size: 14px;
+                flex: 1;
+                line-height: 1.4;
+            }
+            #ae-install-banner button {
+                border: none;
+                border-radius: 8px;
+                padding: 8px 14px;
+                font-size: 13px;
+                cursor: pointer;
+                font-weight: 600;
+            }
+            #ae-install-banner .ae-install-btn {
+                background: #F8FAFC;
+                color: #064E3B;
+            }
+            #ae-install-banner .ae-dismiss-btn {
+                background: transparent;
+                color: #F8FAFC;
+                opacity: 0.8;
+                padding: 8px 10px;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
+    function showInstallBanner() {
+        if (!deferredInstallPrompt) return;
+        if (document.getElementById("ae-install-banner")) return;
 
-    // -------------------------------------
-    // Service Worker Update Check
-    // -------------------------------------
+        injectInstallBannerStyles();
 
-    function setupServiceWorkerUpdates(registration) {
-        if (!registration) return;
+        const banner = document.createElement("div");
+        banner.id = "ae-install-banner";
+        banner.innerHTML = `
+            <p>আমাদের এলাকা অ্যাপ হিসেবে ইনস্টল করুন — দ্রুত ও সহজে ব্যবহার করুন।</p>
+            <button type="button" class="ae-install-btn">ইনস্টল</button>
+            <button type="button" class="ae-dismiss-btn" aria-label="বন্ধ করুন">✕</button>
+        `;
 
-        // Check for a new service worker every 60 minutes
-        setInterval(() => {
-            registration.update().catch(() => {
-                // Ignore update errors silently
+        document.body.appendChild(banner);
+
+        banner
+            .querySelector(".ae-install-btn")
+            .addEventListener("click", async () => {
+                hideInstallBanner();
+
+                if (!deferredInstallPrompt) return;
+
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+
+                console.info("Amader Elaka PWA: install prompt outcome:", outcome);
+                deferredInstallPrompt = null;
             });
-        }, 60 * 60 * 1000);
 
-        // Detect a new service worker
-        registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-
-            if (!newWorker) return;
-
-            newWorker.addEventListener("statechange", () => {
-                if (
-                    newWorker.state === "installed" &&
-                    navigator.serviceWorker.controller
-                ) {
-                    console.info(
-                        "Amader Elaka PWA: A new version is available."
-                    );
+        banner
+            .querySelector(".ae-dismiss-btn")
+            .addEventListener("click", () => {
+                hideInstallBanner();
+                try {
+                    sessionStorage.setItem("ae-install-dismissed", "1");
+                } catch (e) {
+                    // Ignore storage errors (private mode, etc.)
                 }
             });
-        });
     }
 
+    function hideInstallBanner() {
+        const banner = document.getElementById("ae-install-banner");
+        if (banner) banner.remove();
+    }
 
-    // -------------------------------------
-    // Handle Controller Changes
-    // -------------------------------------
+    function setupInstallPrompt() {
+        window.addEventListener("beforeinstallprompt", (event) => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
 
-    function handleControllerChange() {
-        if (!("serviceWorker" in navigator)) return;
-
-        let refreshing = false;
-
-        navigator.serviceWorker.addEventListener(
-            "controllerchange",
-            () => {
-                if (refreshing) return;
-
-                refreshing = true;
-
-                // Reload once when a new service worker takes control
-                window.location.reload();
+            let dismissed = false;
+            try {
+                dismissed = sessionStorage.getItem("ae-install-dismissed") === "1";
+            } catch (e) {
+                // Ignore storage errors
             }
-        );
-    }
 
+            if (!dismissed) {
+                showInstallBanner();
+            }
+        });
 
-    // -------------------------------------
-    // Online / Offline Status
-    // -------------------------------------
-
-    function setupNetworkStatus() {
-        const updateNetworkStatus = () => {
-            document.documentElement.classList.toggle(
-                "is-offline",
-                !navigator.onLine
-            );
-
-            document.documentElement.classList.toggle(
-                "is-online",
-                navigator.onLine
-            );
-        };
-
-        updateNetworkStatus();
-
-        window.addEventListener("online", updateNetworkStatus);
-        window.addEventListener("offline", updateNetworkStatus);
+        window.addEventListener("appinstalled", () => {
+            deferredInstallPrompt = null;
+            hideInstallBanner();
+            console.info("Amader Elaka PWA: app installed successfully.");
+        });
     }
 
 
@@ -134,17 +141,5 @@
         registerServiceWorker();
         handleControllerChange();
         setupNetworkStatus();
+        setupInstallPrompt();
     }
-
-
-    // -------------------------------------
-    // Start
-    // -------------------------------------
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initPWA);
-    } else {
-        initPWA();
-    }
-
-})();
