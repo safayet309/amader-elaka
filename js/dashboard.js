@@ -1,4 +1,4 @@
- // =====================================
+// =====================================
 // Amader Elaka - Dashboard JavaScript
 // =====================================
 
@@ -111,6 +111,477 @@ async function loadReports(forceRefresh = false) {
 
             updateStatistics([]);
 
+            if (reportsContainer) {
+
+                reportsContainer.innerHTML = `
+                    <div class="no-reports">
+                        <h3>রিপোর্ট লোড করা যায়নি</h3>
+                        <p>ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</p>
+                    </div>
+                `;
+            }
+        }
+
+    } finally {
+
+        if (loading) {
+            loading.style.display = "none";
+        }
+    }
+}
+
+// =====================================
+// Get Cached Reports
+// =====================================
+
+function getCachedReports(ignoreExpiry = false) {
+
+    try {
+
+        const cached = localStorage.getItem(REPORT_CACHE_KEY);
+
+        if (!cached) {
+            return null;
+        }
+
+        const data = JSON.parse(cached);
+
+        if (
+            !data ||
+            !Array.isArray(data.reports) ||
+            !data.time
+        ) {
+            return null;
+        }
+
+        const age = Date.now() - Number(data.time);
+
+        if (
+            !ignoreExpiry &&
+            age > REPORT_CACHE_TIME
+        ) {
+            return null;
+        }
+
+        return data.reports;
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Read Error:",
+            error
+        );
+
+        return null;
+    }
+}
+
+// =====================================
+// Save Reports to Cache
+// =====================================
+
+function saveCachedReports(reports) {
+
+    try {
+
+        localStorage.setItem(
+            REPORT_CACHE_KEY,
+            JSON.stringify({
+                time: Date.now(),
+                reports: reports
+            })
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Save Error:",
+            error
+        );
+    }
+}
+
+// =====================================
+// Clear Cache
+// =====================================
+
+function clearReportCache() {
+
+    try {
+
+        localStorage.removeItem(REPORT_CACHE_KEY);
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard Cache Clear Error:",
+            error
+        );
+    }
+}
+ 
+// =====================================
+// Statistics
+// =====================================
+
+function updateStatistics(reports) {
+
+    if (
+        window.DashboardStats &&
+        typeof window.DashboardStats.updateStatistics === "function"
+    ) {
+        window.DashboardStats.updateStatistics(reports);
+    } else {
+        console.error(
+            "Dashboard Statistics module is not loaded."
+        );
+    }
+}
+
+// =====================================
+// Filter Options
+// =====================================
+
+function createFilterOptions(reports) {
+
+    if (
+        !divisionFilter ||
+        !categoryFilter ||
+        !statusFilter
+    ) {
+        return;
+    }
+
+    const divisions = [
+        ...new Set(
+            reports
+                .map(report =>
+                    String(report.Division || "").trim()
+                )
+                .filter(Boolean)
+        )
+    ];
+
+    const categories = [
+        ...new Set(
+            reports
+                .map(report =>
+                    String(report.Category || "").trim()
+                )
+                .filter(Boolean)
+        )
+    ];
+
+    const statuses = [
+        ...new Set(
+            reports
+                .map(report =>
+                    String(report.Status || "").trim()
+                )
+                .filter(Boolean)
+        )
+    ];
+
+    const currentDivision = divisionFilter.value;
+    const currentCategory = categoryFilter.value;
+    const currentStatus = statusFilter.value;
+
+    divisionFilter.innerHTML = '<option value="">সব বিভাগ</option>';
+    categoryFilter.innerHTML = '<option value="">সব বিষয়</option>';
+    statusFilter.innerHTML = '<option value="">সব স্ট্যাটাস</option>';
+
+    divisions.forEach(function (division) {
+        const option = document.createElement("option");
+        option.value = division;
+        option.textContent = division;
+        divisionFilter.appendChild(option);
+    });
+
+    categories.forEach(function (category) {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+
+    statuses.forEach(function (status) {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        statusFilter.appendChild(option);
+    });
+
+    if (divisions.includes(currentDivision)) {
+        divisionFilter.value = currentDivision;
+    }
+
+    if (categories.includes(currentCategory)) {
+        categoryFilter.value = currentCategory;
+    }
+
+    if (statuses.includes(currentStatus)) {
+        statusFilter.value = currentStatus;
+    }
+}
+
+// =====================================
+// Apply Filters
+// =====================================
+
+function applyFilters() {
+
+    const searchValue = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
+    const selectedDivision = divisionFilter ? divisionFilter.value : "";
+    const selectedCategory = categoryFilter ? categoryFilter.value : "";
+    const selectedStatus = statusFilter ? statusFilter.value : "";
+
+    const filteredReports = allReports.filter(function (report) {
+
+        const searchableText = [
+            report.ID,
+            report.Area,
+            report.Description,
+            report.Division,
+            report.District,
+            report.Upazila,
+            report.Category,
+            report.Status,
+            report.Ward,
+            report.AdminNote
+        ]
+            .map(value => String(value || ""))
+            .join(" ")
+            .toLowerCase();
+
+        const matchesSearch =
+            !searchValue || searchableText.includes(searchValue);
+
+        const matchesDivision =
+            !selectedDivision || report.Division === selectedDivision;
+
+        const matchesCategory =
+            !selectedCategory || report.Category === selectedCategory;
+
+        const matchesStatus =
+            !selectedStatus || report.Status === selectedStatus;
+
+        return (
+            matchesSearch &&
+            matchesDivision &&
+            matchesCategory &&
+            matchesStatus
+        );
+    });
+
+    // এখানে filteredReports ব্যবহার করা হয়েছে
+    window.DashboardReports.displayReports(filteredReports);
+}
+
+// =====================================
+// Report Details Modal
+// =====================================
+
+function showReportDetails(report) {
+
+    let modal = document.getElementById("reportDetailsModal");
+
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "reportDetailsModal";
+        modal.className = "report-modal";
+
+        modal.innerHTML = `
+            <div class="report-modal-overlay"></div>
+            <div class="report-modal-box">
+                <button
+                    type="button"
+                    class="report-modal-close"
+                    aria-label="বন্ধ করুন"
+                >
+                    ×
+                </button>
+                <div id="reportModalContent"></div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const closeButton = modal.querySelector(".report-modal-close");
+        const overlay = modal.querySelector(".report-modal-overlay");
+
+        closeButton.addEventListener("click", closeReportModal);
+        overlay.addEventListener("click", closeReportModal);
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && modal.classList.contains("show")) {
+                closeReportModal();
+            }
+        });
+    }
+
+    const modalContent = document.getElementById("reportModalContent");
+
+    modalContent.innerHTML = `
+        <div class="modal-category">
+            ${escapeHTML(report.Category || "অন্যান্য")}
+        </div>
+
+        <h2>রিপোর্টের বিস্তারিত</h2>
+
+        <div class="modal-info">
+            <div>
+                <strong>রিপোর্ট ID</strong>
+                <span>${escapeHTML(report.ID || "N/A")}</span>
+            </div>
+            <div>
+                <strong>স্ট্যাটাস</strong>
+                <span>${escapeHTML(report.Status || "Pending")}</span>
+            </div>
+            <div>
+                <strong>বিভাগ</strong>
+                <span>${escapeHTML(report.Division || "N/A")}</span>
+            </div>
+            <div>
+                <strong>জেলা</strong>
+                <span>${escapeHTML(report.District || "N/A")}</span>
+            </div>
+            <div>
+                <strong>উপজেলা</strong>
+                <span>${escapeHTML(report.Upazila || "N/A")}</span>
+            </div>
+            <div>
+                <strong>এলাকা</strong>
+                <span>${escapeHTML(report.Area || "N/A")}</span>
+            </div>
+            <div>
+                <strong>ওয়ার্ড</strong>
+                <span>${escapeHTML(report.Ward || "N/A")}</span>
+            </div>
+            <div>
+                <strong>তারিখ</strong>
+                <span>${escapeHTML(report.Date || "N/A")}</span>
+            </div>
+        </div>
+
+        <div class="modal-description">
+            <strong>সমস্যার বিস্তারিত</strong>
+            <p>${escapeHTML(report.Description || "কোনো বিবরণ দেওয়া হয়নি।")}</p>
+        </div>
+
+        ${
+            report.AdminNote
+                ? `
+                    <div class="modal-description">
+                        <strong>কর্তৃপক্ষের মন্তব্য</strong>
+                        <p>${escapeHTML(report.AdminNote)}</p>
+                    </div>
+                  `
+                : ""
+        }
+    `;
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+// =====================================
+// Close Modal
+// =====================================
+
+function closeReportModal() {
+
+    const modal = document.getElementById("reportDetailsModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+// =====================================
+// Escape HTML
+// =====================================
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// =====================================
+// Search / Filter Events
+// =====================================
+
+if (searchInput) {
+    searchInput.addEventListener("input", applyFilters);
+}
+
+if (divisionFilter) {
+    divisionFilter.addEventListener("change", applyFilters);
+}
+
+if (categoryFilter) {
+    categoryFilter.addEventListener("change", applyFilters);
+}
+
+if (statusFilter) {
+    statusFilter.addEventListener("change", applyFilters);
+}
+
+// =====================================
+// Reset Filters
+// =====================================
+
+if (resetFilters) {
+
+    resetFilters.addEventListener("click", function () {
+
+        if (searchInput) searchInput.value = "";
+        if (divisionFilter) divisionFilter.value = "";
+        if (categoryFilter) categoryFilter.value = "";
+        if (statusFilter) statusFilter.value = "";
+
+        // এখানে allReports পাঠানো হয়েছে
+        window.DashboardReports.displayReports(allReports);
+    });
+}
+
+// =====================================
+// Refresh
+// =====================================
+
+if (refreshButton) {
+
+    refreshButton.addEventListener("click", function () {
+
+        refreshButton.disabled = true;
+        const oldText = refreshButton.textContent;
+        refreshButton.textContent = "লোড হচ্ছে...";
+
+        // Force fresh Supabase request
+        loadReports(true).finally(function () {
+            refreshButton.disabled = false;
+            refreshButton.textContent = oldText;
+        });
+    });
+}
+
+// =====================================
+// Start Dashboard
+// =====================================
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadReports(false);
+});
             if (reportsContainer) {
 
                 reportsContainer.innerHTML = `
