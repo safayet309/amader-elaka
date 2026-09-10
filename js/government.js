@@ -1,190 +1,714 @@
-const governmentServices=[
-{name:"পরিচয় ও নাগরিক সেবা",category:"নাগরিক",icon:"👥",description:"NID, জন্ম-মৃত্যু নিবন্ধন, নাগরিক ও বিভিন্ন সরকারি সেবা।",meta:"myGov",url:"https://www.mygov.bd/"},
-{name:"যাতায়াত",category:"যাতায়াত",icon:"🚌",description:"BRTA, ড্রাইভিং লাইসেন্স, যানবাহন ও পরিবহন সংক্রান্ত সেবা।",meta:"BRTA Service Portal",url:"https://bsp.brta.gov.bd/"},
-{name:"শিক্ষা",category:"শিক্ষা",icon:"🎓",description:"শিক্ষা বোর্ড, ফলাফল, ভর্তি ও শিক্ষা বিষয়ক সরকারি তথ্য।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"স্বাস্থ্য",category:"স্বাস্থ্য",icon:"✚",description:"স্বাস্থ্য সেবা, হাসপাতাল ও স্বাস্থ্য অধিদপ্তরের প্রয়োজনীয় তথ্য।",meta:"স্বাস্থ্য অধিদপ্তর",url:"https://dghs.gov.bd/"},
-{name:"ভূমি ও জমি",category:"ভূমি",icon:"🏠",description:"ভূমি সেবা, নামজারি, ভূমি উন্নয়ন কর, রেকর্ড ও ম্যাপ।",meta:"ভূমি মন্ত্রণালয়",url:"https://land.gov.bd/"},
-{name:"অর্থ ও কর",category:"অর্থ",icon:"💰",description:"আয়কর, কর সংক্রান্ত তথ্য ও জাতীয় আর্থিক সেবা।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"চাকরি ও নিয়োগ",category:"চাকরি",icon:"💼",description:"সরকারি চাকরি, নিয়োগ বিজ্ঞপ্তি, পরীক্ষা ও ফলাফল।",meta:"বাংলাদেশ সরকারি কর্ম কমিশন",url:"https://bpsc.gov.bd/"},
-{name:"নারী ও শিশু সেবা",category:"নাগরিক",icon:"👨‍👩‍👧",description:"নারী ও শিশু সুরক্ষা, সহায়তা এবং সংশ্লিষ্ট সরকারি সেবা।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"কৃষি ও পল্লী উন্নয়ন",category:"অন্যান্য",icon:"🌱",description:"কৃষি, মৎস্য, প্রাণিসম্পদ ও কৃষিভিত্তিক সরকারি সেবা।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"বিদ্যুৎ ও জ্বালানি",category:"অন্যান্য",icon:"⚡",description:"বিদ্যুৎ, জ্বালানি ও ইউটিলিটি সংক্রান্ত সরকারি তথ্য ও সেবা।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"পানি ও ওয়াসা",category:"অন্যান্য",icon:"💧",description:"পানি সরবরাহ, ওয়াসা ও পানি সংক্রান্ত সরকারি সেবা।",meta:"বাংলাদেশ জাতীয় তথ্য বাতায়ন",url:"https://bangladesh.gov.bd/"},
-{name:"পাসপোর্ট ও ইমিগ্রেশন",category:"অন্যান্য",icon:"📄",description:"ই-পাসপোর্ট আবেদন, নির্দেশনা ও আবেদন সংক্রান্ত সরকারি সেবা।",meta:"বাংলাদেশ e-Passport Portal",url:"https://www.epassport.gov.bd/"}
-];
+ // =====================================
+// Amader Elaka - Government Services
+// =====================================
 
-const emergencyNumbers=[
-{name:"জাতীয় জরুরি সেবা",number:"999",icon:"🚨"},
-{name:"সরকারি তথ্য ও সেবা",number:"333",icon:"📞"},
-{name:"ফায়ার সার্ভিস",number:"102",icon:"🚒"},
-{name:"নারী ও শিশু সহায়তা",number:"109",icon:"👩"},
-{name:"শিশু সহায়তা",number:"1098",icon:"👶"},
-{name:"স্বাস্থ্য বাতায়ন",number:"16263",icon:"🏥"}
-];
+(() => {
+    "use strict";
 
-const grid=document.getElementById("serviceGrid");
-const search=document.getElementById("serviceSearch");
-const count=document.getElementById("serviceCount");
-const noResult=document.getElementById("noResult");
+    // -------------------------------------
+    // Government Services Data
+    // -------------------------------------
 
-let activeCategory="all";
+    const services = [
 
-function renderServices(){
-    const q=String(search.value||"").trim().toLowerCase();
+        {
+            title: "জাতীয় পরিচয়পত্র (NID)",
+            description: "জাতীয় পরিচয়পত্রের তথ্য, সংশোধন ও অন্যান্য সেবা।",
+            category: "নাগরিক",
+            icon: "🪪",
+            url: "https://services.nidw.gov.bd/"
+        },
 
-    const filtered=governmentServices.filter(service=>{
-        const matchesCategory=
-            activeCategory==="all"||
-            service.category===activeCategory;
+        {
+            title: "জন্ম ও মৃত্যু নিবন্ধন",
+            description: "জন্ম ও মৃত্যু নিবন্ধন সংক্রান্ত সরকারি অনলাইন সেবা।",
+            category: "নাগরিক",
+            icon: "📄",
+            url: "https://bdris.gov.bd/"
+        },
 
-        const searchable=[
-            service.name,
-            service.category,
-            service.description,
-            service.meta
-        ].join(" ").toLowerCase();
+        {
+            title: "ই-পাসপোর্ট",
+            description: "ই-পাসপোর্ট আবেদন ও সংশ্লিষ্ট অনলাইন সেবা।",
+            category: "নাগরিক",
+            icon: "🛂",
+            url: "https://www.epassport.gov.bd/"
+        },
 
-        return matchesCategory&&(!q||searchable.includes(q));
-    });
+        {
+            title: "বাংলাদেশ পুলিশ",
+            description: "বাংলাদেশ পুলিশের অফিসিয়াল ওয়েবসাইট ও নাগরিক তথ্য।",
+            category: "অন্যান্য",
+            icon: "👮",
+            url: "https://www.police.gov.bd/"
+        },
 
-    grid.innerHTML=filtered.map(service=>`
-        <article class="service-card">
-            <div class="service-icon">${service.icon}</div>
-            <h3 class="service-title">${service.name}</h3>
-            <p class="service-description">${service.description}</p>
-            <div class="service-meta">${service.meta}</div>
-            <a class="service-link"
-               href="${service.url}"
-               target="_blank"
-               rel="noopener noreferrer">
-                ওয়েবসাইটে যান →
-            </a>
-        </article>
-    `).join("");
+        {
+            title: "BRTA",
+            description: "ড্রাইভিং লাইসেন্স, গাড়ি নিবন্ধন ও পরিবহন সংক্রান্ত সেবা।",
+            category: "যাতায়াত",
+            icon: "🚗",
+            url: "https://bsp.brta.gov.bd/"
+        },
 
-    count.textContent=`${filtered.length}টি সেবা`;
-    noResult.hidden=filtered.length!==0;
-}
+        {
+            title: "শিক্ষা বোর্ড",
+            description: "পরীক্ষার ফলাফল ও শিক্ষা বোর্ডের প্রয়োজনীয় সেবা।",
+            category: "শিক্ষা",
+            icon: "🎓",
+            url: "https://educationboardresults.gov.bd/"
+        },
 
-document.getElementById("categoryFilter").addEventListener("click",function(event){
-    const button=event.target.closest(".filter-btn");
+        {
+            title: "স্বাস্থ্য সেবা",
+            description: "বাংলাদেশ সরকারের স্বাস্থ্য সংক্রান্ত তথ্য ও সেবা।",
+            category: "স্বাস্থ্য",
+            icon: "🏥",
+            url: "https://dghs.gov.bd/"
+        },
 
-    if(!button)return;
+        {
+            title: "ভূমি সেবা",
+            description: "ভূমি সংক্রান্ত বিভিন্ন সরকারি অনলাইন সেবা।",
+            category: "ভূমি",
+            icon: "🏡",
+            url: "https://land.gov.bd/"
+        },
 
-    document.querySelectorAll(".filter-btn").forEach(item=>{
-        item.classList.remove("active");
-    });
+        {
+            title: "ই-নামজারি",
+            description: "অনলাইনে নামজারি আবেদন ও সংশ্লিষ্ট ভূমি সেবা।",
+            category: "ভূমি",
+            icon: "📑",
+            url: "https://mutation.land.gov.bd/"
+        },
 
-    button.classList.add("active");
+        {
+            title: "জাতীয় রাজস্ব বোর্ড",
+            description: "কর, আয়কর ও রাজস্ব সংক্রান্ত সরকারি সেবা।",
+            category: "অর্থ",
+            icon: "💰",
+            url: "https://nbr.gov.bd/"
+        },
 
-    activeCategory=button.dataset.category;
+        {
+            title: "সরকারি চাকরি",
+            description: "সরকারি চাকরির নিয়োগ ও পরীক্ষার প্রয়োজনীয় তথ্য।",
+            category: "চাকরি",
+            icon: "💼",
+            url: "https://bpsc.gov.bd/"
+        },
 
-    renderServices();
-});
-
-search.addEventListener("input",renderServices);
-
-document.getElementById("searchButton").addEventListener("click",renderServices);
-
-const mobileMenu=document.getElementById("mobileMenu");
-const govNav=document.getElementById("govNav");
-
-if(mobileMenu&&govNav){
-    let govMenuOverlay=null;
-    const closeGovMenu=()=>{
-        govNav.classList.remove("open");
-        mobileMenu.setAttribute("aria-expanded","false");
-        mobileMenu.textContent="☰";
-        document.body.classList.remove("gov-menu-lock");
-        if(govMenuOverlay) govMenuOverlay.classList.remove("show");
-    };
-    const openGovMenu=()=>{
-        if(!govMenuOverlay){
-            govMenuOverlay=document.createElement("div");
-            govMenuOverlay.className="gov-menu-overlay";
-            document.body.appendChild(govMenuOverlay);
-            govMenuOverlay.addEventListener("click",closeGovMenu);
+        {
+            title: "বাংলাদেশ জাতীয় তথ্য বাতায়ন",
+            description: "সরকারের বিভিন্ন মন্ত্রণালয়, বিভাগ ও নাগরিক তথ্য।",
+            category: "অন্যান্য",
+            icon: "🌐",
+            url: "https://bangladesh.gov.bd/"
         }
-        govNav.classList.add("open");
-        mobileMenu.setAttribute("aria-expanded","true");
-        mobileMenu.textContent="×";
-        document.body.classList.add("gov-menu-lock");
-        govMenuOverlay.classList.add("show");
-    };
-    mobileMenu.setAttribute("aria-expanded","false");
-    mobileMenu.addEventListener("click",function(){
-        govNav.classList.contains("open") ? closeGovMenu() : openGovMenu();
-    });
-    govNav.querySelectorAll("a").forEach(a=>a.addEventListener("click",closeGovMenu));
-    document.addEventListener("keydown",e=>{if(e.key==="Escape") closeGovMenu();});
-}
 
-const emergencyButton=document.getElementById("emergencyButton");
-const emergencyOverlay=document.getElementById("emergencyOverlay");
-const emergencyClose=document.getElementById("emergencyClose");
-const emergencyList=document.getElementById("emergencyList");
+    ];
 
-function renderEmergency(){
-    emergencyList.innerHTML=emergencyNumbers.map(item=>`
-        <div class="emergency-item">
-            <div class="emergency-item-icon">${item.icon}</div>
 
-            <div class="emergency-item-info">
-                <div class="emergency-item-name">${item.name}</div>
-                <div class="emergency-item-number">${item.number}</div>
+    // -------------------------------------
+    // DOM Elements
+    // -------------------------------------
+
+    const serviceGrid =
+        document.getElementById("serviceGrid");
+
+    const serviceSearch =
+        document.getElementById("serviceSearch");
+
+    const searchButton =
+        document.getElementById("searchButton");
+
+    const noResult =
+        document.getElementById("noResult");
+
+    const serviceCount =
+        document.getElementById("serviceCount");
+
+    const categoryFilter =
+        document.getElementById("categoryFilter");
+
+
+    // -------------------------------------
+    // State
+    // -------------------------------------
+
+    let activeCategory = "all";
+    let searchTerm = "";
+
+
+    // -------------------------------------
+    // Escape HTML
+    // -------------------------------------
+
+    function escapeHTML(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    // -------------------------------------
+    // Get Filtered Services
+    // -------------------------------------
+
+    function getFilteredServices() {
+
+        const query = searchTerm
+            .trim()
+            .toLowerCase();
+
+        return services.filter((service) => {
+
+            const matchesCategory =
+                activeCategory === "all" ||
+                service.category === activeCategory;
+
+            if (!matchesCategory) {
+                return false;
+            }
+
+            if (!query) {
+                return true;
+            }
+
+            const searchableText = [
+                service.title,
+                service.description,
+                service.category
+            ]
+                .join(" ")
+                .toLowerCase();
+
+            return searchableText.includes(query);
+        });
+    }
+
+
+    // -------------------------------------
+    // Render Service Card
+    // -------------------------------------
+
+    function createServiceCard(service) {
+
+        const card = document.createElement("article");
+
+        card.className = "service-card";
+
+        card.dataset.category = service.category;
+
+
+        card.innerHTML = `
+            <div class="service-card-top">
+
+                <div class="service-icon" aria-hidden="true">
+                    ${escapeHTML(service.icon)}
+                </div>
+
+                <span class="service-category">
+                    ${escapeHTML(service.category)}
+                </span>
+
             </div>
 
-            <a class="emergency-call"
-               href="tel:${item.number}"
-               aria-label="${item.name}-এ কল করুন">
-                📞
+            <h3>
+                ${escapeHTML(service.title)}
+            </h3>
+
+            <p>
+                ${escapeHTML(service.description)}
+            </p>
+
+            <a
+                class="service-link"
+                href="${escapeHTML(service.url)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="${escapeHTML(service.title)} খুলুন"
+            >
+                সেবা ভিজিট করুন
+                <span aria-hidden="true">↗</span>
             </a>
-        </div>
-    `).join("");
-}
+        `;
 
-function openEmergency(){
-    renderEmergency();
-
-    emergencyOverlay.classList.add("show");
-    emergencyOverlay.setAttribute("aria-hidden","false");
-
-    document.body.style.overflow="hidden";
-}
-
-function closeEmergency(){
-    emergencyOverlay.classList.remove("show");
-    emergencyOverlay.setAttribute("aria-hidden","true");
-
-    document.body.style.overflow="";
-}
-
-if(emergencyButton){
-    emergencyButton.addEventListener("click",function(event){
-        event.preventDefault();
-        openEmergency();
-    });
-}
-
-if(emergencyClose){
-    emergencyClose.addEventListener("click",closeEmergency);
-}
-
-if(emergencyOverlay){
-    emergencyOverlay.addEventListener("click",function(event){
-        if(event.target===emergencyOverlay){
-            closeEmergency();
-        }
-    });
-}
-
-document.addEventListener("keydown",function(event){
-    if(
-        event.key==="Escape"&&
-        emergencyOverlay.classList.contains("show")
-    ){
-        closeEmergency();
+        return card;
     }
-});
 
-renderServices();
+
+    // -------------------------------------
+    // Render Services
+    // -------------------------------------
+
+    function renderServices() {
+
+        if (!serviceGrid) return;
+
+        const filteredServices =
+            getFilteredServices();
+
+
+        serviceGrid.innerHTML = "";
+
+
+        if (filteredServices.length === 0) {
+
+            if (noResult) {
+                noResult.hidden = false;
+            }
+
+        } else {
+
+            if (noResult) {
+                noResult.hidden = true;
+            }
+
+            const fragment =
+                document.createDocumentFragment();
+
+            filteredServices.forEach((service) => {
+                fragment.appendChild(
+                    createServiceCard(service)
+                );
+            });
+
+            serviceGrid.appendChild(fragment);
+        }
+
+
+        updateServiceCount(
+            filteredServices.length
+        );
+    }
+
+
+    // -------------------------------------
+    // Update Service Count
+    // -------------------------------------
+
+    function updateServiceCount(count) {
+
+        if (!serviceCount) return;
+
+        if (count === services.length) {
+
+            serviceCount.textContent =
+                `${services.length}টি সেবা`;
+
+            return;
+        }
+
+        serviceCount.textContent =
+            `${count}টি সেবা পাওয়া গেছে`;
+    }
+
+
+    // -------------------------------------
+    // Category Filter
+    // -------------------------------------
+
+    function initCategoryFilter() {
+
+        if (!categoryFilter) return;
+
+        const buttons =
+            categoryFilter.querySelectorAll(
+                ".filter-btn"
+            );
+
+        buttons.forEach((button) => {
+
+            button.addEventListener("click", () => {
+
+                activeCategory =
+                    button.dataset.category || "all";
+
+
+                buttons.forEach((item) => {
+                    item.classList.remove("active");
+                    item.setAttribute(
+                        "aria-pressed",
+                        "false"
+                    );
+                });
+
+
+                button.classList.add("active");
+
+                button.setAttribute(
+                    "aria-pressed",
+                    "true"
+                );
+
+
+                renderServices();
+            });
+        });
+    }
+
+
+    // -------------------------------------
+    // Search
+    // -------------------------------------
+
+    function performSearch() {
+
+        if (!serviceSearch) return;
+
+        searchTerm =
+            serviceSearch.value || "";
+
+        renderServices();
+    }
+
+
+    function initSearch() {
+
+        if (!serviceSearch) return;
+
+
+        serviceSearch.addEventListener(
+            "input",
+            () => {
+                searchTerm =
+                    serviceSearch.value || "";
+
+                renderServices();
+            }
+        );
+
+
+        serviceSearch.addEventListener(
+            "search",
+            performSearch
+        );
+
+
+        if (searchButton) {
+
+            searchButton.addEventListener(
+                "click",
+                performSearch
+            );
+        }
+
+
+        serviceSearch.addEventListener(
+            "keydown",
+            (event) => {
+
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    performSearch();
+                }
+
+            }
+        );
+    }
+
+
+    // -------------------------------------
+    // Emergency Modal
+    // -------------------------------------
+
+    const emergencyNumbers = [
+
+        {
+            name: "জাতীয় জরুরি সেবা",
+            number: "999",
+            icon: "🚨",
+            description: "পুলিশ, ফায়ার সার্ভিস ও অ্যাম্বুলেন্স"
+        },
+
+        {
+            name: "ফায়ার সার্ভিস",
+            number: "102",
+            icon: "🚒",
+            description: "অগ্নিকাণ্ড ও উদ্ধার সেবা"
+        },
+
+        {
+            name: "নারী ও শিশু সহায়তা",
+            number: "109",
+            icon: "🆘",
+            description: "নারী ও শিশু নির্যাতন প্রতিরোধ"
+        },
+
+        {
+            name: "স্বাস্থ্য বাতায়ন",
+            number: "16263",
+            icon: "🏥",
+            description: "স্বাস্থ্য সংক্রান্ত পরামর্শ"
+        }
+
+    ];
+
+
+    const emergencyButton =
+        document.getElementById("emergencyButton");
+
+    const emergencyOverlay =
+        document.getElementById("emergencyOverlay");
+
+    const emergencyClose =
+        document.getElementById("emergencyClose");
+
+    const emergencyList =
+        document.getElementById("emergencyList");
+
+
+    // -------------------------------------
+    // Render Emergency Numbers
+    // -------------------------------------
+
+    function renderEmergencyNumbers() {
+
+        if (!emergencyList) return;
+
+        emergencyList.innerHTML =
+            emergencyNumbers.map((item) => `
+
+                <div class="emergency-item">
+
+                    <div class="emergency-item-icon">
+                        ${escapeHTML(item.icon)}
+                    </div>
+
+                    <div class="emergency-item-content">
+
+                        <h3>
+                            ${escapeHTML(item.name)}
+                        </h3>
+
+                        <p>
+                            ${escapeHTML(item.description)}
+                        </p>
+
+                    </div>
+
+                    <a
+                        href="tel:${escapeHTML(item.number)}"
+                        class="emergency-call"
+                        aria-label="${escapeHTML(item.name)} ${escapeHTML(item.number)}"
+                    >
+                        <strong>
+                            ${escapeHTML(item.number)}
+                        </strong>
+
+                        <span>
+                            কল করুন
+                        </span>
+                    </a>
+
+                </div>
+
+            `).join("");
+    }
+
+
+    // -------------------------------------
+    // Open Emergency
+    // -------------------------------------
+
+    function openEmergency() {
+
+        if (!emergencyOverlay) return;
+
+        emergencyOverlay.classList.add("active");
+        emergencyOverlay.classList.add("show");
+
+        emergencyOverlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        document.body.classList.add(
+            "modal-open"
+        );
+
+        document.body.style.overflow =
+            "hidden";
+
+
+        if (emergencyClose) {
+            setTimeout(() => {
+                emergencyClose.focus();
+            }, 50);
+        }
+    }
+
+
+    // -------------------------------------
+    // Close Emergency
+    // -------------------------------------
+
+    function closeEmergency() {
+
+        if (!emergencyOverlay) return;
+
+        emergencyOverlay.classList.remove("active");
+        emergencyOverlay.classList.remove("show");
+
+        emergencyOverlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        document.body.classList.remove(
+            "modal-open"
+        );
+
+        document.body.style.overflow = "";
+    }
+
+
+    // -------------------------------------
+    // Emergency Events
+    // -------------------------------------
+
+    function initEmergency() {
+
+        if (emergencyButton) {
+
+            emergencyButton.addEventListener(
+                "click",
+                (event) => {
+
+                    event.preventDefault();
+                    openEmergency();
+
+                }
+            );
+        }
+
+
+        if (emergencyClose) {
+
+            emergencyClose.addEventListener(
+                "click",
+                closeEmergency
+            );
+        }
+
+
+        if (emergencyOverlay) {
+
+            emergencyOverlay.addEventListener(
+                "click",
+                (event) => {
+
+                    if (
+                        event.target ===
+                        emergencyOverlay
+                    ) {
+                        closeEmergency();
+                    }
+
+                }
+            );
+        }
+
+
+        document.addEventListener(
+            "keydown",
+            (event) => {
+
+                if (
+                    event.key === "Escape" &&
+                    emergencyOverlay &&
+                    (
+                        emergencyOverlay.classList.contains(
+                            "active"
+                        ) ||
+                        emergencyOverlay.classList.contains(
+                            "show"
+                        )
+                    )
+                ) {
+                    closeEmergency();
+                }
+
+            }
+        );
+
+
+        renderEmergencyNumbers();
+    }
+
+
+    // -------------------------------------
+    // External Link Protection
+    // -------------------------------------
+
+    function initExternalLinks() {
+
+        if (!serviceGrid) return;
+
+        serviceGrid.addEventListener(
+            "click",
+            (event) => {
+
+                const link =
+                    event.target.closest(
+                        "a.service-link"
+                    );
+
+                if (!link) return;
+
+                link.classList.add(
+                    "service-link-clicked"
+                );
+
+                setTimeout(() => {
+                    link.classList.remove(
+                        "service-link-clicked"
+                    );
+                }, 300);
+            }
+        );
+    }
+
+
+    // -------------------------------------
+    // Initialize
+    // -------------------------------------
+
+    function initGovernmentPage() {
+
+        if (serviceGrid) {
+            renderServices();
+        }
+
+        initSearch();
+        initCategoryFilter();
+        initEmergency();
+        initExternalLinks();
+    }
+
+
+    // -------------------------------------
+    // Start
+    // -------------------------------------
+
+    if (
+        document.readyState === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initGovernmentPage
+        );
+
+    } else {
+
+        initGovernmentPage();
+
+    }
+
+})();
