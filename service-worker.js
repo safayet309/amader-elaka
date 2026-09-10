@@ -1,34 +1,92 @@
-আমাদের এলাকা — PWA Integration
+// =====================================
+// Amader Elaka - Service Worker
+// =====================================
 
-নতুন ফাইল:
-1. manifest.json
-2. service-worker.js
-3. js/pwa.js
-4. icons/icon-192.png
-5. icons/icon-512.png
+const CACHE_VERSION = "v1";
+const CACHE_NAME = `amader-elaka-${CACHE_VERSION}`;
 
-প্রতিটি HTML page-এর <head>-এর ভিতরে যোগ করুন:
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#064E3B">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+// Same-origin static assets to pre-cache on install
+const PRECACHE_ASSETS = [
+    "./",
+    "./index.html",
+    "./manifest.json",
+    "./css/style.css",
+    "./css/premium.css",
+    "./js/pwa.js",
+    "./js/script.js",
+    "./js/mobile-nav.js",
+    "./js/location-data.js",
+    "./icons/icon-192.png",
+    "./icons/icon-512.png"
+];
 
-</head> এর ঠিক আগে/পরে নয়, <head> এর ভিতরে রাখলেই হবে।
+// Install: pre-cache core assets
+self.addEventListener("install", (event) => {
+    event.waitUntil(
+        caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.addAll(PRECACHE_ASSETS))
+            .then(() => self.skipWaiting())
+    );
+});
 
-</body> এর ঠিক আগে যোগ করুন:
-<script src="js/pwa.js"></script>
+// Activate: clean up old caches
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches
+            .keys()
+            .then((keys) =>
+                Promise.all(
+                    keys
+                        .filter((key) => key !== CACHE_NAME)
+                        .map((key) => caches.delete(key))
+                )
+            )
+            .then(() => self.clients.claim())
+    );
+});
 
-এই 2টি integration snippet সব প্রধান page-এ দিন:
-index.html
-report.html
-dashboard.html
-government.html
-admin.html (যদি admin-ও installable করতে চান)
+// Fetch: network-first for navigation, cache-first for static assets
+self.addEventListener("fetch", (event) => {
+    const { request } = event;
 
-নোট:
-- HTTPS hosting প্রয়োজন; localhost-এ development-এ কাজ করবে।
-- Browser install prompt নিজে সিদ্ধান্ত নেয়। pwa.js prompt event এলে premium install banner দেখায়।
-- Supabase/API data offline-এ fake করা হবে না; live data-এর জন্য internet প্রয়োজন।
-- service worker একই-origin static assets cache করবে এবং page navigation network-first রাখবে।
+    if (request.method !== "GET") return;
+
+    const url = new URL(request.url);
+    if (url.origin !== self.location.origin) return;
+
+    if (request.mode === "navigate") {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    const responseClone = response.clone();
+                    caches
+                        .open(CACHE_NAME)
+                        .then((cache) => cache.put(request, responseClone));
+                    return response;
+                })
+                .catch(() =>
+                    caches
+                        .match(request)
+                        .then((cached) => cached || caches.match("./index.html"))
+                )
+        );
+        return;
+    }
+
+    event.respondWith(
+        caches.match(request).then((cached) => {
+            if (cached) return cached;
+
+            return fetch(request).then((response) => {
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+                    caches
+                        .open(CACHE_NAME)
+                        .then((cache) => cache.put(request, responseClone));
+                }
+                return response;
+            });
+        })
+    );
+});
