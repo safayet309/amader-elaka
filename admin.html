@@ -1,401 +1,1040 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel — আমাদের এলাকা</title>
-<link rel="stylesheet" href="css/admin.css">
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#064E3B">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Admin Panel — আমাদের এলাকা</title>
+
+    <meta
+        name="theme-color"
+        content="#064E3B"
+    >
+
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/admin.css"
+    >
+
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="apple-touch-icon"
+        href="icons/icon-192.png"
+    >
+
 </head>
+
+
 <body>
-  
-<!-- Admin Login -->
-<div id="adminLoginScreen" style="display:none;min-height:100vh;background:#f5f7f6;align-items:center;justify-content:center;padding:20px;">
-    <div style="width:100%;max-width:420px;background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:32px;box-shadow:0 12px 35px rgba(0,0,0,.08);">
-        <div style="text-align:center;margin-bottom:25px;">
-            <div style="font-size:42px;margin-bottom:10px;">🔐</div>
-            <h2 style="margin:0 0 8px;color:#172033;">অ্যাডমিন লগইন</h2>
-            <p style="margin:0;color:#6b7280;">Admin Panel-এ প্রবেশ করতে লগইন করুন</p>
+
+
+<!-- =====================================================
+     ADMIN LOGIN SCREEN
+     ===================================================== -->
+
+<div
+    id="adminLoginScreen"
+    class="admin-login-screen"
+    style="display:none;"
+>
+
+    <div class="admin-login-card">
+
+        <div class="admin-login-header">
+
+            <div class="admin-login-icon">
+                🔐
+            </div>
+
+            <h1>
+                অ্যাডমিন লগইন
+            </h1>
+
+            <p>
+                Admin Panel-এ প্রবেশ করতে লগইন করুন
+            </p>
+
         </div>
 
+
         <form id="adminLoginForm">
-            <div style="margin-bottom:16px;">
-                <label style="display:block;margin-bottom:7px;font-weight:600;color:#374151;">ইমেইল</label>
-                <input type="email" id="adminEmail" required autocomplete="username" placeholder="Admin email" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #d1d5db;border-radius:9px;font:inherit;outline:none;">
+
+            <div class="admin-form-group">
+
+                <label
+                    for="adminEmail"
+                >
+                    ইমেইল
+                </label>
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    required
+                    autocomplete="username"
+                    placeholder="Admin email"
+                >
+
             </div>
 
-            <div style="margin-bottom:18px;">
-                <label style="display:block;margin-bottom:7px;font-weight:600;color:#374151;">পাসওয়ার্ড</label>
-                <input type="password" id="adminPassword" required autocomplete="current-password" placeholder="Password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #d1d5db;border-radius:9px;font:inherit;outline:none;">
+
+            <div class="admin-form-group">
+
+                <label
+                    for="adminPassword"
+                >
+                    পাসওয়ার্ড
+                </label>
+
+                <input
+                    type="password"
+                    id="adminPassword"
+                    required
+                    autocomplete="current-password"
+                    placeholder="Password"
+                >
+
             </div>
 
-            <button type="submit" id="adminLoginButton" style="width:100%;padding:13px 16px;border:0;border-radius:9px;background:#166534;color:#fff;font:inherit;font-weight:600;cursor:pointer;">
+
+            <button
+                type="submit"
+                id="adminLoginButton"
+                class="admin-btn admin-btn-primary admin-login-button"
+            >
                 লগইন করুন
             </button>
 
-            <p id="adminLoginError" style="display:none;margin:14px 0 0;color:#b91c1c;text-align:center;font-size:14px;"></p>
+
+            <p
+                id="adminLoginError"
+                class="admin-login-error"
+                style="display:none;"
+            ></p>
+
         </form>
+
     </div>
-</div>
-<div class="admin-layout">
-
-<!-- Sidebar -->
-<aside class="admin-sidebar">
-<div class="admin-logo">
-<span>🏘️</span>
-<div>
-<strong>আমাদের এলাকা</strong>
-<small>Admin Panel</small>
-</div>
-</div>
-
-<nav class="admin-nav">
-<button class="admin-nav-item active" data-section="overview">
-<span>📊</span>
-<span>ড্যাশবোর্ড</span>
-</button>
-<button class="admin-nav-item" data-section="reports">
-<span>📋</span>
-<span>রিপোর্টসমূহ</span>
-</button>
-<button class="admin-nav-item" data-section="categories">
-<span>🏷️</span>
-<span>ক্যাটাগরি</span>
-</button>
-</nav>
-
-<div class="sidebar-bottom">
-<a href="index.html">← ওয়েবসাইটে ফিরে যান</a>
-</div>
-</aside>
-
-<!-- Main -->
-<main class="admin-main">
-
-<header class="admin-topbar">
-<div>
-<h1 id="pageTitle">ড্যাশবোর্ড</h1>
-<p id="pageSubtitle">আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন</p>
-</div>
-
-<div class="admin-user">
-<span class="admin-user-icon">👤</span>
-<div>
-<strong>Administrator</strong>
-<small>Admin</small>
-</div>
-</div>
-</header>
-
-<!-- Overview -->
-<section id="overviewSection" class="admin-section active">
-
-<div class="admin-stats-grid">
-
-<div class="admin-stat-card">
-<div class="admin-stat-icon">📋</div>
-<div>
-<span>মোট রিপোর্ট</span>
-<strong id="adminTotalReports">0</strong>
-</div>
-</div>
-
-<div class="admin-stat-card">
-<div class="admin-stat-icon">⏳</div>
-<div>
-<span>Pending</span>
-<strong id="adminPendingReports">0</strong>
-</div>
-</div>
-
-<div class="admin-stat-card">
-<div class="admin-stat-icon">🔧</div>
-<div>
-<span>কাজ চলছে</span>
-<strong id="adminProgressReports">0</strong>
-</div>
-</div>
-
-<div class="admin-stat-card">
-<div class="admin-stat-icon">✅</div>
-<div>
-<span>সমাধান হয়েছে</span>
-<strong id="adminSolvedReports">0</strong>
-</div>
-</div>
 
 </div>
 
-<div class="admin-card">
-<div class="admin-card-header">
-<div>
-<h2>সাম্প্রতিক রিপোর্ট</h2>
-<p>সর্বশেষ জমা দেওয়া রিপোর্টগুলো</p>
-</div>
-<button class="admin-btn admin-btn-primary" data-section-target="reports">
-সব রিপোর্ট দেখুন
-</button>
-</div>
 
-<div id="recentReports" class="recent-reports">
-<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>
-</div>
-</div>
 
-</section>
+<!-- =====================================================
+     ADMIN APPLICATION
+     ===================================================== -->
 
-<!-- Reports -->
-<section id="reportsSection" class="admin-section">
-
-<div class="admin-card">
-
-<div class="admin-card-header">
-<div>
-<h2>রিপোর্ট ব্যবস্থাপনা</h2>
-<p>রিপোর্ট দেখুন, সম্পাদনা করুন এবং কাজের স্ট্যাটাস পরিবর্তন করুন</p>
-</div>
-
-<button id="refreshReportsBtn" class="admin-btn admin-btn-secondary">
-↻ রিফ্রেশ
-</button>
-</div>
-
-<div class="admin-filters">
-
-<div class="admin-search">
-<input
-type="text"
-id="adminReportSearch"
-placeholder="রিপোর্ট ID, এলাকা বা বর্ণনা দিয়ে খুঁজুন..."
+<div
+    class="admin-layout"
+    id="adminApp"
 >
+
+
+    <!-- =================================================
+         SIDEBAR
+         ================================================= -->
+
+    <aside class="admin-sidebar">
+
+
+        <!-- Logo -->
+
+        <div class="admin-logo">
+
+            <span class="admin-logo-icon">
+                🏘️
+            </span>
+
+            <div>
+
+                <strong>
+                    আমাদের এলাকা
+                </strong>
+
+                <small>
+                    Admin Panel
+                </small>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Navigation -->
+
+        <nav
+            class="admin-nav"
+            aria-label="Admin navigation"
+        >
+
+
+            <button
+                type="button"
+                class="admin-nav-item active"
+                data-section="overview"
+            >
+
+                <span>
+                    📊
+                </span>
+
+                <span>
+                    ড্যাশবোর্ড
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-section="services"
+            >
+
+                <span>
+                    🧩
+                </span>
+
+                <span>
+                    সেবা ব্যবস্থাপনা
+                </span>
+
+            </button>
+
+
+        </nav>
+
+
+
+        <!-- Sidebar Bottom -->
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="index.html"
+            >
+                ← ওয়েবসাইটে ফিরে যান
+            </a>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- =================================================
+         MAIN CONTENT
+         ================================================= -->
+
+    <main class="admin-main">
+
+
+        <!-- =================================================
+             TOP BAR
+             ================================================= -->
+
+        <header class="admin-topbar">
+
+
+            <div class="admin-topbar-content">
+
+                <h1 id="pageTitle">
+                    ড্যাশবোর্ড
+                </h1>
+
+                <p id="pageSubtitle">
+                    আমাদের এলাকার Admin Panel পরিচালনা করুন
+                </p>
+
+            </div>
+
+
+
+            <div class="admin-user">
+
+                <span class="admin-user-icon">
+                    👤
+                </span>
+
+                <div>
+
+                    <strong>
+                        Administrator
+                    </strong>
+
+                    <small>
+                        Admin
+                    </small>
+
+                </div>
+
+            </div>
+
+
+        </header>
+
+
+
+        <!-- =================================================
+             OVERVIEW SECTION
+             ================================================= -->
+
+        <section
+            id="overviewSection"
+            class="admin-section active"
+        >
+
+
+            <!-- Welcome -->
+
+            <div class="admin-welcome-card">
+
+                <div>
+
+                    <span class="admin-section-badge">
+                        ADMIN CONTROL
+                    </span>
+
+                    <h2>
+                        স্বাগতম, Administrator 👋
+                    </h2>
+
+                    <p>
+                        এখান থেকে Dashboard-এর প্রয়োজনীয়
+                        সেবাগুলো পরিচালনা করতে পারবেন।
+                    </p>
+
+                </div>
+
+
+                <div class="admin-welcome-icon">
+                    ⚙️
+                </div>
+
+            </div>
+
+
+
+            <!-- Overview Cards -->
+
+            <div class="admin-stats-grid">
+
+
+                <div class="admin-stat-card">
+
+                    <div class="admin-stat-icon">
+                        🧩
+                    </div>
+
+                    <div>
+
+                        <span>
+                            মোট সেবা
+                        </span>
+
+                        <strong
+                            id="adminTotalServices"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="admin-stat-card">
+
+                    <div class="admin-stat-icon">
+                        ✅
+                    </div>
+
+                    <div>
+
+                        <span>
+                            সক্রিয় সেবা
+                        </span>
+
+                        <strong
+                            id="adminActiveServices"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="admin-stat-card">
+
+                    <div class="admin-stat-icon">
+                        ⏸️
+                    </div>
+
+                    <div>
+
+                        <span>
+                            নিষ্ক্রিয় সেবা
+                        </span>
+
+                        <strong
+                            id="adminInactiveServices"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="admin-stat-card">
+
+                    <div class="admin-stat-icon">
+                        🌐
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Dashboard
+                        </span>
+
+                        <strong>
+                            Active
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- Quick Management -->
+
+            <div class="admin-card">
+
+                <div class="admin-card-header">
+
+                    <div>
+
+                        <h2>
+                            দ্রুত ব্যবস্থাপনা
+                        </h2>
+
+                        <p>
+                            Dashboard-এর Service Management
+                            এখান থেকে পরিচালনা করুন।
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn admin-btn-primary"
+                        data-section-target="services"
+                    >
+                        🧩 সেবা পরিচালনা
+                    </button>
+
+                </div>
+
+
+                <div class="admin-quick-grid">
+
+
+                    <div class="admin-quick-card">
+
+                        <span>
+                            ➕
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                নতুন সেবা
+                            </h3>
+
+                            <p>
+                                Dashboard-এ নতুন Service Button
+                                যোগ করুন।
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="admin-quick-card">
+
+                        <span>
+                            ✏️
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Edit
+                            </h3>
+
+                            <p>
+                                বিদ্যমান Service-এর তথ্য
+                                পরিবর্তন করুন।
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="admin-quick-card">
+
+                        <span>
+                            🔄
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Active / Inactive
+                            </h3>
+
+                            <p>
+                                প্রয়োজন অনুযায়ী Service
+                                চালু বা বন্ধ করুন।
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="admin-quick-card">
+
+                        <span>
+                            🗑️
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Delete
+                            </h3>
+
+                            <p>
+                                অপ্রয়োজনীয় Service
+                                সরিয়ে ফেলুন।
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Current Services -->
+
+            <div class="admin-card">
+
+                <div class="admin-card-header">
+
+                    <div>
+
+                        <h2>
+                            বর্তমান সেবাসমূহ
+                        </h2>
+
+                        <p>
+                            Dashboard-এ বর্তমানে থাকা
+                            Service-এর সংক্ষিপ্ত তালিকা।
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn admin-btn-secondary"
+                        data-section-target="services"
+                    >
+                        সব দেখুন →
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="adminOverviewServices"
+                    class="admin-overview-services"
+                >
+
+                    <div class="admin-loading">
+                        সেবা লোড হচ্ছে...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             SERVICE MANAGEMENT SECTION
+             ================================================= -->
+
+        <section
+            id="servicesSection"
+            class="admin-section"
+        >
+
+
+            <!-- Section Header -->
+
+            <div class="admin-page-heading">
+
+                <div>
+
+                    <span class="admin-section-badge">
+                        SERVICE MANAGEMENT
+                    </span>
+
+                    <h2>
+                        সেবা ব্যবস্থাপনা
+                    </h2>
+
+                    <p>
+                        Dashboard-এ দেখানো প্রয়োজনীয়
+                        Service Button এখান থেকে পরিচালনা করুন।
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Add / Edit Service Card -->
+
+            <div class="admin-card">
+
+
+                <div class="admin-card-header">
+
+                    <div>
+
+                        <h2>
+                            <span id="serviceFormTitle">
+                                নতুন সেবা যোগ করুন
+                            </span>
+                        </h2>
+
+                        <p>
+                            সেবার তথ্য পূরণ করে Dashboard-এর
+                            জন্য নতুন Button তৈরি করুন।
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <form
+                    id="serviceForm"
+                    class="admin-service-form"
+                >
+
+
+                    <!-- Hidden ID -->
+
+                    <input
+                        type="hidden"
+                        id="serviceId"
+                        name="serviceId"
+                    >
+
+
+
+                    <div class="admin-form-grid">
+
+
+                        <!-- Service Title -->
+
+                        <div class="admin-form-group">
+
+                            <label
+                                for="serviceTitle"
+                            >
+                                সেবার নাম
+                                <span>*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="serviceTitle"
+                                name="serviceTitle"
+                                placeholder="যেমন: জাতীয় পরিচয়পত্র সেবা"
+                                required
+                                maxlength="120"
+                            >
+
+                        </div>
+
+
+
+                        <!-- Icon -->
+
+                        <div class="admin-form-group">
+
+                            <label
+                                for="serviceIcon"
+                            >
+                                Icon / Emoji
+                            </label>
+
+                            <input
+                                type="text"
+                                id="serviceIcon"
+                                name="serviceIcon"
+                                placeholder="🪪"
+                                maxlength="10"
+                                value="✨"
+                            >
+
+                        </div>
+
+
+
+                        <!-- URL -->
+
+                        <div class="admin-form-group admin-form-full">
+
+                            <label
+                                for="serviceUrl"
+                            >
+                                Service Link
+                            </label>
+
+                            <input
+                                type="url"
+                                id="serviceUrl"
+                                name="serviceUrl"
+                                placeholder="https://example.com"
+                            >
+
+                            <small>
+                                ব্যবহারকারী Button-এ ক্লিক করলে
+                                এই Link-এ যাবে।
+                            </small>
+
+                        </div>
+
+
+
+                        <!-- Description -->
+
+                        <div class="admin-form-group admin-form-full">
+
+                            <label
+                                for="serviceDescription"
+                            >
+                                বিবরণ
+                            </label>
+
+                            <textarea
+                                id="serviceDescription"
+                                name="serviceDescription"
+                                rows="4"
+                                maxlength="300"
+                                placeholder="এই সেবাটি কী কাজে ব্যবহার হবে তা সংক্ষেপে লিখুন..."
+                            ></textarea>
+
+                        </div>
+
+
+
+                        <!-- Order -->
+
+                        <div class="admin-form-group">
+
+                            <label
+                                for="serviceOrder"
+                            >
+                                Display Order
+                            </label>
+
+                            <input
+                                type="number"
+                                id="serviceOrder"
+                                name="serviceOrder"
+                                min="1"
+                                step="1"
+                                value="1"
+                            >
+
+                        </div>
+
+
+
+                        <!-- Active -->
+
+                        <div class="admin-form-group">
+
+                            <label
+                                class="admin-checkbox-label"
+                            >
+
+                                <input
+                                    type="checkbox"
+                                    id="serviceActive"
+                                    name="serviceActive"
+                                    checked
+                                >
+
+                                <span>
+                                    সেবাটি সক্রিয় রাখুন
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- Form Actions -->
+
+                    <div class="admin-form-actions">
+
+                        <button
+                            type="button"
+                            id="cancelServiceEdit"
+                            class="admin-btn admin-btn-secondary"
+                            hidden
+                        >
+                            বাতিল
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            id="saveServiceButton"
+                            class="admin-btn admin-btn-primary"
+                        >
+                            সেবা যোগ করুন
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+            </div>
+
+
+
+            <!-- Services List -->
+
+            <div class="admin-card">
+
+
+                <div class="admin-card-header">
+
+                    <div>
+
+                        <h2>
+                            সকল সেবা
+                        </h2>
+
+                        <p>
+                            বর্তমানে সংরক্ষিত Service-এর
+                            তালিকা।
+                        </p>
+
+                    </div>
+
+
+                    <span
+                        id="adminServiceCountLabel"
+                        class="admin-count-badge"
+                    >
+                        0 টি সেবা
+                    </span>
+
+                </div>
+
+
+
+                <!-- Service Grid -->
+
+                <div
+                    id="adminServicesManagement"
+                    class="admin-services-management"
+                >
+                </div>
+
+
+
+                <!-- Empty State -->
+
+                <div
+                    id="adminServicesEmpty"
+                    class="admin-empty-state"
+                    hidden
+                >
+
+                    <div class="admin-empty-icon">
+                        🧩
+                    </div>
+
+                    <h3>
+                        এখনো কোনো Custom Service নেই
+                    </h3>
+
+                    <p>
+                        উপরের form ব্যবহার করে
+                        প্রথম Service যোগ করুন।
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- Information Note -->
+
+            <div class="admin-note-card">
+
+                <div class="admin-note-icon">
+                    💡
+                </div>
+
+                <div>
+
+                    <strong>
+                        গুরুত্বপূর্ণ
+                    </strong>
+
+                    <p>
+                        এখানে যোগ করা Service Dashboard-এর
+                        Service section-এ ব্যবহার করা হবে।
+                        কোনো Service নিষ্ক্রিয় করলে সেটি
+                        Dashboard-এ দেখানো হবে না।
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
 </div>
 
-<select id="adminStatusFilter">
-<option value="">সব স্ট্যাটাস</option>
-<option value="Pending">Pending</option>
-<option value="কাজ চলছে">কাজ চলছে</option>
-<option value="সমাধান হয়েছে">সমাধান হয়েছে</option>
-</select>
 
-<select id="adminCategoryFilter">
-<option value="">সব ক্যাটাগরি</option>
-</select>
 
-<select id="adminDivisionFilter">
-<option value="">সব বিভাগ</option>
-</select>
+<!-- =====================================================
+     ADMIN MESSAGE
+     ===================================================== -->
 
-<button id="resetAdminFilters" class="admin-btn admin-btn-secondary">
-Reset
-</button>
-
-</div>
-
-<div id="adminReportsTable" class="admin-reports-table">
-<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>
-</div>
-
-</div>
-
-</section>
-
-<!-- Categories -->
-<section id="categoriesSection" class="admin-section">
-
-<div class="admin-card">
-
-<div class="admin-card-header">
-<div>
-<h2>ক্যাটাগরি ব্যবস্থাপনা</h2>
-<p>রিপোর্টের সমস্যা/ইস্যু ক্যাটাগরি যোগ, সম্পাদনা ও মুছে ফেলুন</p>
-</div>
-
-<button id="addCategoryBtn" class="admin-btn admin-btn-primary">
-＋ নতুন ক্যাটাগরি
-</button>
-</div>
-
-<div id="categoriesList" class="categories-admin-list">
-<div class="admin-loading">ক্যাটাগরি লোড হচ্ছে...</div>
-</div>
-
-</div>
-
-</section>
-
-</main>
-</div>
-
-<!-- Report Edit Modal -->
-<div id="reportEditModal" class="admin-modal">
-<div class="admin-modal-overlay"></div>
-
-<div class="admin-modal-box">
-
-<div class="admin-modal-header">
-<div>
-<h2>রিপোর্ট সম্পাদনা</h2>
-<p>রিপোর্টের তথ্য ও কাজের অবস্থা পরিবর্তন করুন</p>
-</div>
-
-<button class="admin-modal-close" id="closeReportModal">
-×
-</button>
-</div>
-
-<form id="reportEditForm">
-
-<input type="hidden" id="editReportId">
-
-<div class="admin-form-grid">
-
-<div class="admin-form-group">
-<label>রিপোর্ট ID</label>
-<input type="text" id="editId" readonly>
-</div>
-
-<div class="admin-form-group">
-<label>স্ট্যাটাস</label>
-<select id="editStatus">
-<option value="Pending">Pending</option>
-<option value="কাজ চলছে">কাজ চলছে</option>
-<option value="সমাধান হয়েছে">সমাধান হয়েছে</option>
-</select>
-</div>
-
-<div class="admin-form-group">
-<label>বিভাগ</label>
-<input type="text" id="editDivision">
-</div>
-
-<div class="admin-form-group">
-<label>জেলা</label>
-<input type="text" id="editDistrict">
-</div>
-
-<div class="admin-form-group">
-<label>উপজেলা</label>
-<input type="text" id="editUpazila">
-</div>
-
-<div class="admin-form-group">
-<label>এলাকা</label>
-<input type="text" id="editArea">
-</div>
-
-<div class="admin-form-group">
-<label>ওয়ার্ড</label>
-<input type="text" id="editWard">
-</div>
-
-<div class="admin-form-group">
-<label>ক্যাটাগরি</label>
-<select id="editCategory"></select>
-</div>
-
-</div>
-
-<div class="admin-form-group">
-<label>সমস্যার বিবরণ</label>
-<textarea id="editDescription" rows="5"></textarea>
-</div>
-
-<div class="admin-form-group">
-<label>Admin Note</label>
-<textarea
-id="editAdminNote"
-rows="4"
-placeholder="প্রয়োজনে প্রশাসনের নোট লিখুন..."
-></textarea>
-</div>
-
-<div class="admin-modal-actions">
-<button type="button" class="admin-btn admin-btn-secondary" id="cancelReportEdit">
-বাতিল
-</button>
-
-<button type="submit" class="admin-btn admin-btn-primary" id="saveReportBtn">
-পরিবর্তন সংরক্ষণ
-</button>
-</div>
-
-</form>
-
-</div>
-</div>
-
-<!-- Category Modal -->
-<div id="categoryModal" class="admin-modal">
-<div class="admin-modal-overlay"></div>
-
-<div class="admin-modal-box admin-small-modal">
-
-<div class="admin-modal-header">
-<div>
-<h2 id="categoryModalTitle">নতুন ক্যাটাগরি</h2>
-<p>ক্যাটাগরির নাম লিখুন</p>
-</div>
-
-<button class="admin-modal-close" id="closeCategoryModal">
-×
-</button>
-</div>
-
-<form id="categoryForm">
-
-<input type="hidden" id="editCategoryIndex">
-
-<div class="admin-form-group">
-<label>ক্যাটাগরির নাম</label>
-<input
-type="text"
-id="categoryName"
-placeholder="যেমন: রাস্তা ভাঙা"
-required
+<div
+    id="adminMessage"
+    class="admin-message"
+    role="status"
+    aria-live="polite"
 >
-</div>
 
-<div class="admin-form-group">
-<label>আইকন / Emoji</label>
-<input
-type="text"
-id="categoryIcon"
-placeholder="🛣️"
-maxlength="4"
->
-</div>
+    <div
+        id="adminMessageIcon"
+        class="admin-message-icon"
+    >
+        ✓
+    </div>
 
-<div class="admin-modal-actions">
+    <div>
 
-<button
-type="button"
-class="admin-btn admin-btn-secondary"
-id="cancelCategory"
->
-বাতিল
-</button>
+        <strong
+            id="adminMessageTitle"
+        >
+            সফল
+        </strong>
 
-<button
-type="submit"
-class="admin-btn admin-btn-primary"
->
-সংরক্ষণ
-</button>
+        <p
+            id="adminMessageText"
+        >
+            কাজটি সফলভাবে সম্পন্ন হয়েছে।
+        </p>
+
+    </div>
 
 </div>
 
-</form>
 
-</div>
-</div>
+
+<!-- =====================================================
+     SCRIPTS
+     ===================================================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="js/supabase-config.js"></script>
+
 <script src="js/admin.js"></script>
+
 <script src="js/pwa.js"></script>
+
+
 </body>
 </html>
