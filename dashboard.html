@@ -2,31 +2,27 @@
 <html lang="bn">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="আমাদের এলাকার রিপোর্ট ও নাগরিক সমস্যার ড্যাশবোর্ড"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="আমাদের এলাকার রিপোর্ট ও নাগরিক সমস্যার ড্যাশবোর্ড">
 
     <title>রিপোর্ট ও ড্যাশবোর্ড - আমাদের এলাকা</title>
 
     <link rel="stylesheet" href="css/style.css">
-
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/premium.css">
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#064E3B">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <style>
-
         /* =========================
            Dashboard Overview
         ========================= */
-
         .dashboard-overview {
             margin-bottom: 35px;
         }
@@ -56,11 +52,9 @@
             font-size: 14px;
         }
 
-
         /* =========================
            Summary List
         ========================= */
-
         .summary-list {
             display: flex;
             flex-direction: column;
@@ -76,9 +70,7 @@
             background: #f8faf9;
             border: 1px solid #edf0ee;
             border-radius: 9px;
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .summary-item:hover {
@@ -105,11 +97,9 @@
             font-size: 13px;
         }
 
-
         /* =========================
            Top Category
         ========================= */
-
         .top-category {
             margin-bottom: 18px;
             padding: 15px;
@@ -137,11 +127,9 @@
             font-size: 14px;
         }
 
-
         /* =========================
            Location Search
         ========================= */
-
         .location-summary {
             margin-top: 20px;
         }
@@ -182,11 +170,9 @@
             transform: translateY(-2px);
         }
 
-
         /* =========================
            Selected Location Result
         ========================= */
-
         .location-result {
             display: none;
             padding: 16px;
@@ -228,11 +214,9 @@
             color: #166534;
         }
 
-
         /* =========================
            Report Search
         ========================= */
-
         .report-search-area {
             margin-bottom: 20px;
         }
@@ -250,21 +234,16 @@
             border-color: #2f6b4f;
         }
 
-
         /* =========================
-           Mobile
+           Mobile Responsive
         ========================= */
-
         @media (max-width: 800px) {
-
             .overview-grid {
                 grid-template-columns: 1fr;
             }
-
         }
 
         @media (max-width: 500px) {
-
             .overview-card {
                 padding: 20px;
             }
@@ -276,1300 +255,301 @@
             .location-search button {
                 min-height: 42px;
             }
-
         }
-
     </style>
-
-    <link rel="stylesheet" href="css/premium.css">
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#064E3B">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
-
 
 <body>
 
-    <!-- Emergency Hotline Popup -->
-    <div class="emergency-overlay" id="emergencyOverlay" aria-hidden="true"><div class="emergency-modal" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle"><div class="emergency-header"><div class="emergency-title"><div class="emergency-title-icon">🚨</div><div><h2 id="emergencyTitle">জরুরি নম্বর</h2><p>প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন</p></div></div><button type="button" class="emergency-close" id="emergencyClose" aria-label="বন্ধ করুন">×</button></div><div class="emergency-body"><div class="emergency-notice">🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।</div><div class="emergency-list" id="emergencyList"></div><div class="emergency-footer">জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।</div></div></div></div>
+    <!-- Emergency Hotline Component -->
+    <div data-include="components/emergency-modal.html"></div>
 
+    <!-- Header Component -->
+    <div data-include="components/header.html"></div>
 
-
-
-    <!-- =========================
-         Header
-    ========================== -->
-
-    <header class="header">
-
-        <div class="container header-inner">
-
-
-            <a
-                href="index.html"
-                class="logo"
-            >
-
-                <span class="logo-icon">
-                    🏠
-                </span>
-
-                <span>
-                    আমাদের এলাকা
-                </span>
-
-            </a>
-
-
-            <div class="mobile-header-actions" aria-label="মোবাইল হেডার অ্যাকশন">
-            <button type="button" class="mobile-search-button" id="mobileSearchButton" aria-label="সার্চ">⌕</button>
-            <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="মেনু খুলুন" aria-expanded="false" aria-controls="mobile-navigation">☰</button>
-        </div>
-
-        <nav class="nav" id="mobile-navigation">
-
-                <a href="index.html">
-                    হোম
-                </a>
-
-                <a
-                    href="dashboard.html#reports"
-                    class="active"
-                >
-                    রিপোর্ট
-                </a>
-
-                <a href="dashboard.html">
-                    ড্যাশবোর্ড
-                </a>
-
-                <a href="government.html">
-                  🌐 সরকারি সেবা
-                </a>
-
-                <a
-                    href="#"
-                    class="emergency-nav-button"
-                    id="emergencyButton"
-                >
-                    🚨 জরুরি নম্বর
-                </a>
-
-                <a
-                    href="report.html"
-                    class="nav-button"
-                >
-                    সমস্যা রিপোর্ট করুন
-                </a>
-
-            </nav>
-
-        </div>
-
-    </header>
-
-
-
-    <!-- =========================
-         Main Dashboard
-    ========================== -->
-
+    <!-- Main Dashboard -->
     <main class="dashboard">
-
         <div class="container">
 
-
-            <!-- =========================
-                 Dashboard Header
-            ========================== -->
-
+            <!-- Dashboard Title -->
             <div class="dashboard-header">
-
-                <h1>
-                    এলাকার রিপোর্ট
-                </h1>
-
-                <p>
-                    বাংলাদেশজুড়ে নাগরিক সমস্যার রিপোর্ট,
-                    অবস্থান ও বিষয়ভিত্তিক তথ্য দেখুন।
-                </p>
-
+                <h1>এলাকার রিপোর্ট</h1>
+                <p>বাংলাদেশজুড়ে নাগরিক সমস্যার রিপোর্ট, অবস্থান ও বিষয়ভিত্তিক তথ্য দেখুন।</p>
             </div>
 
-
-
-            <!-- =========================
-                 Statistics
-            ========================== -->
-
+            <!-- Statistics -->
             <section class="dashboard-stats">
-
-
                 <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="totalReports"
-                    >
-                        0
-                    </span>
-
-                    <span class="stat-label">
-                        মোট রিপোর্ট
-                    </span>
-
+                    <span class="stat-number" id="totalReports">0</span>
+                    <span class="stat-label">মোট রিপোর্ট</span>
                 </div>
-
-
                 <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="pendingReports"
-                    >
-                        0
-                    </span>
-
-                    <span class="stat-label">
-                        অপেক্ষমাণ
-                    </span>
-
+                    <span class="stat-number" id="pendingReports">0</span>
+                    <span class="stat-label">অপেক্ষমাণ</span>
                 </div>
-
-
                 <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="progressReports"
-                    >
-                        0
-                    </span>
-
-                    <span class="stat-label">
-                        কাজ চলছে
-                    </span>
-
+                    <span class="stat-number" id="progressReports">0</span>
+                    <span class="stat-label">কাজ চলছে</span>
                 </div>
-
-
                 <div class="stat-card">
-
-                    <span
-                        class="stat-number"
-                        id="solvedReports"
-                    >
-                        0
-                    </span>
-
-                    <span class="stat-label">
-                        সমাধান হয়েছে
-                    </span>
-
+                    <span class="stat-number" id="solvedReports">0</span>
+                    <span class="stat-label">সমাধান হয়েছে</span>
                 </div>
-
-
             </section>
 
-
-
-            <!-- =========================
-                 Bangladesh Overview
-            ========================== -->
-
-            <section class="dashboard-overview">
-
-                <div class="overview-grid">
-
-
-                    <!-- =========================
-                         Category Summary
-                    ========================== -->
-
-                    <div class="overview-card">
-
-                        <h2>
-                            🏷️ বিষয়ভিত্তিক রিপোর্ট
-                        </h2>
-
-                        <p>
-                            কোন ধরনের সমস্যা সবচেয়ে বেশি রিপোর্ট হচ্ছে।
-                        </p>
-
-
-                        <div
-                            id="topCategory"
-                            class="top-category"
-                        >
-
-                            <span class="top-category-label">
-                                সবচেয়ে বেশি রিপোর্ট
-                            </span>
-
-                            <span
-                                id="topCategoryName"
-                                class="top-category-name"
-                            >
-                                তথ্য লোড হচ্ছে...
-                            </span>
-
-                            <span
-                                id="topCategoryCount"
-                                class="top-category-count"
-                            >
-                                —
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            id="categorySummary"
-                            class="summary-list"
-                        >
-
-                            <div class="summary-item">
-
-                                <span class="summary-name">
-                                    তথ্য লোড হচ্ছে...
-                                </span>
-
-                                <span class="summary-count">
-                                    —
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- =========================
-                         Location Summary
-                    ========================== -->
-
-                    <div class="overview-card">
-
-                        <h2>
-                            📍 এলাকাভিত্তিক রিপোর্ট
-                        </h2>
-
-                        <p>
-                            কোন বিভাগে কতটি রিপোর্ট রয়েছে।
-                        </p>
-
-
-                        <div class="summary-list">
-
-                            <div
-                                id="divisionSummary"
-                            >
-
-                                <div class="summary-item">
-
-                                    <span class="summary-name">
-                                        তথ্য লোড হচ্ছে...
-                                    </span>
-
-                                    <span class="summary-count">
-                                        —
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="location-summary">
-
-                            <div class="location-search">
-
-                                <input
-                                    type="search"
-                                    id="locationSearch"
-                                    placeholder="বিভাগ, জেলা বা উপজেলা লিখুন..."
-                                    autocomplete="off"
-                                >
-
-                                <button
-                                    type="button"
-                                    id="locationSearchButton"
-                                >
-                                    খুঁজুন
-                                </button>
-
-                            </div>
-
-
-                            <div
-                                id="locationResult"
-                                class="location-result"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-            </section>
-
-
-
-            <!-- =========================
-                 Reports
-            ========================== -->
-
-            <section
-                id="reports"
-                class="reports-section"
-            >
-
-
-                <div class="section-header">
-
-                    <div>
-
-                        <h2>
-                            সাম্প্রতিক রিপোর্ট
-                        </h2>
-
-                        <p
-                            style="
-                                margin:5px 0 0;
-                                color:#6b7280;
-                                font-size:14px;
-                            "
-                        >
-                            একটি রিপোর্টে ক্লিক করলে বিস্তারিত তথ্য দেখতে পারবেন।
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        id="refreshButton"
-                        class="refresh-btn"
-                    >
-                        ↻ রিফ্রেশ
-                    </button>
-
-                </div>
-
-
-
-                <!-- =========================
-                     Search
-                ========================== -->
-
-                <div class="report-search-area">
-
-                    <input
-                        type="search"
-                        id="searchInput"
-                        placeholder="রিপোর্ট, এলাকা, জেলা, বিষয় বা রিপোর্ট ID দিয়ে খুঁজুন..."
-                        autocomplete="off"
-                    >
-
-                </div>
-
-
-
-                <!-- =========================
-                     Filters
-                ========================== -->
-
-                <div
-                    class="dashboard-filters"
-                    style="
-                        display:grid;
-                        grid-template-columns:
-                        repeat(3, minmax(0, 1fr));
-                        gap:12px;
-                        margin-bottom:18px;
-                    "
-                >
-
-                    <select
-                        id="divisionFilter"
-                        style="
-                            width:100%;
-                            padding:11px 12px;
-                            border:1px solid #d1d5db;
-                            border-radius:8px;
-                            background:#fff;
-                            font:inherit;
-                        "
-                    >
-
-                        <option value="">
-                            সব বিভাগ
-                        </option>
-
-                    </select>
-
-
-                    <select
-                        id="categoryFilter"
-                        style="
-                            width:100%;
-                            padding:11px 12px;
-                            border:1px solid #d1d5db;
-                            border-radius:8px;
-                            background:#fff;
-                            font:inherit;
-                        "
-                    >
-
-                        <option value="">
-                            সব বিষয়
-                        </option>
-
-                    </select>
-
-
-                    <select
-                        id="statusFilter"
-                        style="
-                            width:100%;
-                            padding:11px 12px;
-                            border:1px solid #d1d5db;
-                            border-radius:8px;
-                            background:#fff;
-                            font:inherit;
-                        "
-                    >
-
-                        <option value="">
-                            সব স্ট্যাটাস
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-
-                <!-- =========================
-                     Reset
-                ========================== -->
-
-                <div
-                    style="
-                        display:flex;
-                        justify-content:flex-end;
-                        margin-bottom:18px;
-                    "
-                >
-
-                    <button
-                        type="button"
-                        id="resetFilters"
-                        style="
-                            border:1px solid #d1d5db;
-                            background:#fff;
-                            color:#374151;
-                            padding:9px 15px;
-                            border-radius:7px;
-                            cursor:pointer;
-                            font:inherit;
-                        "
-                    >
-                        ফিল্টার রিসেট
-                    </button>
-
-                </div>
-
-
-
-                <!-- =========================
-                     Loading
-                ========================== -->
-
-                <div
-                    id="loading"
-                    class="loading"
-                >
-                    রিপোর্ট লোড হচ্ছে...
-                </div>
-
-
-
-                <!-- =========================
-                     Reports Container
-                ========================== -->
-
-                <div
-                    id="reportsContainer"
-                    class="reports-container"
-                ></div>
-
-
-
-                <!-- =========================
-                     No Reports
-                ========================== -->
-
-                <div
-                    id="noReports"
-                    class="no-reports"
-                    style="display:none;"
-                >
-
-                    <h3>
-                        কোনো রিপোর্ট পাওয়া যায়নি
-                    </h3>
-
-                    <p>
-                        Search বা filter পরিবর্তন করে আবার চেষ্টা করুন।
-                    </p>
-
-                </div>
-
-
-            </section>
-
+            <!-- Dashboard Overview Component -->
+            <div data-include="components/dashboard-overview.html"></div>
+
+            <!-- Reports List Component -->
+            <div data-include="components/reports-list.html"></div>
 
         </div>
-
     </main>
 
+    <!-- Footer Component -->
+    <div data-include="components/footer.html"></div>
 
-
-    <!-- =========================
-         Footer
-    ========================== -->
-
-    <footer class="footer">
-
-        <div class="container">
-
-            <div class="footer-inner">
-
-
-                <div>
-
-                    <a
-                        href="index.html"
-                        class="logo"
-                    >
-
-                        <span class="logo-icon">
-                            🏠
-                        </span>
-
-                        <span>
-                            আমাদের এলাকা
-                        </span>
-
-                    </a>
-
-
-                    <p>
-                        নাগরিকদের অংশগ্রহণে এলাকার সমস্যা
-                        চিহ্নিত ও সমাধানের একটি সহজ প্ল্যাটফর্ম।
-                    </p>
-
-                </div>
-
-
-                <div class="footer-links">
-
-                    <a href="index.html">
-                        হোম
-                    </a>
-
-                    <a href="dashboard.html#reports">
-                        রিপোর্ট
-                    </a>
-
-                    <a href="dashboard.html">
-                        ড্যাশবোর্ড
-                    </a>
-
-                    <a href="report.html">
-                        সমস্যা রিপোর্ট করুন
-                    </a>
-
-                </div>
-
-
-            </div>
-
-
-            <div class="footer-bottom">
-
-                © 2026 আমাদের এলাকা —
-                নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
-
-            </div>
-
-        </div>
-
-    </footer>
-
-
-
-    <!-- =========================
-         Dashboard Summary Script
-    ========================== -->
-
+    <!-- Component Loader Script -->
     <script>
+        async function loadComponents() {
+            const elements = document.querySelectorAll('[data-include]');
+            for (const el of elements) {
+                const file = el.getAttribute('data-include');
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        el.outerHTML = await response.text();
+                    } else {
+                        console.error(`Failed to load ${file}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error(`Error loading component ${file}:`, error);
+                }
+            }
+            
+            // Component-dependent Scripts Execution
+            initializePageScripts();
+        }
 
+        document.addEventListener("DOMContentLoaded", loadComponents);
+    </script>
+
+    <!-- =========================
+         Dashboard Inline Summary Script
+    ========================== -->
+    <script>
         const SUMMARY_TABLE = "Reports";
-
-
         let summaryReports = [];
 
-
-        /* =========================
-           Load Summary Data
-        ========================== */
-
         async function loadDashboardSummary() {
-
             try {
+                const { data, error } = await supabaseClient
+                    .from(SUMMARY_TABLE)
+                    .select("*")
+                    .order("Date", { ascending: true });
 
-                const { data, error } =
-                    await supabaseClient
-                        .from(SUMMARY_TABLE)
-                        .select("*")
-                        .order("Date", { ascending: true });
+                if (error) throw error;
 
-                if (error) {
-                    throw error;
-                }
+                summaryReports = Array.isArray(data) ? data : [];
 
-                summaryReports =
-                    Array.isArray(data)
-                        ? data
-                        : [];
-
-
-                renderCategorySummary(
-                    summaryReports
-                );
-
-                renderDivisionSummary(
-                    summaryReports
-                );
+                renderCategorySummary(summaryReports);
+                renderDivisionSummary(summaryReports);
 
             } catch (error) {
-
-                console.error(
-                    "Summary Error:",
-                    error
-                );
-
+                console.error("Summary Error:", error);
                 renderSummaryError();
-
             }
-
         }
-
-
-        /* =========================
-           Category Summary
-        ========================== */
 
         function renderCategorySummary(reports) {
-
-            const container =
-                document.getElementById(
-                    "categorySummary"
-                );
-
-            const topName =
-                document.getElementById(
-                    "topCategoryName"
-                );
-
-            const topCount =
-                document.getElementById(
-                    "topCategoryCount"
-                );
-
+            const container = document.getElementById("categorySummary");
+            const topName = document.getElementById("topCategoryName");
+            const topCount = document.getElementById("topCategoryCount");
 
             if (!container) return;
 
-
             const categoryMap = {};
-
-
             reports.forEach(function (report) {
-
-                const category =
-                    String(
-                        report.Category ||
-                        "অন্যান্য"
-                    ).trim();
-
-
-                categoryMap[category] =
-                    (categoryMap[category] || 0) + 1;
-
+                const category = String(report.Category || "অন্যান্য").trim();
+                categoryMap[category] = (categoryMap[category] || 0) + 1;
             });
 
-
-            const categories =
-                Object.entries(categoryMap)
-                    .sort(function (a, b) {
-                        return b[1] - a[1];
-                    });
-
-
+            const categories = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]);
             container.innerHTML = "";
-
 
             if (!categories.length) {
-
                 container.innerHTML = `
                     <div class="summary-item">
-                        <span class="summary-name">
-                            এখনো কোনো রিপোর্ট নেই
-                        </span>
-                        <span class="summary-count">
-                            0
-                        </span>
+                        <span class="summary-name">এখনো কোনো রিপোর্ট নেই</span>
+                        <span class="summary-count">0</span>
                     </div>
                 `;
-
-                if (topName) {
-                    topName.textContent =
-                        "কোনো তথ্য নেই";
-                }
-
-                if (topCount) {
-                    topCount.textContent = "0 রিপোর্ট";
-                }
-
+                if (topName) topName.textContent = "কোনো তথ্য নেই";
+                if (topCount) topCount.textContent = "0 রিপোর্ট";
                 return;
-
             }
 
+            const highest = categories[0];
+            if (topName) topName.textContent = highest[0];
+            if (topCount) topCount.textContent = highest[1] + "টি রিপোর্ট";
 
-            const highest =
-                categories[0];
-
-
-            if (topName) {
-                topName.textContent =
-                    highest[0];
-            }
-
-
-            if (topCount) {
-
-                topCount.textContent =
-                    highest[1] + "টি রিপোর্ট";
-
-            }
-
-
-            categories.forEach(
-                function (item) {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-                    row.className =
-                        "summary-item";
-
-
-                    row.innerHTML = `
-
-                        <span class="summary-name">
-                            ${escapeSummaryHTML(
-                                item[0]
-                            )}
-                        </span>
-
-                        <span class="summary-count">
-                            ${item[1]}
-                        </span>
-
-                    `;
-
-
-                    container.appendChild(row);
-
-                }
-            );
-
+            categories.forEach(function (item) {
+                const row = document.createElement("div");
+                row.className = "summary-item";
+                row.innerHTML = `
+                    <span class="summary-name">${escapeSummaryHTML(item[0])}</span>
+                    <span class="summary-count">${item[1]}</span>
+                `;
+                container.appendChild(row);
+            });
         }
-
-
-        /* =========================
-           Division Summary
-        ========================== */
 
         function renderDivisionSummary(reports) {
-
-            const container =
-                document.getElementById(
-                    "divisionSummary"
-                );
-
-
+            const container = document.getElementById("divisionSummary");
             if (!container) return;
 
-
             const divisionMap = {};
-
-
             reports.forEach(function (report) {
-
-                const division =
-                    String(
-                        report.Division ||
-                        "অজানা"
-                    ).trim();
-
-
-                divisionMap[division] =
-                    (divisionMap[division] || 0) + 1;
-
+                const division = String(report.Division || "অজানা").trim();
+                divisionMap[division] = (divisionMap[division] || 0) + 1;
             });
 
-
-            const divisions =
-                Object.entries(divisionMap)
-                    .sort(function (a, b) {
-                        return b[1] - a[1];
-                    });
-
-
+            const divisions = Object.entries(divisionMap).sort((a, b) => b[1] - a[1]);
             container.innerHTML = "";
 
-
             if (!divisions.length) {
-
                 container.innerHTML = `
                     <div class="summary-item">
-
-                        <span class="summary-name">
-                            এখনো কোনো রিপোর্ট নেই
-                        </span>
-
-                        <span class="summary-count">
-                            0
-                        </span>
-
+                        <span class="summary-name">এখনো কোনো রিপোর্ট নেই</span>
+                        <span class="summary-count">0</span>
                     </div>
                 `;
-
                 return;
-
             }
 
-
-            divisions.forEach(
-                function (item) {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-                    row.className =
-                        "summary-item";
-
-
-                    row.innerHTML = `
-
-                        <span class="summary-name">
-                            📍 ${escapeSummaryHTML(
-                                item[0]
-                            )}
-                        </span>
-
-                        <span class="summary-count">
-                            ${item[1]}
-                        </span>
-
-                    `;
-
-
-                    container.appendChild(row);
-
-                }
-            );
-
+            divisions.forEach(function (item) {
+                const row = document.createElement("div");
+                row.className = "summary-item";
+                row.innerHTML = `
+                    <span class="summary-name">📍 ${escapeSummaryHTML(item[0])}</span>
+                    <span class="summary-count">${item[1]}</span>
+                `;
+                container.appendChild(row);
+            });
         }
-
-
-        /* =========================
-           Location Search
-        ========================== */
 
         function searchLocation() {
-
-            const input =
-                document.getElementById(
-                    "locationSearch"
-                );
-
-            const result =
-                document.getElementById(
-                    "locationResult"
-                );
-
-
+            const input = document.getElementById("locationSearch");
+            const result = document.getElementById("locationResult");
             if (!input || !result) return;
 
-
-            const query =
-                input.value
-                    .trim()
-                    .toLowerCase();
-
-
+            const query = input.value.trim().toLowerCase();
             if (!query) {
-
-                result.classList.remove(
-                    "show"
-                );
-
+                result.classList.remove("show");
                 result.innerHTML = "";
-
                 return;
-
             }
 
-
-            const matched =
-                summaryReports.filter(
-                    function (report) {
-
-                        const text = [
-
-                            report.Division,
-                            report.District,
-                            report.Upazila,
-                            report.Area
-
-                        ]
-                            .map(function (value) {
-
-                                return String(
-                                    value || ""
-                                ).toLowerCase();
-
-                            })
-                            .join(" ");
-
-
-                        return text.includes(
-                            query
-                        );
-
-                    }
-                );
-
-
-            const categoryMap = {};
-
-
-            matched.forEach(function (report) {
-
-                const category =
-                    String(
-                        report.Category ||
-                        "অন্যান্য"
-                    ).trim();
-
-
-                categoryMap[category] =
-                    (categoryMap[category] || 0) + 1;
-
+            const matched = summaryReports.filter(function (report) {
+                const text = [report.Division, report.District, report.Upazila, report.Area]
+                    .map(value => String(value || "").toLowerCase())
+                    .join(" ");
+                return text.includes(query);
             });
 
+            const categoryMap = {};
+            matched.forEach(function (report) {
+                const category = String(report.Category || "অন্যান্য").trim();
+                categoryMap[category] = (categoryMap[category] || 0) + 1;
+            });
 
-            const categories =
-                Object.entries(categoryMap)
-                    .sort(function (a, b) {
-                        return b[1] - a[1];
-                    });
-
-
+            const categories = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]);
             result.classList.add("show");
 
-
             if (!matched.length) {
-
                 result.innerHTML = `
-
-                    <h3>
-                        কোনো রিপোর্ট পাওয়া যায়নি
-                    </h3>
-
-                    <p class="location-total">
-                        “${escapeSummaryHTML(
-                            input.value
-                        )}” এলাকায় এখনো কোনো রিপোর্ট পাওয়া যায়নি।
-                    </p>
-
+                    <h3>কোনো রিপোর্ট পাওয়া যায়নি</h3>
+                    <p class="location-total">“${escapeSummaryHTML(input.value)}” এলাকায় এখনো কোনো রিপোর্ট পাওয়া যায়নি।</p>
                 `;
-
                 return;
-
             }
 
-
-            const locationName =
-                matched[0].District ||
-                matched[0].Division ||
-                input.value;
-
-
+            const locationName = matched[0].District || matched[0].Division || input.value;
             result.innerHTML = `
-
-                <h3>
-                    📍 ${escapeSummaryHTML(
-                        locationName
-                    )}
-                </h3>
-
+                <h3>📍 ${escapeSummaryHTML(locationName)}</h3>
                 <div class="location-total">
-
-                    মোট
-                    <strong>
-                        ${matched.length}
-                    </strong>
-                    টি রিপোর্ট পাওয়া গেছে।
-
+                    মোট <strong>${matched.length}</strong> টি রিপোর্ট পাওয়া গেছে।
                 </div>
-
-
-                <strong>
-                    বিষয়ভিত্তিক রিপোর্ট:
-                </strong>
-
-
+                <strong>বিষয়ভিত্তিক রিপোর্ট:</strong>
                 <div class="location-categories">
-
-                    ${
-                        categories
-                            .map(function (item) {
-
-                                return `
-                                    <span class="location-category">
-
-                                        ${escapeSummaryHTML(
-                                            item[0]
-                                        )}
-
-                                        :
-
-                                        <strong>
-                                            ${item[1]}
-                                        </strong>
-
-                                    </span>
-                                `;
-
-                            })
-                            .join("")
-                    }
-
+                    ${categories.map(item => `
+                        <span class="location-category">
+                            ${escapeSummaryHTML(item[0])}: <strong>${item[1]}</strong>
+                        </span>
+                    `).join("")}
                 </div>
-
             `;
-
         }
 
-
-        /* =========================
-           Escape HTML
-        ========================== */
-
         function escapeSummaryHTML(value) {
-
             return String(value || "")
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
-
         }
-
-
-        /* =========================
-           Summary Error
-        ========================== */
 
         function renderSummaryError() {
-
-            const category =
-                document.getElementById(
-                    "categorySummary"
-                );
-
-            const division =
-                document.getElementById(
-                    "divisionSummary"
-                );
-
+            const category = document.getElementById("categorySummary");
+            const division = document.getElementById("divisionSummary");
 
             if (category) {
-
-                category.innerHTML = `
-                    <div class="summary-item">
-
-                        <span class="summary-name">
-                            তথ্য লোড করা যায়নি
-                        </span>
-
-                        <span class="summary-count">
-                            —
-                        </span>
-
-                    </div>
-                `;
-
+                category.innerHTML = `<div class="summary-item"><span class="summary-name">তথ্য লোড করা যায়নি</span><span class="summary-count">—</span></div>`;
             }
-
-
             if (division) {
-
-                division.innerHTML = `
-                    <div class="summary-item">
-
-                        <span class="summary-name">
-                            তথ্য লোড করা যায়নি
-                        </span>
-
-                        <span class="summary-count">
-                            —
-                        </span>
-
-                    </div>
-                `;
-
+                division.innerHTML = `<div class="summary-item"><span class="summary-name">তথ্য লোড করা যায়নি</span><span class="summary-count">—</span></div>`;
             }
-
         }
 
+        function initializePageScripts() {
+            loadDashboardSummary();
 
-        /* =========================
-           Location Search Events
-        ========================== */
+            const locationInput = document.getElementById("locationSearch");
+            const locationButton = document.getElementById("locationSearchButton");
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+            if (locationInput && locationButton) {
+                locationButton.addEventListener("click", searchLocation);
 
-                loadDashboardSummary();
+                locationInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        searchLocation();
+                    }
+                });
 
-
-                const locationInput =
-                    document.getElementById(
-                        "locationSearch"
-                    );
-
-
-                const locationButton =
-                    document.getElementById(
-                        "locationSearchButton"
-                    );
-
-
-                if (
-                    locationInput &&
-                    locationButton
-                ) {
-
-                    locationButton.addEventListener(
-                        "click",
-                        searchLocation
-                    );
-
-
-                    locationInput.addEventListener(
-                        "keydown",
-                        function (event) {
-
-                            if (
-                                event.key === "Enter"
-                            ) {
-
-                                event.preventDefault();
-
-                                searchLocation();
-
-                            }
-
+                locationInput.addEventListener("input", function () {
+                    if (locationInput.value.trim()) {
+                        searchLocation();
+                    } else {
+                        const result = document.getElementById("locationResult");
+                        if (result) {
+                            result.classList.remove("show");
+                            result.innerHTML = "";
                         }
-                    );
-
-
-                    locationInput.addEventListener(
-                        "input",
-                        function () {
-
-                            if (
-                                locationInput.value.trim()
-                            ) {
-
-                                searchLocation();
-
-                            } else {
-
-                                const result =
-                                    document.getElementById(
-                                        "locationResult"
-                                    );
-
-                                if (result) {
-
-                                    result.classList.remove(
-                                        "show"
-                                    );
-
-                                    result.innerHTML =
-                                        "";
-
-                                }
-
-                            }
-
-                        }
-                    );
-
-                }
-
+                    }
+                });
             }
-        );
-
+        }
     </script>
 
-
-
-    <!-- Supabase -->
+    <!-- Supabase Core & JS Files -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
-
-    <!-- Existing Dashboard JavaScript -->
     <script src="js/dashboard.js"></script>
-
-    <!-- Emergency Hotline JavaScript -->
     <script src="js/emergency.js"></script>
-
-
-<script src="js/mobile-nav.js"></script>
-<script src="js/pwa.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 
 </html>
