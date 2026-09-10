@@ -69,25 +69,23 @@ async function loadReports(forceRefresh = false) {
             }
         }
 
-        // =====================================
-        // Supabase Request
-        // =====================================
+      
+// Fetch Fresh Reports
+          // =====================================
 
-        if (typeof supabaseClient === "undefined") {
-            throw new Error("Supabase client is not loaded");
-        }
+          if (
+           !window.DashboardReports ||
+           typeof window.DashboardReports.fetchReports !== "function"
+           ) {
+          throw new Error(
+          "Dashboard Reports module is not loaded"
+          );
+          }
 
-        const { data, error } = await supabaseClient
-            .from(REPORT_TABLE)
-            .select("*")
-            .order("Date", { ascending: true });
+allReports =
+    await window.DashboardReports.fetchReports();
 
-        if (error) {
-            throw error;
-        }
-
-        allReports = Array.isArray(data) ? data : [];
-
+        
         // Save fresh data
         saveCachedReports(allReports);
 
