@@ -1,0 +1,55 @@
+<section id="reports" class="reports-section">
+    <div class="section-header">
+        <div>
+            <h2>সাম্প্রতিক রিপোর্ট</h2>
+            <p style="margin:5px 0 0; color:#6b7280; font-size:14px;">
+                একটি রিপোর্টে ক্লিক করলে বিস্তারিত তথ্য দেখতে পারবেন।
+            </p>
+        </div>
+
+        <button type="button" id="refreshButton" class="refresh-btn">
+            ↻ রিফ্রেশ
+        </button>
+    </div>
+
+    <!-- Search -->
+    <div class="report-search-area">
+        <input type="search" id="searchInput" placeholder="রিপোর্ট, এলাকা, জেলা, বিষয় বা রিপোর্ট ID দিয়ে খুঁজুন..." autocomplete="off">
+    </div>
+
+    <!-- Filters -->
+    <div class="dashboard-filters" style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin-bottom:18px;">
+        <select id="divisionFilter" style="width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font:inherit;">
+            <option value="">সব বিভাগ</option>
+        </select>
+
+        <select id="categoryFilter" style="width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font:inherit;">
+            <option value="">সব বিষয়</option>
+        </select>
+
+        <select id="statusFilter" style="width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font:inherit;">
+            <option value="">সব স্ট্যাটাস</option>
+        </select>
+    </div>
+
+    <!-- Reset -->
+    <div style="display:flex; justify-content:flex-end; margin-bottom:18px;">
+        <button type="button" id="resetFilters" style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:9px 15px; border-radius:7px; cursor:pointer; font:inherit;">
+            ফিল্টার রিসেট
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+        রিপোর্ট লোড হচ্ছে...
+    </div>
+
+    <!-- Reports Container -->
+    <div id="reportsContainer" class="reports-container"></div>
+
+    <!-- No Reports -->
+    <div id="noReports" class="no-reports" style="display:none;">
+        <h3>কোনো রিপোর্ট পাওয়া যায়নি</h3>
+        <p>Search বা filter পরিবর্তন করে আবার চেষ্টা করুন।</p>
+    </div>
+</section>
