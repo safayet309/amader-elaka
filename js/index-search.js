@@ -1,4 +1,4 @@
-/* ==========================
+ /* ==========================
    home-search.js
    Homepage report search box logic
    (loads + caches reports, filters, renders results)
@@ -471,4 +471,3 @@
 
             }
         );
-
