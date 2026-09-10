@@ -1,2017 +1,2068 @@
- <!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="আমাদের এলাকা - আপনার এলাকার সমস্যা রিপোর্ট করুন এবং এলাকার রিপোর্ট দেখুন।">
-    <title>আমাদের এলাকা - এলাকার সমস্যা রিপোর্ট করুন</title>
+ <!DOCTYPE html><html lang="bn"><head>
+    <meta charset="UTF-8"><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <link rel="stylesheet" href="css/style.css">
+<meta
+    name="description"
+    content="আমাদের এলাকা — নাগরিক সেবা, জরুরি সহায়তা ও গুরুত্বপূর্ণ তথ্যের সহজ প্ল্যাটফর্ম।"
+>
 
-    <style>
-        /* =========================
-           Premium Home Search
-        ========================= */
+<meta
+    name="theme-color"
+    content="#064E3B"
+>
 
-        .home-search-section {
-            padding: 25px 0 10px;
+<title>আমাদের এলাকা</title>
+
+<!-- =========================
+     Main Styles
+========================== -->
+
+<link
+    rel="stylesheet"
+    href="css/style.css"
+>
+
+<link
+    rel="stylesheet"
+    href="css/premium.css"
+>
+
+
+<!-- =========================
+     PWA
+========================== -->
+
+<link
+    rel="manifest"
+    href="manifest.json"
+>
+
+<meta
+    name="mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+>
+
+<link
+    rel="apple-touch-icon"
+    href="icons/icon-192.png"
+>
+
+
+<!-- =========================
+     Home Slider + Emergency
+     Temporary page-specific
+     styling
+========================== -->
+
+<style>
+
+    /* =====================================
+       HOME SLIDER
+    ====================================== */
+
+    .home-slider-section {
+        padding: 18px 0 0;
+    }
+
+    .home-slider {
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        aspect-ratio: 16 / 7;
+        min-height: 220px;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #eef2f0;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .home-slide {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(100%);
+        transition:
+            transform 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+            opacity 0.8s ease;
+        z-index: 1;
+    }
+
+    .home-slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+        z-index: 3;
+    }
+
+    .home-slide.previous {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-100%);
+        z-index: 2;
+    }
+
+    .home-slide.next-ready {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(100%);
+        z-index: 2;
+    }
+
+    .home-slider-dots {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transform: translateX(-50%);
+        padding: 7px 11px;
+        background: rgba(0, 0, 0, 0.28);
+        border-radius: 999px;
+        backdrop-filter: blur(5px);
+    }
+
+    .home-slider-dot {
+        width: 7px;
+        height: 7px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition:
+            width 0.25s ease,
+            background 0.25s ease;
+    }
+
+    .home-slider-dot.active {
+        width: 22px;
+        border-radius: 999px;
+        background: #ffffff;
+    }
+
+    .home-slider-loading,
+    .home-slider-empty {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+        background: #eef2f0;
+    }
+
+
+    /* =====================================
+       NOTICE MARQUEE
+    ====================================== */
+
+    .demo-marquee-section {
+        width: 100%;
+        overflow: hidden;
+        background: #fff7f7;
+        border-top: 1px solid #fee2e2;
+        border-bottom: 1px solid #fee2e2;
+        margin-top: 10px;
+    }
+
+    .demo-marquee {
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .demo-marquee-track {
+        display: inline-flex;
+        width: max-content;
+        animation: demoMarqueeRight 22s linear infinite;
+    }
+
+    .demo-marquee-text {
+        display: inline-block;
+        padding: 10px 25px;
+        color: #dc2626;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    @keyframes demoMarqueeRight {
+
+        0% {
+            transform: translateX(-50%);
         }
 
-        .home-search-box {
-            max-width: 760px;
-            margin: 0 auto;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
-            transition:
-                box-shadow 0.25s ease,
-                border-color 0.25s ease,
-                transform 0.25s ease;
+        100% {
+            transform: translateX(0);
         }
 
-        .home-search-box:focus-within {
-            border-color: #2f6b4f;
-            box-shadow: 0 10px 32px rgba(47, 107, 79, 0.14);
-            transform: translateY(-2px);
-        }
-
-        .home-search-icon {
-            width: 42px;
-            height: 42px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: #eef6f1;
-            font-size: 20px;
-        }
-
-        .home-search-input {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: #1f2933;
-            font: inherit;
-            font-size: 16px;
-        }
-
-        .home-search-input::placeholder {
-            color: #9ca3af;
-        }
-
-        .home-search-button {
-            min-height: 42px;
-            padding: 0 20px;
-            border: none;
-            border-radius: 9px;
-            background: #166534;
-            color: #ffffff;
-            font: inherit;
-            font-weight: 600;
-            cursor: pointer;
-            transition:
-                transform 0.2s ease,
-                background 0.2s ease;
-        }
-
-        .home-search-button:hover {
-            background: #14532d;
-            transform: translateY(-1px);
-        }
-
-        .home-search-button:active {
-            transform: translateY(0);
-        }
-
-        .home-search-help {
-            margin: 9px 0 0;
-            text-align: center;
-            color: #6b7280;
-            font-size: 13px;
-        }
-
-        .home-search-results {
-            max-width: 760px;
-            margin: 12px auto 0;
-            display: none;
-        }
-
-        .home-search-result {
-            padding: 14px 16px;
-            margin-bottom: 8px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-        }
-
-        .home-search-result strong {
-            display: block;
-            color: #166534;
-            margin-bottom: 4px;
-        }
-
-        .home-search-result span {
-            color: #555;
-            font-size: 14px;
-        }
-
-        .home-search-empty {
-            padding: 18px;
-            text-align: center;
-            color: #6b7280;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-        }
+    }
 
 
-        /* =========================
-           Home Image Slider
-        ========================= */
+    /* =====================================
+       EMERGENCY NAV BUTTON
+    ====================================== */
+
+    .emergency-nav-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid #fecaca;
+        border-radius: 9px;
+        background: #fff7f7;
+        color: #dc2626;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .emergency-nav-button:hover {
+        background: #dc2626;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow:
+            0 5px 15px rgba(220, 38, 38, 0.18);
+    }
+
+    .emergency-nav-button:active {
+        transform: translateY(0);
+    }
+
+
+    /* =====================================
+       EMERGENCY MODAL
+    ====================================== */
+
+    .emergency-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(15, 23, 42, 0.58);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            opacity 0.25s ease,
+            visibility 0.25s ease;
+    }
+
+    .emergency-overlay.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .emergency-modal {
+        width: min(720px, 100%);
+        max-height: min(86vh, 760px);
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        box-shadow:
+            0 24px 70px rgba(15, 23, 42, 0.22);
+        transform: translateY(18px) scale(0.98);
+        transition: transform 0.25s ease;
+    }
+
+    .emergency-overlay.show .emergency-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    .emergency-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #eef2f0;
+    }
+
+    .emergency-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .emergency-title-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #fee2e2;
+        font-size: 22px;
+    }
+
+    .emergency-title h2 {
+        margin: 0 0 3px;
+        color: #111827;
+        font-size: 21px;
+    }
+
+    .emergency-title p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .emergency-close {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        background: #f8fafc;
+        color: #374151;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .emergency-close:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .emergency-body {
+        max-height: calc(min(86vh, 760px) - 82px);
+        overflow-y: auto;
+        padding: 16px 20px 20px;
+    }
+
+    .emergency-notice {
+        margin-bottom: 12px;
+        padding: 11px 13px;
+        border: 1px solid #fee2e2;
+        border-radius: 10px;
+        background: #fff7f7;
+        color: #991b1b;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .emergency-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .emergency-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px;
+        border: 1px solid #e5e7eb;
+        border-radius: 13px;
+        background: #ffffff;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .emergency-card:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 6px 18px rgba(15, 23, 42, 0.07);
+        border-color: #d1d5db;
+    }
+
+    .emergency-card-info {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 0;
+    }
+
+    .emergency-card-icon {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: #f3f4f6;
+        font-size: 20px;
+    }
+
+    .emergency-card h3 {
+        margin: 0 0 3px;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .emergency-card strong {
+        color: #111827;
+        font-size: 18px;
+        letter-spacing: 0.3px;
+    }
+
+    .emergency-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-shrink: 0;
+    }
+
+    .emergency-call,
+    .emergency-copy {
+        min-height: 36px;
+        padding: 0 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .emergency-call {
+        border: 1px solid #166534;
+        background: #166534;
+        color: #ffffff;
+    }
+
+    .emergency-call:hover {
+        background: #14532d;
+        transform: translateY(-1px);
+    }
+
+    .emergency-copy {
+        border: 1px solid #d1d5db;
+        background: #f8fafc;
+        color: #374151;
+    }
+
+    .emergency-copy:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+    }
+
+    .emergency-card.important {
+        border-color: #fecaca;
+        background:
+            linear-gradient(135deg, #fff7f7, #ffffff);
+        box-shadow:
+            0 6px 20px rgba(220, 38, 38, 0.08);
+    }
+
+    .emergency-card.important
+    .emergency-card-icon {
+        background: #fee2e2;
+    }
+
+    .emergency-card.important h3 {
+        color: #b91c1c;
+    }
+
+    .emergency-card.important strong {
+        color: #dc2626;
+        font-size: 21px;
+    }
+
+    .emergency-footer {
+        margin-top: 12px;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+
+    /* =====================================
+       MOBILE
+    ====================================== */
+
+    @media (max-width: 768px) {
 
         .home-slider-section {
-            padding: 18px 0 0;
+            padding: 14px 0 0;
         }
 
         .home-slider {
-            position: relative;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            aspect-ratio: 16 / 7;
-            min-height: 220px;
-            overflow: hidden;
-            border-radius: 20px;
-            background: #eef2f0;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        }
-
-        .home-slide {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(100%);
-            transition:
-                transform 0.8s cubic-bezier(0.65, 0, 0.35, 1),
-                opacity 0.8s ease;
-            z-index: 1;
-        }
-
-        .home-slide.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
-            z-index: 3;
-        }
-
-        .home-slide.previous {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-100%);
-            z-index: 2;
-        }
-
-        .home-slide.next-ready {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(100%);
-            z-index: 2;
+            aspect-ratio: 16 / 8;
+            min-height: 180px;
+            border-radius: 16px;
         }
 
         .home-slider-dots {
-            position: absolute;
-            left: 50%;
-            bottom: 14px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            transform: translateX(-50%);
-            padding: 7px 11px;
-            background: rgba(0, 0, 0, 0.28);
-            border-radius: 999px;
-            backdrop-filter: blur(5px);
+            bottom: 10px;
         }
 
-        .home-slider-dot {
-            width: 7px;
-            height: 7px;
-            padding: 0;
-            border: none;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            transition:
-                width 0.25s ease,
-                background 0.25s ease;
+        .emergency-nav-button {
+            padding: 0 11px;
+            font-size: 13px;
         }
 
-        .home-slider-dot.active {
-            width: 22px;
-            border-radius: 999px;
-            background: #ffffff;
-        }
-
-        .home-slider-loading,
-        .home-slider-empty {
-            position: absolute;
-            inset: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            background: #eef2f0;
-        }
+    }
 
 
-        /* =========================
-           Demo Moving Notice
-        ========================= */
+    @media (max-width: 600px) {
 
-        .demo-marquee-section {
-            width: 100%;
-            overflow: hidden;
-            background: #fff7f7;
-            border-top: 1px solid #fee2e2;
-            border-bottom: 1px solid #fee2e2;
-            margin-top: 10px;
-        }
-
-        .demo-marquee {
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .demo-marquee-track {
-            display: inline-flex;
-            width: max-content;
-            animation: demoMarqueeRight 22s linear infinite;
+        .home-slider {
+            border-radius: 15px;
         }
 
         .demo-marquee-text {
-            display: inline-block;
-            padding: 10px 25px;
-            color: #dc2626;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 13px;
+            padding: 9px 20px;
         }
 
-        @keyframes demoMarqueeRight {
-            0% {
-                transform: translateX(-50%);
-            }
-
-            100% {
-                transform: translateX(0);
-            }
+        .emergency-modal {
+            border-radius: 15px;
         }
 
-
-        /* =========================
-           Responsive
-        ========================= */
-
-        @media (max-width: 768px) {
-
-            .home-slider-section {
-                padding: 14px 0 0;
-            }
-
-            .home-slider {
-                aspect-ratio: 16 / 8;
-                min-height: 180px;
-                border-radius: 16px;
-            }
-
-            .home-slider-dots {
-                bottom: 10px;
-            }
+        .emergency-header {
+            padding: 15px;
         }
 
-        @media (max-width: 600px) {
-
-            .home-search-box {
-                padding: 8px;
-                gap: 7px;
-            }
-
-            .home-search-icon {
-                width: 38px;
-                height: 38px;
-            }
-
-            .home-search-input {
-                font-size: 14px;
-            }
-
-            .home-search-button {
-                padding: 0 14px;
-                font-size: 14px;
-            }
-
-            .demo-marquee-text {
-                font-size: 13px;
-                padding: 9px 20px;
-            }
+        .emergency-body {
+            padding: 13px 15px 16px;
         }
 
-        @media (max-width: 480px) {
-
-            .home-slider {
-                aspect-ratio: 16 / 9;
-                min-height: 150px;
-                border-radius: 13px;
-            }
-
-            .home-slider-dots {
-                gap: 5px;
-                bottom: 8px;
-                padding: 6px 9px;
-            }
-
-            .home-slider-dot {
-                width: 6px;
-                height: 6px;
-            }
-
-            .home-slider-dot.active {
-                width: 18px;
-            }
+        .emergency-card {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 11px;
         }
 
-        @media (max-width: 420px) {
-
-            .home-search-box {
-                flex-wrap: wrap;
-            }
-
-            .home-search-input {
-                flex: 1;
-            }
-
-            .home-search-button {
-                width: 100%;
-            }
+        .emergency-card-actions {
+            width: 100%;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-
-            .home-slide {
-                transition: none;
-            }
-
-            .demo-marquee-track {
-                animation: none;
-            }
+        .emergency-call,
+        .emergency-copy {
+            flex: 1;
         }
-     /* =========================
-   Emergency Button
-========================= */
 
-.emergency-nav-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-height: 40px;
-    padding: 0 14px;
-    border: 1px solid #fecaca;
-    border-radius: 9px;
-    background: #fff7f7;
-    color: #dc2626;
-    font: inherit;
-    font-weight: 700;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.emergency-nav-button:hover {
-    background: #dc2626;
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.18);
-}
-
-.emergency-nav-button:active {
-    transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-    .emergency-nav-button {
-        padding: 0 11px;
-        font-size: 13px;
     }
-}
-
-        /* =========================
-           Emergency Hotline
-        ========================= */
-        .emergency-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.58);backdrop-filter:blur(6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease}.emergency-overlay.show{opacity:1;visibility:visible;pointer-events:auto}.emergency-modal{width:min(720px,100%);max-height:min(86vh,760px);overflow:hidden;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.22);transform:translateY(18px) scale(.98);transition:transform .25s ease}.emergency-overlay.show .emergency-modal{transform:translateY(0) scale(1)}.emergency-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #eef2f0}.emergency-title{display:flex;align-items:center;gap:12px;min-width:0}.emergency-title-icon{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fee2e2;font-size:22px}.emergency-title h2{margin:0 0 3px;color:#111827;font-size:21px}.emergency-title p{margin:0;color:#6b7280;font-size:13px}.emergency-close{width:38px;height:38px;flex-shrink:0;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;color:#374151;font-size:24px;line-height:1;cursor:pointer;transition:background .2s ease,color .2s ease,transform .2s ease}.emergency-close:hover{background:#fee2e2;color:#dc2626;transform:translateY(-1px)}.emergency-body{max-height:calc(min(86vh,760px) - 82px);overflow-y:auto;padding:16px 20px 20px}.emergency-notice{margin-bottom:12px;padding:11px 13px;border:1px solid #fee2e2;border-radius:10px;background:#fff7f7;color:#991b1b;font-size:13px;line-height:1.6}.emergency-list{display:grid;gap:10px}.emergency-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px;border:1px solid #e5e7eb;border-radius:13px;background:#fff;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.emergency-card:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,23,42,.07);border-color:#d1d5db}.emergency-card-info{display:flex;align-items:center;gap:11px;min-width:0}.emergency-card-icon{width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:11px;background:#f3f4f6;font-size:20px}.emergency-card h3{margin:0 0 3px;color:#374151;font-size:14px;font-weight:700}.emergency-card strong{color:#111827;font-size:18px;letter-spacing:.3px}.emergency-card-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}.emergency-call,.emergency-copy{min-height:36px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font:inherit;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}.emergency-call{border:1px solid #166534;background:#166534;color:#fff}.emergency-call:hover{background:#14532d;transform:translateY(-1px)}.emergency-copy{border:1px solid #d1d5db;background:#f8fafc;color:#374151}.emergency-copy:hover{background:#f3f4f6;border-color:#9ca3af;transform:translateY(-1px)}.emergency-card.important{border-color:#fecaca;background:linear-gradient(135deg,#fff7f7,#fff);box-shadow:0 6px 20px rgba(220,38,38,.08)}.emergency-card.important .emergency-card-icon{background:#fee2e2}.emergency-card.important h3{color:#b91c1c}.emergency-card.important strong{color:#dc2626;font-size:21px}.emergency-footer{margin-top:12px;color:#6b7280;font-size:12px;line-height:1.6;text-align:center}@media(max-width:600px){.emergency-modal{border-radius:15px}.emergency-header{padding:15px}.emergency-body{padding:13px 15px 16px}.emergency-card{align-items:stretch;flex-direction:column;gap:11px}.emergency-card-actions{width:100%}.emergency-call,.emergency-copy{flex:1}}@media(max-width:420px){.emergency-overlay{padding:10px}.emergency-title h2{font-size:18px}.emergency-title p{font-size:12px}.emergency-card{padding:11px}.emergency-card-icon{width:38px;height:38px}.emergency-card h3{font-size:13px}.emergency-card strong{font-size:17px}.emergency-card.important strong{font-size:20px}}
-    </style>
-    <link rel="stylesheet" href="css/premium.css">
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#064E3B">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-</head>
 
 
-<body>
-    <!-- Emergency Hotline Popup -->
-    <div class="emergency-overlay" id="emergencyOverlay" aria-hidden="true"><div class="emergency-modal" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle"><div class="emergency-header"><div class="emergency-title"><div class="emergency-title-icon">🚨</div><div><h2 id="emergencyTitle">জরুরি নম্বর</h2><p>প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন</p></div></div><button type="button" class="emergency-close" id="emergencyClose" aria-label="বন্ধ করুন">×</button></div><div class="emergency-body"><div class="emergency-notice">🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।</div><div class="emergency-list" id="emergencyList"></div><div class="emergency-footer">জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।</div></div></div></div>
+    @media (max-width: 480px) {
+
+        .home-slider {
+            aspect-ratio: 16 / 9;
+            min-height: 150px;
+            border-radius: 13px;
+        }
+
+        .home-slider-dots {
+            gap: 5px;
+            bottom: 8px;
+            padding: 6px 9px;
+        }
+
+        .home-slider-dot {
+            width: 6px;
+            height: 6px;
+        }
+
+        .home-slider-dot.active {
+            width: 18px;
+        }
+
+    }
 
 
-    <!-- =========================
-         Header
-    ========================== -->
+    @media (max-width: 420px) {
 
-    <header class="header">
+        .emergency-overlay {
+            padding: 10px;
+        }
 
-        <div class="container header-inner">
+        .emergency-title h2 {
+            font-size: 18px;
+        }
 
-            <a href="index.html" class="logo">
-                <span class="logo-icon">🏠</span>
-                <span>আমাদের এলাকা</span>
-            </a>
+        .emergency-title p {
+            font-size: 12px;
+        }
 
-            <div class="mobile-header-actions" aria-label="মোবাইল হেডার অ্যাকশন">
-            <button type="button" class="mobile-search-button" id="mobileSearchButton" aria-label="সার্চ">⌕</button>
-            <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="মেনু খুলুন" aria-expanded="false" aria-controls="mobile-navigation">☰</button>
+        .emergency-card {
+            padding: 11px;
+        }
+
+        .emergency-card-icon {
+            width: 38px;
+            height: 38px;
+        }
+
+        .emergency-card h3 {
+            font-size: 13px;
+        }
+
+        .emergency-card strong {
+            font-size: 17px;
+        }
+
+        .emergency-card.important strong {
+            font-size: 20px;
+        }
+
+    }
+
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .home-slide {
+            transition: none;
+        }
+
+        .demo-marquee-track {
+            animation: none;
+        }
+
+    }
+
+</style>
+
+</head><body><!-- =====================================
+     EMERGENCY HOTLINE POPUP
+====================================== -->
+
+<div
+    class="emergency-overlay"
+    id="emergencyOverlay"
+    aria-hidden="true"
+>
+
+    <div
+        class="emergency-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="emergencyTitle"
+    >
+
+        <div class="emergency-header">
+
+            <div class="emergency-title">
+
+                <div class="emergency-title-icon">
+                    🚨
+                </div>
+
+                <div>
+
+                    <h2 id="emergencyTitle">
+                        জরুরি নম্বর
+                    </h2>
+
+                    <p>
+                        প্রয়োজন অনুযায়ী সঠিক নম্বরে যোগাযোগ করুন
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="emergency-close"
+                id="emergencyClose"
+                aria-label="বন্ধ করুন"
+            >
+                ×
+            </button>
+
         </div>
 
-        <nav class="nav" id="mobile-navigation">
+
+        <div class="emergency-body">
+
+            <div class="emergency-notice">
+                🚨 জরুরি পরিস্থিতিতে দ্রুত সহায়তার জন্য নিচের নম্বরগুলো ব্যবহার করুন।
+            </div>
+
+            <div
+                class="emergency-list"
+                id="emergencyList"
+            ></div>
+
+            <div class="emergency-footer">
+                জরুরি অবস্থায় প্রয়োজন অনুযায়ী সংশ্লিষ্ট সেবায় যোগাযোগ করুন।
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================
+     HEADER
+====================================== -->
+
+<header class="header">
+
+    <div class="container header-inner">
+
+
+        <!-- Logo -->
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+                🏠
+            </span>
+
+            <span>
+                আমাদের এলাকা
+            </span>
+
+        </a>
+
+
+
+        <!-- Mobile Actions -->
+
+        <div
+            class="mobile-header-actions"
+            aria-label="মোবাইল হেডার অ্যাকশন"
+        >
+
+            <button
+                type="button"
+                class="mobile-menu-toggle"
+                id="mobileMenuToggle"
+                aria-label="মেনু খুলুন"
+                aria-expanded="false"
+                aria-controls="mobile-navigation"
+            >
+                ☰
+            </button>
+
+        </div>
+
+
+
+        <!-- Navigation -->
+
+        <nav
+            class="nav"
+            id="mobile-navigation"
+        >
+
+            <a
+                href="index.html"
+                class="active"
+            >
+                হোম
+            </a>
+
+
+            <a href="dashboard.html">
+                ড্যাশবোর্ড
+            </a>
+
+
+            <a href="government.html">
+                🌐 সেবা
+            </a>
+
+
+            <a
+                href="#"
+                class="emergency-nav-button"
+                id="emergencyButton"
+            >
+                🚨 জরুরি নম্বর
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================
+     MAIN
+====================================== -->
+
+<main>
+
+
+    <!-- =================================
+         IMAGE SLIDER
+    ================================== -->
+
+    <section
+        class="home-slider-section"
+        aria-label="ছবির স্লাইডার"
+    >
+
+        <div class="container">
+
+            <div
+                class="home-slider"
+                id="homeSlider"
+            >
+
+                <div
+                    class="home-slider-loading"
+                    id="homeSliderLoading"
+                >
+                    ছবি লোড হচ্ছে...
+                </div>
+
+
+                <div
+                    class="home-slider-dots"
+                    id="homeSliderDots"
+                    style="display: none;"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================
+         HERO
+    ================================== -->
+
+    <section class="hero">
+
+        <div class="container">
+
+            <div class="hero-content">
+
+
+                <span class="hero-badge">
+                    🇧🇩 আপনার এলাকার জন্য
+                </span>
+
+
+                <h1>
+                    আপনার এলাকার সেবা,
+                    <br>
+                    এখন আরও সহজে
+                </h1>
+
+
+                <p>
+                    জরুরি সহায়তা, সরকারি সেবা এবং
+                    এলাকার গুরুত্বপূর্ণ তথ্য এক জায়গায়।
+                </p>
+
+
+                <div class="hero-buttons">
+
+
+                    <a
+                        href="dashboard.html"
+                        class="btn btn-primary"
+                    >
+                        ড্যাশবোর্ড
+                    </a>
+
+
+                    <a
+                        href="government.html"
+                        class="btn btn-secondary"
+                    >
+                        সরকারি সেবা
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================
+         NOTICE
+    ================================== -->
+
+    <section
+        class="demo-marquee-section"
+        aria-label="গুরুত্বপূর্ণ নোটিশ"
+    >
+
+        <div class="demo-marquee">
+
+            <div class="demo-marquee-track">
+
+                <span class="demo-marquee-text">
+                    🇧🇩 আমাদের এলাকা • নাগরিক সেবা • জরুরি সহায়তা • সরকারি তথ্য • এলাকার উন্নয়নে একসাথে
+                </span>
+
+
+                <span
+                    class="demo-marquee-text"
+                    aria-hidden="true"
+                >
+                    🇧🇩 আমাদের এলাকা • নাগরিক সেবা • জরুরি সহায়তা • সরকারি তথ্য • এলাকার উন্নয়নে একসাথে
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================
+         QUICK ACCESS
+    ================================== -->
+
+    <section class="categories-section">
+
+        <div class="container">
+
+
+            <div class="section-heading">
+
+                <span class="section-label">
+                    দ্রুত প্রবেশ
+                </span>
+
+                <h2>
+                    আপনার প্রয়োজনীয় সেবা
+                </h2>
+
+                <p>
+                    গুরুত্বপূর্ণ সেবা ও তথ্য দ্রুত খুঁজে নিন।
+                </p>
+
+            </div>
+
+
+
+            <div class="category-grid">
+
+
+                <!-- Dashboard -->
+
+                <a
+                    href="dashboard.html"
+                    class="category-card"
+                >
+
+                    <span>
+                        📊
+                    </span>
+
+                    <h3>
+                        ড্যাশবোর্ড
+                    </h3>
+
+                    <p>
+                        গুরুত্বপূর্ণ তথ্য ও ভবিষ্যৎ সেবাগুলো এক জায়গায়।
+                    </p>
+
+                </a>
+
+
+
+                <!-- Government Services -->
+
+                <a
+                    href="government.html"
+                    class="category-card"
+                >
+
+                    <span>
+                        🏛️
+                    </span>
+
+                    <h3>
+                        সরকারি সেবা
+                    </h3>
+
+                    <p>
+                        বিভিন্ন সরকারি সেবা ও প্রয়োজনীয় তথ্য।
+                    </p>
+
+                </a>
+
+
+
+                <!-- Emergency -->
+
+                <a
+                    href="#"
+                    class="category-card"
+                    id="emergencyCardButton"
+                >
+
+                    <span>
+                        🚨
+                    </span>
+
+                    <h3>
+                        জরুরি সেবা
+                    </h3>
+
+                    <p>
+                        জরুরি প্রয়োজনে গুরুত্বপূর্ণ নম্বরগুলো দেখুন।
+                    </p>
+
+                </a>
+
+
+
+                <!-- Information -->
+
+                <a
+                    href="government.html"
+                    class="category-card"
+                >
+
+                    <span>
+                        ℹ️
+                    </span>
+
+                    <h3>
+                        প্রয়োজনীয় তথ্য
+                    </h3>
+
+                    <p>
+                        নাগরিক জীবনের প্রয়োজনীয় তথ্য ও সহায়তা।
+                    </p>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================
+         SERVICE CTA
+    ================================== -->
+
+    <section class="cta-section">
+
+        <div class="container">
+
+            <div class="cta-box">
+
+                <div>
+
+                    <h2>
+                        প্রয়োজনীয় সেবা সহজেই খুঁজে নিন
+                    </h2>
+
+                    <p>
+                        আমাদের এলাকার সরকারি ও গুরুত্বপূর্ণ নাগরিক সেবাগুলো এক জায়গা থেকে ব্যবহার করুন।
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="government.html"
+                    class="btn btn-primary"
+                >
+                    সেবা দেখুন
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+
+<!-- =====================================
+     FOOTER
+====================================== -->
+
+<footer class="footer">
+
+    <div class="container">
+
+        <div class="footer-inner">
+
+
+            <div>
 
                 <a
                     href="index.html"
-                    class="active"
+                    class="logo"
                 >
+
+                    <span class="logo-icon">
+                        🏠
+                    </span>
+
+                    <span>
+                        আমাদের এলাকা
+                    </span>
+
+                </a>
+
+
+                <p>
+                    নাগরিক সেবা, জরুরি সহায়তা ও গুরুত্বপূর্ণ তথ্যের সহজ প্ল্যাটফর্ম।
+                </p>
+
+            </div>
+
+
+
+            <div class="footer-links">
+
+                <a href="index.html">
                     হোম
                 </a>
 
-                <a href="dashboard.html">
-                    রিপোর্ট
-                </a>
 
                 <a href="dashboard.html">
                     ড্যাশবোর্ড
                 </a>
 
+
                 <a href="government.html">
-                  🌐 সরকারি সেবা
+                    সেবা
                 </a>
-             <a
-               href="#"
-                    class="emergency-nav-button"
-                    id="emergencyButton"
+
+
+                <a
+                    href="#"
+                    id="footerEmergencyButton"
                 >
                     🚨 জরুরি নম্বর
                 </a>
 
-                <a
-                    href="report.html"
-                    class="nav-button"
-                >
-                    সমস্যা রিপোর্ট করুন
-                </a>
-
-            </nav>
-
-        </div>
-
-    </header>
-
-
-    <main>
-
-
-        <!-- =========================
-             Auto Image Slider
-        ========================== -->
-
-        <section
-            class="home-slider-section"
-            aria-label="ছবির স্লাইডার"
-        >
-
-            <div class="container">
-
-                <div
-                    class="home-slider"
-                    id="homeSlider"
-                >
-
-                    <div
-                        class="home-slider-loading"
-                        id="homeSliderLoading"
-                    >
-                        ছবি লোড হচ্ছে...
-                    </div>
-
-                    <div
-                        class="home-slider-dots"
-                        id="homeSliderDots"
-                        style="display:none;"
-                    ></div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             Hero
-        ========================== -->
-
-        <section class="hero">
-
-            <div class="container">
-
-                <div class="hero-content">
-
-                    <span class="hero-badge">
-                        🇧🇩 আপনার এলাকার জন্য
-                    </span>
-
-                    <h1>
-                        এলাকার সমস্যা জানান,
-                        <br>
-                        পরিবর্তনে অংশ নিন
-                    </h1>
-
-                    <p>
-                        আপনার এলাকার রাস্তা, ড্রেন, ময়লা-আবর্জনা,
-                        পানির সমস্যা কিংবা অন্য যেকোনো নাগরিক সমস্যা
-                        সহজেই রিপোর্ট করুন।
-                    </p>
-
-                    <div class="hero-buttons">
-
-                        <a
-                            href="report.html"
-                            class="btn btn-primary"
-                        >
-                            সমস্যা রিপোর্ট করুন
-                        </a>
-
-                        <a
-                            href="dashboard.html"
-                            class="btn btn-secondary"
-                        >
-                            রিপোর্ট দেখুন
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             Demo Moving Text
-        ========================== -->
-
-        <section
-            class="demo-marquee-section"
-            aria-label="ডেমো সাইট নোটিশ"
-        >
-
-            <div class="demo-marquee">
-
-                <div class="demo-marquee-track">
-
-                    <span class="demo-marquee-text">
-                        এটা একটি ডেমো সাইট • আপনার এলাকার সমস্যা রিপোর্ট করুন • নাগরিক সেবায় অংশ নিন • এলাকার উন্নয়নে সহযোগিতা করুন •
-                    </span>
-
-                    <span
-                        class="demo-marquee-text"
-                        aria-hidden="true"
-                    >
-                        এটা একটি ডেমো সাইট • আপনার এলাকার সমস্যা রিপোর্ট করুন • নাগরিক সেবায় অংশ নিন • এলাকার উন্নয়নে সহযোগিতা করুন •
-                    </span>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             Premium Search
-        ========================== -->
-
-        <section
-            class="home-search-section"
-            aria-label="রিপোর্ট অনুসন্ধান"
-        >
-
-            <div class="container">
-
-                <form
-                    id="homeSearchForm"
-                    class="home-search-box"
-                >
-
-                    <div
-                        class="home-search-icon"
-                        aria-hidden="true"
-                    >
-                        🔎
-                    </div>
-
-                    <input
-                        type="search"
-                        id="homeSearchInput"
-                        class="home-search-input"
-                        placeholder="এলাকা, জেলা, বিষয় বা রিপোর্ট ID দিয়ে খুঁজুন..."
-                        autocomplete="off"
-                    >
-
-                    <button
-                        type="submit"
-                        class="home-search-button"
-                    >
-                        খুঁজুন
-                    </button>
-
-                </form>
-
-                <p class="home-search-help">
-                    যেমন: ঢাকা, রংপুর, রাস্তা, ড্রেন বা রিপোর্ট ID
-                </p>
-
-                <div
-                    id="homeSearchResults"
-                    class="home-search-results"
-                ></div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             Statistics
-        ========================== -->
-
-        <section class="stats-section">
-
-            <div class="container">
-
-                <div class="stats-grid">
-
-                    <div class="stat-card">
-
-                        <span
-                            class="stat-number"
-                            id="totalReports"
-                        >
-                            0
-                        </span>
-
-                        <span class="stat-label">
-                            মোট রিপোর্ট
-                        </span>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <span
-                            class="stat-number"
-                            id="pendingReports"
-                        >
-                            0
-                        </span>
-
-                        <span class="stat-label">
-                            অপেক্ষমাণ
-                        </span>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <span
-                            class="stat-number"
-                            id="progressReports"
-                        >
-                            0
-                        </span>
-
-                        <span class="stat-label">
-                            কাজ চলছে
-                        </span>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <span
-                            class="stat-number"
-                            id="solvedReports"
-                        >
-                            0
-                        </span>
-
-                        <span class="stat-label">
-                            সমাধান হয়েছে
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             Recent Reports
-        ========================== -->
-
-        <section class="recent-reports-section" aria-labelledby="recentReportsTitle">
-            <div class="container">
-                <div class="section-heading recent-heading">
-                    <div>
-                        <span class="section-label">নাগরিক কার্যক্রম</span>
-                        <h2 id="recentReportsTitle">সাম্প্রতিক রিপোর্ট</h2>
-                        <p>আপনার এলাকার সর্বশেষ রিপোর্টগুলো এক নজরে দেখুন।</p>
-                    </div>
-                    <a href="dashboard.html#reports" class="section-action">সব রিপোর্ট দেখুন →</a>
-                </div>
-                <div id="homeRecentReports" class="home-recent-grid" aria-live="polite"></div>
-            </div>
-        </section>
-
-
-        <!-- =========================
-             Categories
-        ========================== -->
-
-        <section class="categories-section">
-
-            <div class="container">
-
-                <div class="section-heading">
-
-                    <span class="section-label">
-                        সমস্যা রিপোর্ট
-                    </span>
-
-                    <h2>
-                        কোন ধরনের সমস্যা রিপোর্ট করতে পারবেন?
-                    </h2>
-
-                    <p>
-                        আপনার এলাকার যেকোনো নাগরিক সমস্যা আমাদের জানান।
-                    </p>
-
-                </div>
-
-
-                <div class="category-grid">
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>🛣️</span>
-
-                        <h3>
-                            রাস্তা
-                        </h3>
-
-                        <p>
-                            ভাঙা বা ক্ষতিগ্রস্ত রাস্তা
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>🌊</span>
-
-                        <h3>
-                            ড্রেন ও জলাবদ্ধতা
-                        </h3>
-
-                        <p>
-                            বন্ধ ড্রেন ও জলাবদ্ধতা
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>🗑️</span>
-
-                        <h3>
-                            ময়লা-আবর্জনা
-                        </h3>
-
-                        <p>
-                            যত্রতত্র ময়লা ও বর্জ্য
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>💡</span>
-
-                        <h3>
-                            রাস্তার বাতি
-                        </h3>
-
-                        <p>
-                            নষ্ট বা বন্ধ স্ট্রিট লাইট
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>💧</span>
-
-                        <h3>
-                            পানির সমস্যা
-                        </h3>
-
-                        <p>
-                            পানি সরবরাহ সংক্রান্ত সমস্যা
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>🌳</span>
-
-                        <h3>
-                            পরিবেশ
-                        </h3>
-
-                        <p>
-                            পরিবেশ ও গাছপালা সংক্রান্ত সমস্যা
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>🏛️</span>
-
-                        <h3>
-                            সরকারি স্থাপনা
-                        </h3>
-
-                        <p>
-                            সরকারি স্থাপনা সংক্রান্ত সমস্যা
-                        </p>
-                    </a>
-
-
-                    <a
-                        href="report.html"
-                        class="category-card"
-                    >
-                        <span>📌</span>
-
-                        <h3>
-                            অন্যান্য
-                        </h3>
-
-                        <p>
-                            অন্যান্য নাগরিক সমস্যা
-                        </p>
-                    </a>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             CTA
-        ========================== -->
-
-        <section class="cta-section">
-
-            <div class="container">
-
-                <div class="cta-box">
-
-                    <div>
-
-                        <h2>
-                            আপনার এলাকার সমস্যা রিপোর্ট করুন
-                        </h2>
-
-                        <p>
-                            ছোট একটি রিপোর্টও এলাকার উন্নয়নে
-                            গুরুত্বপূর্ণ ভূমিকা রাখতে পারে।
-                        </p>
-
-                    </div>
-
-
-                    <a
-                        href="report.html"
-                        class="btn btn-primary"
-                    >
-                        রিপোর্ট করুন
-                    </a>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- =========================
-         Footer
-    ========================== -->
-
-    <footer class="footer">
-
-        <div class="container">
-
-            <div class="footer-inner">
-
-                <div>
-
-                    <a
-                        href="index.html"
-                        class="logo"
-                    >
-                        <span class="logo-icon">🏠</span>
-                        <span>আমাদের এলাকা</span>
-                    </a>
-
-                    <p>
-                        নাগরিকদের অংশগ্রহণে এলাকার সমস্যা চিহ্নিত
-                        ও সমাধানের একটি সহজ প্ল্যাটফর্ম।
-                    </p>
-
-                </div>
-
-
-                <div class="footer-links">
-
-                    <a href="index.html">
-                        হোম
-                    </a>
-
-                    <a href="dashboard.html">
-                        রিপোর্ট
-                    </a>
-
-                    <a href="dashboard.html">
-                        ড্যাশবোর্ড
-                    </a>
-
-                    <a href="report.html">
-                        সমস্যা রিপোর্ট করুন
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <div class="footer-bottom">
-
-                © 2026 আমাদের এলাকা —
-                নাগরিকের কণ্ঠ, এলাকার উন্নয়ন।
-
             </div>
 
         </div>
 
-    </footer>
 
 
-    <!-- =========================
-         Auto Image Slider JavaScript
-         Checks only slide1.webp
-         to slide15.webp
-    ========================== -->
+        <div class="footer-bottom">
 
-    <script>
+            © 2026 আমাদের এলাকা —
+            নাগরিক সেবা, এলাকার উন্নয়ন।
 
-        const SLIDER_FOLDER =
-            "images/slider/";
+        </div>
 
-        const MAX_SLIDES = 15;
+    </div>
 
-        const SLIDE_INTERVAL =
-            3000;
-
-        const SLIDE_DURATION =
-            800;
+</footer>
 
 
-        let homeSlides = [];
 
-        let homeCurrentSlide = 0;
+<!-- =====================================
+     HOME SLIDER JAVASCRIPT
+====================================== -->
 
-        let homeSliderTimer = null;
+<script>
 
-        let homeSliderInitialized = false;
+    const SLIDER_FOLDER = "images/slider/";
+
+    const MAX_SLIDES = 15;
+
+    const SLIDE_INTERVAL = 3000;
+
+    const SLIDE_DURATION = 800;
 
 
-        function checkSliderImage(index) {
+    let homeSlides = [];
 
-            return new Promise(function(resolve) {
+    let homeCurrentSlide = 0;
 
-                const image =
-                    new Image();
+    let homeSliderTimer = null;
 
-                image.onload =
-                    function() {
+    let homeSliderInitialized = false;
 
-                        resolve({
-                            index: index,
-                            src:
-                                SLIDER_FOLDER +
-                                "slide" +
-                                index +
-                                ".webp"
-                        });
 
-                    };
 
-                image.onerror =
-                    function() {
+    function checkSliderImage(index) {
 
-                        resolve(null);
+        return new Promise(function(resolve) {
 
-                    };
+            const image = new Image();
 
-                image.src =
-                    SLIDER_FOLDER +
-                    "slide" +
-                    index +
-                    ".webp";
 
-            });
+            image.onload = function() {
+
+                resolve({
+
+                    index: index,
+
+                    src:
+                        SLIDER_FOLDER +
+                        "slide" +
+                        index +
+                        ".webp"
+
+                });
+
+            };
+
+
+            image.onerror = function() {
+
+                resolve(null);
+
+            };
+
+
+            image.src =
+                SLIDER_FOLDER +
+                "slide" +
+                index +
+                ".webp";
+
+        });
+
+    }
+
+
+
+    async function loadHomeSlider() {
+
+        const slider =
+            document.getElementById("homeSlider");
+
+        const loading =
+            document.getElementById("homeSliderLoading");
+
+        const dots =
+            document.getElementById("homeSliderDots");
+
+
+        if (!slider) {
+            return;
+        }
+
+
+        const checks = [];
+
+
+        for (
+            let i = 1;
+            i <= MAX_SLIDES;
+            i++
+        ) {
+
+            checks.push(
+                checkSliderImage(i)
+            );
 
         }
 
 
-        async function loadHomeSlider() {
-
-            const slider =
-                document.getElementById(
-                    "homeSlider"
-                );
-
-            const loading =
-                document.getElementById(
-                    "homeSliderLoading"
-                );
-
-            const dots =
-                document.getElementById(
-                    "homeSliderDots"
-                );
+        const results =
+            await Promise.all(checks);
 
 
-            if (!slider) {
-                return;
-            }
+        homeSlides =
+            results
+                .filter(Boolean)
+                .sort(function(a, b) {
+
+                    return a.index - b.index;
+
+                });
 
 
-            /*
-             * Check only 1-15.
-             *
-             * All checks happen together,
-             * not one after another.
-             *
-             * Therefore there is no
-             * 1 -> 2 -> 3 -> ... -> 100
-             * waiting process.
-             */
-
-            const checks = [];
-
-            for (
-                let i = 1;
-                i <= MAX_SLIDES;
-                i++
-            ) {
-
-                checks.push(
-                    checkSliderImage(i)
-                );
-
-            }
+        if (loading) {
+            loading.remove();
+        }
 
 
-            const results =
-                await Promise.all(checks);
+        if (!homeSlides.length) {
+
+            const empty =
+                document.createElement("div");
+
+            empty.className =
+                "home-slider-empty";
+
+            empty.textContent =
+                "কোনো Slider ছবি পাওয়া যায়নি।";
+
+            slider.appendChild(empty);
+
+            return;
+        }
 
 
-            homeSlides =
-                results
-                    .filter(Boolean)
-                    .sort(
-                        function(a, b) {
-                            return a.index - b.index;
-                        }
+
+        /* Create slides */
+
+        homeSlides.forEach(
+            function(slide, index) {
+
+                const image =
+                    document.createElement("img");
+
+
+                image.className =
+                    "home-slide" +
+                    (
+                        index === 0
+                            ? " active"
+                            : ""
                     );
 
 
-            if (loading) {
-                loading.remove();
+                image.src = slide.src;
+
+
+                image.alt =
+                    "আমাদের এলাকা Slide " +
+                    (index + 1);
+
+
+                image.decoding = "async";
+
+
+                if (index === 0) {
+
+                    image.loading =
+                        "eager";
+
+                } else {
+
+                    image.loading =
+                        "lazy";
+
+                }
+
+
+                slider.insertBefore(
+                    image,
+                    dots
+                );
+
             }
+        );
 
 
-            if (!homeSlides.length) {
 
-                const empty =
-                    document.createElement(
-                        "div"
-                    );
+        /* Create dots */
 
-                empty.className =
-                    "home-slider-empty";
+        if (dots) {
 
-                empty.textContent =
-                    "কোনো Slider ছবি পাওয়া যায়নি।";
+            dots.innerHTML = "";
 
-                slider.appendChild(empty);
-
-                return;
-            }
-
-
-            /*
-             * Create images.
-             */
 
             homeSlides.forEach(
                 function(slide, index) {
 
-                    const image =
-                        document.createElement(
-                            "img"
-                        );
+                    const dot =
+                        document.createElement("button");
 
-                    image.className =
-                        "home-slide" +
+
+                    dot.type = "button";
+
+
+                    dot.className =
+                        "home-slider-dot" +
                         (
                             index === 0
                                 ? " active"
                                 : ""
                         );
 
-                    image.src =
-                        slide.src;
 
-                    image.alt =
-                        "আমাদের এলাকা Slide " +
-                        (index + 1);
-
-                    image.decoding =
-                        "async";
-
-                    /*
-                     * First image loads immediately.
-                     * Other images are already checked
-                     * above, so browser can display
-                     * them quickly during transitions.
-                     */
-
-                    if (index === 0) {
-                        image.loading =
-                            "eager";
-                    } else {
-                        image.loading =
-                            "lazy";
-                    }
-
-
-                    slider.insertBefore(
-                        image,
-                        dots
+                    dot.setAttribute(
+                        "aria-label",
+                        "Slide " + (index + 1)
                     );
+
+
+                    dot.addEventListener(
+                        "click",
+                        function() {
+
+                            showHomeSlide(index);
+
+                            startHomeSlider();
+
+                        }
+                    );
+
+
+                    dots.appendChild(dot);
 
                 }
             );
 
 
-            /*
-             * Create dots.
-             */
-
-            if (dots) {
-
-                dots.innerHTML = "";
-
-                homeSlides.forEach(
-                    function(slide, index) {
-
-                        const dot =
-                            document.createElement(
-                                "button"
-                            );
-
-                        dot.type =
-                            "button";
-
-                        dot.className =
-                            "home-slider-dot" +
-                            (
-                                index === 0
-                                    ? " active"
-                                    : ""
-                            );
-
-                        dot.setAttribute(
-                            "aria-label",
-                            "Slide " +
-                            (index + 1)
-                        );
-
-                        dot.addEventListener(
-                            "click",
-                            function() {
-
-                                showHomeSlide(
-                                    index
-                                );
-
-                                startHomeSlider();
-
-                            }
-                        );
-
-                        dots.appendChild(
-                            dot
-                        );
-
-                    }
-                );
-
-                dots.style.display =
-                    "flex";
-            }
-
-
-            homeSliderInitialized =
-                true;
-
-
-            if (homeSlides.length > 1) {
-
-                startHomeSlider();
-
-            }
+            dots.style.display = "flex";
 
         }
 
 
-        function showHomeSlide(
-            nextIndex
+        homeSliderInitialized = true;
+
+
+        if (homeSlides.length > 1) {
+
+            startHomeSlider();
+
+        }
+
+    }
+
+
+
+    function showHomeSlide(nextIndex) {
+
+        const slides =
+            document.querySelectorAll(".home-slide");
+
+        const dots =
+            document.querySelectorAll(".home-slider-dot");
+
+
+        if (
+            !slides.length ||
+            slides.length <= 1
         ) {
 
-            const slides =
-                document.querySelectorAll(
-                    ".home-slide"
+            return;
+
+        }
+
+
+        const oldIndex =
+            homeCurrentSlide;
+
+
+        const newIndex =
+            (
+                nextIndex +
+                slides.length
+            ) %
+            slides.length;
+
+
+        if (oldIndex === newIndex) {
+            return;
+        }
+
+
+        const currentSlide =
+            slides[oldIndex];
+
+        const nextSlide =
+            slides[newIndex];
+
+
+        currentSlide.classList.remove(
+            "active"
+        );
+
+        currentSlide.classList.add(
+            "previous"
+        );
+
+
+        nextSlide.classList.add(
+            "next-ready"
+        );
+
+
+        void nextSlide.offsetWidth;
+
+
+        nextSlide.classList.remove(
+            "next-ready"
+        );
+
+        nextSlide.classList.add(
+            "active"
+        );
+
+
+        dots.forEach(
+            function(dot, index) {
+
+                dot.classList.toggle(
+                    "active",
+                    index === newIndex
                 );
 
-            const dots =
-                document.querySelectorAll(
-                    ".home-slider-dot"
+            }
+        );
+
+
+        homeCurrentSlide =
+            newIndex;
+
+
+        setTimeout(
+            function() {
+
+                currentSlide.classList.remove(
+                    "previous"
                 );
 
+            },
+            SLIDE_DURATION
+        );
 
-            if (
-                !slides.length ||
-                slides.length <= 1
-            ) {
-                return;
-            }
+    }
 
 
-            const oldIndex =
-                homeCurrentSlide;
+
+    function startHomeSlider() {
+
+        stopHomeSlider();
 
 
-            const newIndex =
-                (
-                    nextIndex +
-                    slides.length
-                ) %
-                slides.length;
+        if (
+            !homeSliderInitialized ||
+            homeSlides.length <= 1
+        ) {
+
+            return;
+
+        }
 
 
-            if (
-                oldIndex === newIndex
-            ) {
-                return;
-            }
+        homeSliderTimer =
+            setInterval(
+                function() {
 
-
-            const currentSlide =
-                slides[oldIndex];
-
-            const nextSlide =
-                slides[newIndex];
-
-
-            /*
-             * Current image goes left.
-             */
-
-            currentSlide.classList.remove(
-                "active"
-            );
-
-            currentSlide.classList.add(
-                "previous"
-            );
-
-
-            /*
-             * Next image starts from right.
-             */
-
-            nextSlide.classList.add(
-                "next-ready"
-            );
-
-
-            /*
-             * Force browser to register
-             * starting position before
-             * moving it into place.
-             */
-
-            void nextSlide.offsetWidth;
-
-
-            nextSlide.classList.remove(
-                "next-ready"
-            );
-
-            nextSlide.classList.add(
-                "active"
-            );
-
-
-            dots.forEach(
-                function(dot, index) {
-
-                    dot.classList.toggle(
-                        "active",
-                        index === newIndex
+                    showHomeSlide(
+                        homeCurrentSlide + 1
                     );
 
-                }
+                },
+                SLIDE_INTERVAL
+            );
+
+    }
+
+
+
+    function stopHomeSlider() {
+
+        if (homeSliderTimer) {
+
+            clearInterval(
+                homeSliderTimer
+            );
+
+            homeSliderTimer = null;
+
+        }
+
+    }
+
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            loadHomeSlider();
+
+        }
+    );
+
+</script>
+
+
+
+<!-- =====================================
+     EMERGENCY
+====================================== -->
+
+<script>
+
+    const emergencyNumbers = [
+
+        {
+            name: "জাতীয় জরুরি সেবা",
+            number: "999",
+            icon: "🚨",
+            important: true
+        },
+
+        {
+            name: "সরকারি তথ্য ও সেবা",
+            number: "333",
+            icon: "📞"
+        },
+
+        {
+            name: "ফায়ার সার্ভিস",
+            number: "102",
+            icon: "🚒"
+        },
+
+        {
+            name: "নারী ও শিশু সহায়তা",
+            number: "109",
+            icon: "👩"
+        },
+
+        {
+            name: "শিশু সহায়তা",
+            number: "1098",
+            icon: "👶"
+        },
+
+        {
+            name: "স্বাস্থ্য বাতায়ন",
+            number: "16263",
+            icon: "🏥"
+        },
+
+        {
+            name: "কৃষি কল সেন্টার",
+            number: "16123",
+            icon: "🌾"
+        },
+
+        {
+            name: "সরকারি আইনি সহায়তা",
+            number: "16699",
+            icon: "⚖️"
+        },
+
+        {
+            name: "দুর্নীতি দমন কমিশন",
+            number: "106",
+            icon: "🔍"
+        },
+
+        {
+            name: "দুর্যোগ পূর্বাভাস",
+            number: "1090",
+            icon: "🌪️"
+        },
+
+        {
+            name: "বাংলাদেশ রেলওয়ে",
+            number: "131",
+            icon: "🚂"
+        },
+
+        {
+            name: "ঢাকা ওয়াসা",
+            number: "16162",
+            icon: "💧"
+        }
+
+    ];
+
+
+
+    const emergencyButton =
+        document.getElementById(
+            "emergencyButton"
+        );
+
+
+    const emergencyCardButton =
+        document.getElementById(
+            "emergencyCardButton"
+        );
+
+
+    const footerEmergencyButton =
+        document.getElementById(
+            "footerEmergencyButton"
+        );
+
+
+    const emergencyOverlay =
+        document.getElementById(
+            "emergencyOverlay"
+        );
+
+
+    const emergencyClose =
+        document.getElementById(
+            "emergencyClose"
+        );
+
+
+    const emergencyList =
+        document.getElementById(
+            "emergencyList"
+        );
+
+
+
+    function renderEmergencyNumbers() {
+
+        if (!emergencyList) {
+            return;
+        }
+
+
+        emergencyList.innerHTML =
+            emergencyNumbers
+                .map(function(service) {
+
+                    return `
+
+                        <div
+                            class="emergency-card ${
+                                service.important
+                                    ? "important"
+                                    : ""
+                            }"
+                        >
+
+                            <div class="emergency-card-info">
+
+                                <div class="emergency-card-icon">
+                                    ${service.icon}
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        ${service.name}
+                                    </h3>
+
+                                    <strong>
+                                        ${service.number}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="emergency-card-actions">
+
+                                <a
+                                    href="tel:${service.number}"
+                                    class="emergency-call"
+                                >
+                                    📞 কল করুন
+                                </a>
+
+
+                                <button
+                                    type="button"
+                                    class="emergency-copy"
+                                    data-number="${service.number}"
+                                >
+                                    📋 কপি
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("");
+
+    }
+
+
+
+    async function copyEmergencyNumber(
+        number,
+        button
+    ) {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                number
             );
 
 
-            homeCurrentSlide =
-                newIndex;
+            const oldText =
+                button.textContent;
 
 
-            /*
-             * Clean old slide after
-             * animation completes.
-             */
+            button.textContent =
+                "✓ কপি হয়েছে";
+
 
             setTimeout(
                 function() {
 
-                    currentSlide.classList.remove(
-                        "previous"
-                    );
+                    button.textContent =
+                        oldText;
 
                 },
-                SLIDE_DURATION
+                1200
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Copy failed:",
+                error
             );
 
         }
 
+    }
 
-        function startHomeSlider() {
 
-            stopHomeSlider();
 
+    function openEmergencyPopup() {
+
+        if (!emergencyOverlay) {
+            return;
+        }
+
+
+        renderEmergencyNumbers();
+
+
+        emergencyOverlay.classList.add(
+            "show"
+        );
+
+
+        emergencyOverlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+        document.body.style.overflow =
+            "hidden";
+
+    }
+
+
+
+    function closeEmergencyPopup() {
+
+        if (!emergencyOverlay) {
+            return;
+        }
+
+
+        emergencyOverlay.classList.remove(
+            "show"
+        );
+
+
+        emergencyOverlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+
+        document.body.style.overflow =
+            "";
+
+    }
+
+
+
+    function attachEmergencyTrigger(
+        element
+    ) {
+
+        if (!element) {
+            return;
+        }
+
+
+        element.addEventListener(
+            "click",
+            function(event) {
+
+                event.preventDefault();
+
+                openEmergencyPopup();
+
+            }
+        );
+
+    }
+
+
+
+    attachEmergencyTrigger(
+        emergencyButton
+    );
+
+
+    attachEmergencyTrigger(
+        emergencyCardButton
+    );
+
+
+    attachEmergencyTrigger(
+        footerEmergencyButton
+    );
+
+
+    if (emergencyClose) {
+
+        emergencyClose.addEventListener(
+            "click",
+            closeEmergencyPopup
+        );
+
+    }
+
+
+    if (emergencyOverlay) {
+
+        emergencyOverlay.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target ===
+                    emergencyOverlay
+                ) {
+
+                    closeEmergencyPopup();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (emergencyList) {
+
+        emergencyList.addEventListener(
+            "click",
+            function(event) {
+
+                const button =
+                    event.target.closest(
+                        ".emergency-copy"
+                    );
+
+
+                if (!button) {
+                    return;
+                }
+
+
+                copyEmergencyNumber(
+                    button.dataset.number,
+                    button
+                );
+
+            }
+        );
+
+    }
+
+
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
 
             if (
-                !homeSliderInitialized ||
-                homeSlides.length <= 1
+                event.key === "Escape" &&
+                emergencyOverlay &&
+                emergencyOverlay.classList.contains(
+                    "show"
+                )
             ) {
-                return;
-            }
 
-
-            homeSliderTimer =
-                setInterval(
-                    function() {
-
-                        showHomeSlide(
-                            homeCurrentSlide + 1
-                        );
-
-                    },
-                    SLIDE_INTERVAL
-                );
-
-        }
-
-
-        function stopHomeSlider() {
-
-            if (homeSliderTimer) {
-
-                clearInterval(
-                    homeSliderTimer
-                );
-
-                homeSliderTimer =
-                    null;
+                closeEmergencyPopup();
 
             }
 
         }
+    );
 
+</script>
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function() {
 
-                loadHomeSlider();
 
-            }
-        );
+<!-- =====================================
+     MAIN SITE JS
+====================================== -->
 
-    </script>
+<script src="js/script.js"></script>
 
-
-    <!-- =========================
-         Home Search JavaScript
-    ========================== -->
-
-    <script>
-
-        const HOME_REPORT_TABLE = "Reports";
-
-
-        const HOME_REPORT_CACHE_KEY =
-            "amaderElaka_reports_cache";
-
-
-        const HOME_REPORT_CACHE_TIME =
-            60 * 1000;
-
-
-        let homeReports = [];
-
-
-        function getHomeCachedReports(
-            ignoreExpiry = false
-        ) {
-
-            try {
-
-                const cached =
-                    localStorage.getItem(
-                        HOME_REPORT_CACHE_KEY
-                    );
-
-
-                if (!cached) {
-                    return null;
-                }
-
-
-                const data =
-                    JSON.parse(cached);
-
-
-                if (
-                    !data ||
-                    !Array.isArray(
-                        data.reports
-                    ) ||
-                    !data.time
-                ) {
-
-                    return null;
-
-                }
-
-
-                const age =
-                    Date.now() -
-                    Number(data.time);
-
-
-                if (
-                    !ignoreExpiry &&
-                    age > HOME_REPORT_CACHE_TIME
-                ) {
-
-                    return null;
-
-                }
-
-
-                return data.reports;
-
-            } catch (error) {
-
-                console.error(
-                    "Home Cache Read Error:",
-                    error
-                );
-
-                return null;
-
-            }
-
-        }
-
-
-        async function loadHomeSearchReports() {
-
-            /*
-             * Use existing shared cache first.
-             * This avoids an unnecessary SheetDB
-             * request on Home Page.
-             */
-
-            const cachedReports =
-                getHomeCachedReports();
-
-
-            if (cachedReports) {
-
-                homeReports =
-                    cachedReports;
-
-                return;
-
-            }
-
-
-            try {
-
-                if (
-                    typeof supabaseClient ===
-                    "undefined"
-                ) {
-
-                    throw new Error(
-                        "Supabase client is not loaded"
-                    );
-
-                }
-
-
-                const { data, error } =
-                    await supabaseClient
-                        .from(
-                            HOME_REPORT_TABLE
-                        )
-                        .select("*")
-                        .order(
-                            "Date",
-                            { ascending: true }
-                        );
-
-
-                if (error) {
-
-                    throw error;
-
-                }
-
-
-                homeReports =
-                    Array.isArray(data)
-                        ? data
-                        : [];
-
-
-                /*
-                 * Save to shared cache.
-                 */
-
-                try {
-
-                    localStorage.setItem(
-                        HOME_REPORT_CACHE_KEY,
-                        JSON.stringify({
-                            time: Date.now(),
-                            reports: homeReports
-                        })
-                    );
-
-                } catch (cacheError) {
-
-                    console.error(
-                        "Home Cache Save Error:",
-                        cacheError
-                    );
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Home Search Error:",
-                    error
-                );
-
-
-                /*
-                 * Use old cache if API
-                 * is temporarily unavailable.
-                 */
-
-                const oldReports =
-                    getHomeCachedReports(
-                        true
-                    );
-
-
-                homeReports =
-                    oldReports || [];
-
-            }
-
-        }
-
-
-        function escapeHomeSearchHTML(
-            value
-        ) {
-
-            return String(
-                value || ""
-            )
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
-
-        }
-
-
-        function searchHomeReports(
-            searchValue
-        ) {
-
-            const resultsBox =
-                document.getElementById(
-                    "homeSearchResults"
-                );
-
-
-            if (!resultsBox) {
-                return;
-            }
-
-
-            const query =
-                String(
-                    searchValue || ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-
-            if (!query) {
-
-                resultsBox.innerHTML =
-                    "";
-
-                resultsBox.style.display =
-                    "none";
-
-                return;
-
-            }
-
-
-            const results =
-                homeReports
-                    .filter(
-                        function(report) {
-
-                            const searchableText = [
-
-                                report.ID,
-                                report.Area,
-                                report.Description,
-                                report.Division,
-                                report.District,
-                                report.Upazila,
-                                report.Category,
-                                report.Status,
-                                report.AdminNote
-
-                            ]
-                                .map(
-                                    function(value) {
-
-                                        return String(
-                                            value || ""
-                                        );
-
-                                    }
-                                )
-                                .join(" ")
-                                .toLowerCase();
-
-
-                            return searchableText
-                                .includes(
-                                    query
-                                );
-
-                        }
-                    )
-                    .slice(0, 5);
-
-
-            resultsBox.style.display =
-                "block";
-
-
-            if (!results.length) {
-
-                resultsBox.innerHTML = `
-                    <div class="home-search-empty">
-                        কোনো রিপোর্ট পাওয়া যায়নি।
-                        <br>
-                        <small>
-                            অন্য এলাকা, বিষয় বা রিপোর্ট ID দিয়ে চেষ্টা করুন।
-                        </small>
-                    </div>
-                `;
-
-                return;
-
-            }
-
-
-            resultsBox.innerHTML =
-                results
-                    .map(
-                        function(report) {
-
-                            const location = [
-
-                                report.Division,
-                                report.District,
-                                report.Upazila,
-                                report.Area
-
-                            ]
-                                .filter(Boolean)
-                                .join(" → ");
-
-
-                            return `
-                                <div class="home-search-result">
-
-                                    <strong>
-                                        ${escapeHomeSearchHTML(
-                                            report.Category ||
-                                            "অন্যান্য"
-                                        )}
-                                    </strong>
-
-                                    <span>
-                                        📍
-                                        ${escapeHomeSearchHTML(
-                                            location ||
-                                            "স্থান উল্লেখ নেই"
-                                        )}
-
-                                        <br>
-
-                                        🆔
-                                        ${escapeHomeSearchHTML(
-                                            report.ID ||
-                                            "N/A"
-                                        )}
-
-                                        &nbsp; | &nbsp;
-
-                                        ${escapeHomeSearchHTML(
-                                            report.Status ||
-                                            "Pending"
-                                        )}
-                                    </span>
-
-                                </div>
-                            `;
-
-                        }
-                    )
-                    .join("");
-
-        }
-
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            function() {
-
-                loadHomeSearchReports();
-
-
-                const searchForm =
-                    document.getElementById(
-                        "homeSearchForm"
-                    );
-
-
-                const searchInput =
-                    document.getElementById(
-                        "homeSearchInput"
-                    );
-
-
-                if (
-                    searchForm &&
-                    searchInput
-                ) {
-
-                    searchForm.addEventListener(
-                        "submit",
-                        async function(event) {
-
-                            event.preventDefault();
-
-
-                            if (
-                                !homeReports.length
-                            ) {
-
-                                await loadHomeSearchReports();
-
-                            }
-
-
-                            searchHomeReports(
-                                searchInput.value
-                            );
-
-                        }
-                    );
-
-
-                    searchInput.addEventListener(
-                        "input",
-                        function() {
-
-                            if (
-                                searchInput.value.trim()
-                            ) {
-
-                                searchHomeReports(
-                                    searchInput.value
-                                );
-
-                            } else {
-
-                                const resultsBox =
-                                    document.getElementById(
-                                        "homeSearchResults"
-                                    );
-
-
-                                if (resultsBox) {
-
-                                    resultsBox.innerHTML =
-                                        "";
-
-                                    resultsBox.style.display =
-                                        "none";
-
-                                }
-
-                            }
-
-                        }
-                    );
-
-                }
-
-            }
-        );
-
-    </script>
-
-
-    <!-- =========================
-         Supabase (Reports Data)
-    ========================== -->
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
-
-    <!-- =========================
-         Existing Main JavaScript
-    ========================== -->
-
-    <script src="js/script.js"></script>
-
-
-    <!-- Emergency Hotline JavaScript -->
-    <script>
-        const emergencyNumbers=[{name:"জাতীয় জরুরি সেবা",number:"999",icon:"🚨",important:true},{name:"সরকারি তথ্য ও সেবা",number:"333",icon:"📞"},{name:"ফায়ার সার্ভিস",number:"102",icon:"🚒"},{name:"নারী ও শিশু সহায়তা",number:"109",icon:"👩"},{name:"শিশু সহায়তা",number:"1098",icon:"👶"},{name:"স্বাস্থ্য বাতায়ন",number:"16263",icon:"🏥"},{name:"কৃষি কল সেন্টার",number:"16123",icon:"🌾"},{name:"সরকারি আইনি সহায়তা",number:"16699",icon:"⚖️"},{name:"দুর্নীতি দমন কমিশন",number:"106",icon:"🔍"},{name:"দুর্যোগ পূর্বাভাস",number:"1090",icon:"🌪️"},{name:"বাংলাদেশ রেলওয়ে",number:"131",icon:"🚂"},{name:"ঢাকা ওয়াসা",number:"16162",icon:"💧"}];
-        const emergencyButton=document.getElementById("emergencyButton"),emergencyOverlay=document.getElementById("emergencyOverlay"),emergencyClose=document.getElementById("emergencyClose"),emergencyList=document.getElementById("emergencyList");
-        function renderEmergencyNumbers(){if(!emergencyList)return;emergencyList.innerHTML=emergencyNumbers.map(s=>`<div class="emergency-card ${s.important?"important":""}"><div class="emergency-card-info"><div class="emergency-card-icon">${s.icon}</div><div><h3>${s.name}</h3><strong>${s.number}</strong></div></div><div class="emergency-card-actions"><a href="tel:${s.number}" class="emergency-call">📞 কল করুন</a><button type="button" class="emergency-copy" data-number="${s.number}">📋 কপি</button></div></div>`).join("")}
-        function openEmergencyPopup(){if(!emergencyOverlay)return;emergencyOverlay.classList.add("show");emergencyOverlay.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
-        function closeEmergencyPopup(){if(!emergencyOverlay)return;emergencyOverlay.classList.remove("show");emergencyOverlay.setAttribute("aria-hidden","true");document.body.style.overflow=""}
-        async function copyEmergencyNumber(number,button){try{await navigator.clipboard.writeText(number)}catch(e){const ta=document.createElement("textarea");ta.value=number;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(x){console.error("Copy Error:",x)}ta.remove()}const old=button.textContent;button.textContent="✓ কপি হয়েছে";setTimeout(()=>button.textContent=old,1500)}
-        if(emergencyButton)emergencyButton.addEventListener("click",e=>{e.preventDefault();openEmergencyPopup()});
-        if(emergencyClose)emergencyClose.addEventListener("click",closeEmergencyPopup);
-        if(emergencyOverlay)emergencyOverlay.addEventListener("click",e=>{if(e.target===emergencyOverlay)closeEmergencyPopup()});
-        if(emergencyList)emergencyList.addEventListener("click",e=>{const b=e.target.closest(".emergency-copy");if(b)copyEmergencyNumber(b.dataset.number,b)});
-        document.addEventListener("keydown",e=>{if(e.key==="Escape")closeEmergencyPopup()});
-        renderEmergencyNumbers();
-    </script>
 <script src="js/mobile-nav.js"></script>
- <script src="js/pwa.js"></script>
-</body>
-</html>
+
+<script src="js/pwa.js"></script>
+
+</body></html>
