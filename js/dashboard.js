@@ -228,125 +228,27 @@ function clearReportCache() {
         );
     }
 }
-
+ 
 // =====================================
 // Statistics
 // =====================================
 
 function updateStatistics(reports) {
 
-    const total = reports.length;
+    if (
+        window.DashboardStats &&
+        typeof window.DashboardStats.updateStatistics === "function"
+    ) {
 
-    const pending = reports.filter(function (report) {
+        window.DashboardStats.updateStatistics(reports);
 
-        return String(report.Status || "")
-            .trim()
-            .toLowerCase() === "pending";
+    } else {
 
-    }).length;
-
-    const progress = reports.filter(function (report) {
-
-        const status =
-            String(report.Status || "").trim();
-
-        return (
-            status === "কাজ চলছে" ||
-            status.toLowerCase() === "in progress" ||
-            status.toLowerCase() === "progress"
+        console.error(
+            "Dashboard Statistics module is not loaded."
         );
-
-    }).length;
-
-    const solved = reports.filter(function (report) {
-
-        const status =
-            String(report.Status || "").trim();
-
-        return (
-            status === "সমাধান হয়েছে" ||
-            status === "সমাধান হয়েছে" ||
-            status.toLowerCase() === "solved"
-        );
-
-    }).length;
-
-    animateNumber(
-        totalReports,
-        total
-    );
-
-    animateNumber(
-        pendingReports,
-        pending
-    );
-
-    animateNumber(
-        progressReports,
-        progress
-    );
-
-    animateNumber(
-        solvedReports,
-        solved
-    );
-}
-
-// =====================================
-// Number Animation
-// =====================================
-
-function animateNumber(element, target) {
-
-    if (!element) return;
-
-    const start =
-        Number(element.textContent) || 0;
-
-    if (start === target) {
-
-        element.textContent = target;
-
-        return;
     }
-
-    const duration = 500;
-
-    const startTime =
-        performance.now();
-
-    function update(currentTime) {
-
-        const progress =
-            Math.min(
-                (currentTime - startTime) /
-                    duration,
-                1
-            );
-
-        const value =
-            Math.floor(
-                start +
-                (target - start) *
-                    progress
-            );
-
-        element.textContent = value;
-
-        if (progress < 1) {
-
-            requestAnimationFrame(update);
-
-        } else {
-
-            element.textContent =
-                target;
-        }
-    }
-
-    requestAnimationFrame(update);
 }
-
 // =====================================
 // Filter Options
 // =====================================
