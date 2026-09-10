@@ -1,2383 +1,2418 @@
- const REPORT_TABLE = "Reports";
-const CATEGORY_TABLE = "Categories";
+ /* =========================================================
+   Amader Elaka - Admin Panel
+   Part-6: Final Integrated Admin JavaScript
 
-const REPORT_CACHE_KEY = "amaderElaka_reports_cache";
-const REPORT_CACHE_TIME = 60 * 1000;
+   IMPORTANT:
+   This file contains NO report/category functionality.
+   Admin is now used for Dashboard Service Management.
+   ========================================================= */
 
-const CATEGORY_CACHE_KEY = "amaderElaka_categories_cache";
-const CATEGORY_CACHE_TIME = 10 * 60 * 1000;
 
-let allReports = [];
-let categories = [];
-let editingReport = null;
-let editingCategoryIndex = null;
+/* =========================================================
+   01. CONFIGURATION
+   ========================================================= */
+
+const ADMIN_SERVICES_STORAGE_KEY =
+    "amaderElaka_admin_services";
+
+const ADMIN_SERVICE_VERSION =
+    1;
+
+
+/* =========================================================
+   02. STATE
+   ========================================================= */
+
 let adminInitialized = false;
-let originalBodyDisplays = new Map();
+
+let adminServices = [];
+
+let editingServiceId = null;
+
+let authStateListenerRegistered = false;
+
+let navigationInitialized = false;
+
+let serviceManagementInitialized = false;
+
+let serviceFormEventsInitialized = false;
+
+
+/* =========================================================
+   03. DEFAULT SERVICES
+   ========================================================= */
+
+const DEFAULT_ADMIN_SERVICES = [
+    {
+        id: "government-services",
+        title: "সরকারি সেবা",
+        description: "বাংলাদেশের গুরুত্বপূর্ণ সরকারি সেবার তথ্য ও প্রয়োজনীয় লিংক।",
+        icon: "🏛️",
+        url: "government.html",
+        active: true,
+        order: 1
+    },
+
+    {
+        id: "emergency-services",
+        title: "জরুরি সেবা",
+        description: "জরুরি প্রয়োজনে প্রয়োজনীয় নম্বর ও সহায়তার তথ্য।",
+        icon: "🚨",
+        url: "index.html#emergency",
+        active: true,
+        order: 2
+    }
+];
+
+
+/* =========================================================
+   04. DOM READY
+   ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
     initializeAdminAuth();
 });
 
-/* =========================
-   ADMIN AUTH
-========================= */
+
+/* =========================================================
+   05. ADMIN AUTHENTICATION
+   ========================================================= */
 
 async function initializeAdminAuth() {
-    const loginScreen = document.getElementById("adminLoginScreen");
-    const loginForm = document.getElementById("adminLoginForm");
+
+    const loginScreen =
+        document.getElementById("adminLoginScreen");
+
+    const loginForm =
+        document.getElementById("adminLoginForm");
 
     if (!loginScreen || !loginForm) {
-        console.error("Admin login screen not found.");
+
+        console.error(
+            "Admin login elements not found."
+        );
+
         return;
     }
 
-    loginForm.addEventListener("submit", handleAdminLogin);
 
-    const { data, error } = await supabaseClient.auth.getSession();
+    /* -----------------------------------------
+       Login Form
+    ----------------------------------------- */
 
-    if (error) {
-        console.error("Auth session error:", error);
+    if (!loginForm.dataset.initialized) {
+
+        loginForm.addEventListener(
+            "submit",
+            handleAdminLogin
+        );
+
+        loginForm.dataset.initialized = "true";
+    }
+
+
+    /* -----------------------------------------
+       Check Supabase
+    ----------------------------------------- */
+
+    if (
+        typeof supabaseClient === "undefined" ||
+        !supabaseClient?.auth
+    ) {
+
+        console.error(
+            "Supabase client is not available."
+        );
+
+        showLoginError(
+            "Admin authentication system পাওয়া যাচ্ছে না।"
+        );
+
         showLoginScreen();
+
         return;
     }
 
-    if (data?.session) {
-        await showAdminPanel();
-    } else {
-        showLoginScreen();
-    }
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            showAdminPanel();
+    /* -----------------------------------------
+       Current Session
+    ----------------------------------------- */
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        if (data?.session) {
+
+            await showAdminPanel();
+
         } else {
-            adminInitialized = false;
-            allReports = [];
-            categories = [];
-            clearReportCache();
-            clearCategoryCache();
+
             showLoginScreen();
         }
-    });
+
+
+    } catch (error) {
+
+        console.error(
+            "Admin session error:",
+            error
+        );
+
+        showLoginError(
+            "সেশন যাচাই করা যায়নি। আবার লগইন করুন।"
+        );
+
+        showLoginScreen();
+    }
+
+
+    /* -----------------------------------------
+       Auth State Listener
+    ----------------------------------------- */
+
+    if (!authStateListenerRegistered) {
+
+        authStateListenerRegistered = true;
+
+        supabaseClient.auth.onAuthStateChange(
+            async (event, session) => {
+
+                if (session) {
+
+                    await showAdminPanel();
+
+                } else {
+
+                    adminInitialized = false;
+
+                    editingServiceId = null;
+
+                    showLoginScreen();
+                }
+            }
+        );
+    }
 }
+
+
+/* =========================================================
+   06. ADMIN LOGIN
+   ========================================================= */
 
 async function handleAdminLogin(event) {
+
     event.preventDefault();
 
-    const emailInput = document.getElementById("adminEmail");
-    const passwordInput = document.getElementById("adminPassword");
-    const button = document.getElementById("adminLoginButton");
-    const errorElement = document.getElementById("adminLoginError");
 
-    const email = String(emailInput?.value || "").trim();
-    const password = String(passwordInput?.value || "");
+    const emailInput =
+        document.getElementById("adminEmail");
 
-    if (errorElement) {
-        errorElement.style.display = "none";
-        errorElement.textContent = "";
-    }
+    const passwordInput =
+        document.getElementById("adminPassword");
 
-    if (button) {
-        button.disabled = true;
-        button.textContent = "লগইন হচ্ছে...";
-    }
+    const loginButton =
+        document.getElementById("adminLoginButton");
 
-    try {
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-                email,
-                password
-            });
 
-        if (error) {
-            throw error;
-        }
+    const email =
+        String(emailInput?.value || "")
+            .trim();
 
-        if (!data?.session) {
-            throw new Error("লগইন সেশন তৈরি হয়নি।");
-        }
+    const password =
+        String(passwordInput?.value || "");
 
-        if (emailInput) emailInput.value = "";
-        if (passwordInput) passwordInput.value = "";
 
-        clearReportCache();
-        clearCategoryCache();
+    clearLoginError();
 
-        await showAdminPanel();
 
-    } catch (error) {
-        console.error("Admin login error:", error);
+    /* -----------------------------------------
+       Validation
+    ----------------------------------------- */
 
-        if (errorElement) {
-            errorElement.textContent =
-                error.message === "Invalid login credentials"
-                    ? "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।"
-                    : error.message || "লগইন করা যায়নি।";
+    if (!email) {
 
-            errorElement.style.display = "block";
-        }
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = "লগইন করুন";
-        }
-    }
-}
-
-function showLoginScreen() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    saveAndHideAdminContent();
-
-    if (loginScreen) {
-        loginScreen.style.display = "flex";
-    }
-}
-
-async function showAdminPanel() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    if (loginScreen) {
-        loginScreen.style.display = "none";
-    }
-
-    restoreAdminContent();
-    setupLogoutButton();
-
-    if (!adminInitialized) {
-        adminInitialized = true;
-
-        clearReportCache();
-        clearCategoryCache();
-
-        await initializeAdmin(true);
-    } else {
-        await loadCategories(true);
-        await loadReports(true);
-    }
-}
-
-function saveAndHideAdminContent() {
-    const loginScreen =
-        document.getElementById("adminLoginScreen");
-
-    document.querySelectorAll("body > *").forEach(element => {
-        if (
-            element === loginScreen ||
-            element.tagName === "SCRIPT"
-        ) {
-            return;
-        }
-
-        if (!originalBodyDisplays.has(element)) {
-            originalBodyDisplays.set(
-                element,
-                element.style.display
-            );
-        }
-
-        element.style.display = "none";
-    });
-}
-
-function restoreAdminContent() {
-    originalBodyDisplays.forEach((display, element) => {
-        if (
-            element &&
-            element !== document.getElementById("adminLoginScreen")
-        ) {
-            element.style.display = display;
-        }
-    });
-}
-
-/* =========================
-   LOGOUT
-========================= */
-
-function setupLogoutButton() {
-    const userBox =
-        document.querySelector(".admin-user");
-
-    if (!userBox) return;
-
-    let button =
-        document.getElementById("adminLogoutBtn");
-
-    if (button) return;
-
-    button = document.createElement("button");
-
-    button.id = "adminLogoutBtn";
-    button.type = "button";
-    button.textContent = "Logout";
-
-    button.style.marginLeft = "12px";
-    button.style.padding = "8px 12px";
-    button.style.border = "1px solid #d1d5db";
-    button.style.borderRadius = "8px";
-    button.style.background = "#fff";
-    button.style.color = "#374151";
-    button.style.fontSize = "13px";
-    button.style.fontWeight = "600";
-    button.style.cursor = "pointer";
-
-    button.addEventListener("click", async () => {
-        button.disabled = true;
-        button.textContent = "Logging out...";
-
-        try {
-            const { error } =
-                await supabaseClient.auth.signOut();
-
-            if (error) {
-                throw error;
-            }
-
-            allReports = [];
-            categories = [];
-            adminInitialized = false;
-
-            clearReportCache();
-            clearCategoryCache();
-
-        } catch (error) {
-            console.error("Logout error:", error);
-
-            button.disabled = false;
-            button.textContent = "Logout";
-
-            showAdminMessage(
-                "সমস্যা হয়েছে",
-                error.message || "Logout করা যায়নি।",
-                "error"
-            );
-        }
-    });
-
-    userBox.appendChild(button);
-}
-
-/* =========================
-   ADMIN INITIALIZE
-========================= */
-
-async function initializeAdmin(forceRefresh = false) {
-    setupNavigation();
-    setupReportEvents();
-    setupCategoryEvents();
-
-    await loadCategories(forceRefresh);
-    await loadReports(forceRefresh);
-}
-
-/* =========================
-   NAVIGATION
-========================= */
-
-function setupNavigation() {
-    document.querySelectorAll(".admin-nav-item").forEach(item => {
-        item.addEventListener("click", () => {
-            switchSection(item.dataset.section);
-        });
-    });
-
-    document.querySelectorAll("[data-section-target]").forEach(button => {
-        button.addEventListener("click", () => {
-            switchSection(button.dataset.sectionTarget);
-        });
-    });
-}
-
-function switchSection(section) {
-    document.querySelectorAll(".admin-nav-item").forEach(item => {
-        item.classList.toggle(
-            "active",
-            item.dataset.section === section
-        );
-    });
-
-    document.querySelectorAll(".admin-section").forEach(element => {
-        element.classList.remove("active");
-    });
-
-    const target =
-        document.getElementById(`${section}Section`);
-
-    if (target) {
-        target.classList.add("active");
-    }
-
-    const title =
-        document.getElementById("pageTitle");
-
-    const subtitle =
-        document.getElementById("pageSubtitle");
-
-    if (section === "overview") {
-        title.textContent = "ড্যাশবোর্ড";
-        subtitle.textContent =
-            "আপনার এলাকার রিপোর্টগুলো পরিচালনা করুন";
-    }
-
-    if (section === "reports") {
-        title.textContent = "রিপোর্টসমূহ";
-        subtitle.textContent =
-            "সব রিপোর্ট দেখুন ও পরিচালনা করুন";
-    }
-
-    if (section === "categories") {
-        title.textContent = "ক্যাটাগরি";
-        subtitle.textContent =
-            "রিপোর্টের সমস্যা ক্যাটাগরি পরিচালনা করুন";
-    }
-}
-
-/* =========================
-   REPORT CACHE
-========================= */
-
-function getCachedReports(ignoreExpiry = false) {
-    try {
-        const cached =
-            localStorage.getItem(REPORT_CACHE_KEY);
-
-        if (!cached) return null;
-
-        const data = JSON.parse(cached);
-
-        if (
-            !data ||
-            !Array.isArray(data.reports) ||
-            !data.time
-        ) {
-            return null;
-        }
-
-        const age =
-            Date.now() - Number(data.time);
-
-        if (
-            !ignoreExpiry &&
-            age > REPORT_CACHE_TIME
-        ) {
-            return null;
-        }
-
-        return data.reports;
-
-    } catch (error) {
-        console.error(
-            "Report Cache Read Error:",
-            error
+        showLoginError(
+            "ইমেইল ঠিকানা দিন।"
         );
 
-        return null;
-    }
-}
-
-function saveCachedReports(reports) {
-    try {
-        localStorage.setItem(
-            REPORT_CACHE_KEY,
-            JSON.stringify({
-                time: Date.now(),
-                reports
-            })
-        );
-    } catch (error) {
-        console.error(
-            "Report Cache Save Error:",
-            error
-        );
-    }
-}
-
-function clearReportCache() {
-    try {
-        localStorage.removeItem(
-            REPORT_CACHE_KEY
-        );
-    } catch (error) {
-        console.error(
-            "Report Cache Clear Error:",
-            error
-        );
-    }
-}
-
-/* =========================
-   CATEGORY CACHE
-========================= */
-
-function getCachedCategories(ignoreExpiry = false) {
-    try {
-        const cached =
-            localStorage.getItem(
-                CATEGORY_CACHE_KEY
-            );
-
-        if (!cached) return null;
-
-        const data = JSON.parse(cached);
-
-        if (
-            !data ||
-            !Array.isArray(data.categories) ||
-            !data.time
-        ) {
-            return null;
-        }
-
-        const age =
-            Date.now() - Number(data.time);
-
-        if (
-            !ignoreExpiry &&
-            age > CATEGORY_CACHE_TIME
-        ) {
-            return null;
-        }
-
-        return data.categories;
-
-    } catch (error) {
-        console.error(
-            "Category Cache Read Error:",
-            error
-        );
-
-        return null;
-    }
-}
-
-function saveCachedCategories(data) {
-    try {
-        localStorage.setItem(
-            CATEGORY_CACHE_KEY,
-            JSON.stringify({
-                time: Date.now(),
-                categories: data
-            })
-        );
-    } catch (error) {
-        console.error(
-            "Category Cache Save Error:",
-            error
-        );
-    }
-}
-
-function clearCategoryCache() {
-    try {
-        localStorage.removeItem(
-            CATEGORY_CACHE_KEY
-        );
-    } catch (error) {
-        console.error(
-            "Category Cache Clear Error:",
-            error
-        );
-    }
-}
-
-/* =========================
-   REPORTS
-========================= */
-
-async function loadReports(forceRefresh = false) {
-    const table =
-        document.getElementById(
-            "adminReportsTable"
-        );
-
-    const recent =
-        document.getElementById(
-            "recentReports"
-        );
-
-    if (!forceRefresh) {
-        const cachedReports =
-            getCachedReports();
-
-        if (
-            Array.isArray(cachedReports) &&
-            cachedReports.length > 0
-        ) {
-            allReports = cachedReports;
-
-            updateStatistics();
-            createFilterOptions();
-            displayReports(allReports);
-            displayRecentReports();
-
-            return;
-        }
-    }
-
-    if (table) {
-        table.innerHTML =
-            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
-    }
-
-    if (recent) {
-        recent.innerHTML =
-            '<div class="admin-loading">রিপোর্ট লোড হচ্ছে...</div>';
-    }
-
-    try {
-        const { data, error } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .select("*")
-                .order("Date", {
-                    ascending: true
-                });
-
-        if (error) {
-            throw error;
-        }
-
-        allReports =
-            Array.isArray(data)
-                ? data
-                : [];
-
-        saveCachedReports(allReports);
-
-        updateStatistics();
-        createFilterOptions();
-        displayReports(allReports);
-        displayRecentReports();
-
-    } catch (error) {
-        console.error(
-            "Report loading error:",
-            error
-        );
-
-        const oldReports =
-            getCachedReports(true);
-
-        if (
-            Array.isArray(oldReports) &&
-            oldReports.length > 0
-        ) {
-            allReports = oldReports;
-
-            updateStatistics();
-            createFilterOptions();
-            displayReports(allReports);
-            displayRecentReports();
-
-            return;
-        }
-
-        allReports = [];
-
-        updateStatistics();
-
-        if (table) {
-            table.innerHTML =
-                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
-        }
-
-        if (recent) {
-            recent.innerHTML =
-                '<div class="admin-empty">⚠️ রিপোর্ট লোড করা যায়নি।</div>';
-        }
-    }
-}
-
-/* =========================
-   REPORT STATISTICS
-========================= */
-
-function updateStatistics() {
-    const total =
-        allReports.length;
-
-    const pending =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "pending"
-        ).length;
-
-    const progress =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "progress"
-        ).length;
-
-    const solved =
-        allReports.filter(
-            report =>
-                normalizeStatus(
-                    report.Status
-                ) === "solved"
-        ).length;
-
-    setNumber(
-        "adminTotalReports",
-        total
-    );
-
-    setNumber(
-        "adminPendingReports",
-        pending
-    );
-
-    setNumber(
-        "adminProgressReports",
-        progress
-    );
-
-    setNumber(
-        "adminSolvedReports",
-        solved
-    );
-}
-
-function setNumber(id, value) {
-    const element =
-        document.getElementById(id);
-
-    if (!element) return;
-
-    element.textContent = value;
-}
-
-/* =========================
-   STATUS
-========================= */
-
-function normalizeStatus(status) {
-    const value =
-        String(status || "")
-            .trim()
-            .toLowerCase();
-
-    if (value === "pending") {
-        return "pending";
-    }
-
-    if (
-        value === "কাজ চলছে" ||
-        value === "in progress" ||
-        value === "progress"
-    ) {
-        return "progress";
-    }
-
-    if (
-        value === "সমাধান হয়েছে" ||
-        value === "সমাধান হয়েছে" ||
-        value === "solved"
-    ) {
-        return "solved";
-    }
-
-    return "other";
-}
-
-function statusLabel(status) {
-    const type =
-        normalizeStatus(status);
-
-    if (type === "pending") {
-        return "Pending";
-    }
-
-    if (type === "progress") {
-        return "কাজ চলছে";
-    }
-
-    if (type === "solved") {
-        return "সমাধান হয়েছে";
-    }
-
-    return status || "Unknown";
-}
-
-function statusClass(status) {
-    const type =
-        normalizeStatus(status);
-
-    if (type === "pending") {
-        return "status-pending";
-    }
-
-    if (type === "progress") {
-        return "status-progress";
-    }
-
-    if (type === "solved") {
-        return "status-solved";
-    }
-
-    return "status-default";
-}
-
-/* =========================
-   FILTERS
-========================= */
-
-function createFilterOptions() {
-    const categorySelect =
-        document.getElementById(
-            "adminCategoryFilter"
-        );
-
-    const divisionSelect =
-        document.getElementById(
-            "adminDivisionFilter"
-        );
-
-    if (categorySelect) {
-        const currentValue =
-            categorySelect.value;
-
-        categorySelect.innerHTML =
-            '<option value="">সব ক্যাটাগরি</option>';
-
-        categories.forEach(category => {
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                category.Name;
-
-            option.textContent =
-                category.Name;
-
-            categorySelect.appendChild(
-                option
-            );
-        });
-
-        if (
-            [...categorySelect.options]
-                .some(
-                    option =>
-                        option.value ===
-                        currentValue
-                )
-        ) {
-            categorySelect.value =
-                currentValue;
-        }
-    }
-
-    if (divisionSelect) {
-        const currentValue =
-            divisionSelect.value;
-
-        divisionSelect.innerHTML =
-            '<option value="">সব বিভাগ</option>';
-
-        const divisions = [
-            ...new Set(
-                allReports
-                    .map(
-                        report =>
-                            String(
-                                report.Division ||
-                                ""
-                            ).trim()
-                    )
-                    .filter(Boolean)
-            )
-        ];
-
-        divisions.forEach(division => {
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                division;
-
-            option.textContent =
-                division;
-
-            divisionSelect.appendChild(
-                option
-            );
-        });
-
-        if (
-            [...divisionSelect.options]
-                .some(
-                    option =>
-                        option.value ===
-                        currentValue
-                )
-        ) {
-            divisionSelect.value =
-                currentValue;
-        }
-    }
-}
-
-function setupReportEvents() {
-    const search =
-        document.getElementById(
-            "adminReportSearch"
-        );
-
-    const status =
-        document.getElementById(
-            "adminStatusFilter"
-        );
-
-    const category =
-        document.getElementById(
-            "adminCategoryFilter"
-        );
-
-    const division =
-        document.getElementById(
-            "adminDivisionFilter"
-        );
-
-    const reset =
-        document.getElementById(
-            "resetAdminFilters"
-        );
-
-    const refresh =
-        document.getElementById(
-            "refreshReportsBtn"
-        );
-
-    if (search) {
-        search.addEventListener(
-            "input",
-            applyReportFilters
-        );
-    }
-
-    if (status) {
-        status.addEventListener(
-            "change",
-            applyReportFilters
-        );
-    }
-
-    if (category) {
-        category.addEventListener(
-            "change",
-            applyReportFilters
-        );
-    }
-
-    if (division) {
-        division.addEventListener(
-            "change",
-            applyReportFilters
-        );
-    }
-
-    if (reset) {
-        reset.addEventListener(
-            "click",
-            () => {
-                if (search) {
-                    search.value = "";
-                }
-
-                if (status) {
-                    status.value = "";
-                }
-
-                if (category) {
-                    category.value = "";
-                }
-
-                if (division) {
-                    division.value = "";
-                }
-
-                displayReports(
-                    allReports
-                );
-            }
-        );
-    }
-
-    if (refresh) {
-        refresh.addEventListener(
-            "click",
-            async () => {
-                refresh.disabled = true;
-
-                const oldText =
-                    refresh.textContent;
-
-                refresh.textContent =
-                    "লোড হচ্ছে...";
-
-                try {
-                    clearReportCache();
-                    clearCategoryCache();
-
-                    await loadCategories(true);
-                    await loadReports(true);
-
-                } finally {
-                    refresh.disabled = false;
-                    refresh.textContent =
-                        oldText;
-                }
-            }
-        );
-    }
-}
-
-function applyReportFilters() {
-    const search =
-        String(
-            document.getElementById(
-                "adminReportSearch"
-            )?.value || ""
-        )
-            .trim()
-            .toLowerCase();
-
-    const status =
-        document.getElementById(
-            "adminStatusFilter"
-        )?.value || "";
-
-    const category =
-        document.getElementById(
-            "adminCategoryFilter"
-        )?.value || "";
-
-    const division =
-        document.getElementById(
-            "adminDivisionFilter"
-        )?.value || "";
-
-    const filtered =
-        allReports.filter(report => {
-            const searchable = [
-                report.ID,
-                report.Area,
-                report.Description,
-                report.District,
-                report.Upazila,
-                report.Division,
-                report.Category,
-                report.Ward,
-                report.AdminNote
-            ]
-                .map(
-                    value =>
-                        String(
-                            value || ""
-                        ).toLowerCase()
-                )
-                .join(" ");
-
-            return (
-                (!search ||
-                    searchable.includes(
-                        search
-                    )) &&
-                (!status ||
-                    normalizeStatus(
-                        report.Status
-                    ) ===
-                    normalizeStatus(
-                        status
-                    )) &&
-                (!category ||
-                    String(
-                        report.Category ||
-                        ""
-                    ) === category) &&
-                (!division ||
-                    String(
-                        report.Division ||
-                        ""
-                    ) === division)
-            );
-        });
-
-    displayReports(filtered);
-}
-
-/* =========================
-   DISPLAY REPORTS
-========================= */
-
-function displayReports(reports) {
-    const container =
-        document.getElementById(
-            "adminReportsTable"
-        );
-
-    if (!container) return;
-
-    if (!reports.length) {
-        container.innerHTML = `
-            <div class="admin-empty">
-                <div class="admin-empty-icon">📭</div>
-                কোনো রিপোর্ট পাওয়া যায়নি।
-            </div>
-        `;
+        emailInput?.focus();
 
         return;
     }
 
-    let html = `
-        <div class="admin-report-row admin-report-header">
-            <div>রিপোর্ট</div>
-            <div>লোকেশন</div>
-            <div>ক্যাটাগরি</div>
-            <div>স্ট্যাটাস</div>
-            <div>তারিখ</div>
-            <div>অ্যাকশন</div>
-        </div>
-    `;
 
-    reports.forEach(report => {
-        html += `
-            <div class="admin-report-row">
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.ID ||
-                        "N/A"
-                    )}</strong>
+    if (!password) {
 
-                    <small>${safe(
-                        report.Description ||
-                        "কোনো বিবরণ নেই"
-                    )}</small>
-                </div>
+        showLoginError(
+            "পাসওয়ার্ড দিন।"
+        );
 
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Area ||
-                        "—"
-                    )}</strong>
+        passwordInput?.focus();
 
-                    <small>
-                        ${safe(
-                            report.District ||
-                            ""
-                        )}
-                        ${
-                            report.Division
-                                ? " • " +
-                                  safe(
-                                      report.Division
-                                  )
-                                : ""
-                        }
-                    </small>
-                </div>
+        return;
+    }
 
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Category ||
-                        "—"
-                    )}</strong>
-                </div>
 
-                <div class="admin-report-cell">
-                    <span class="status-badge ${statusClass(
-                        report.Status
-                    )}">
-                        ${safe(
-                            statusLabel(
-                                report.Status
-                            )
-                        )}
-                    </span>
-                </div>
+    /* -----------------------------------------
+       Loading
+    ----------------------------------------- */
 
-                <div class="admin-report-cell">
-                    <strong>${safe(
-                        report.Date ||
-                        "—"
-                    )}</strong>
-                </div>
+    if (loginButton) {
 
-                <div class="admin-report-actions">
-                    <button
-                        class="admin-btn admin-btn-secondary edit-report-btn"
-                        data-id="${escapeAttribute(
-                            report.ID
-                        )}"
-                    >
-                        ✏️
-                    </button>
-                </div>
-            </div>
-        `;
-    });
+        loginButton.disabled = true;
 
-    container.innerHTML = html;
+        loginButton.dataset.originalText =
+            loginButton.textContent;
 
-    container
+        loginButton.textContent =
+            "লগইন হচ্ছে...";
+    }
+
+
+    try {
+
+        if (
+            typeof supabaseClient === "undefined" ||
+            !supabaseClient?.auth
+        ) {
+            throw new Error(
+                "Authentication system unavailable."
+            );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth
+                .signInWithPassword({
+                    email,
+                    password
+                });
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        if (!data?.session) {
+
+            throw new Error(
+                "লগইন সেশন তৈরি হয়নি।"
+            );
+        }
+
+
+        /* -----------------------------------------
+           Clear Form
+        ----------------------------------------- */
+
+        if (emailInput) {
+            emailInput.value = "";
+        }
+
+        if (passwordInput) {
+            passwordInput.value = "";
+        }
+
+
+        clearLoginError();
+
+
+        await showAdminPanel();
+
+
+    } catch (error) {
+
+        console.error(
+            "Admin login error:",
+            error
+        );
+
+
+        let message =
+            "লগইন করা যায়নি। আবার চেষ্টা করুন।";
+
+
+        const errorMessage =
+            String(error?.message || "")
+                .toLowerCase();
+
+
+        if (
+            errorMessage.includes(
+                "invalid login credentials"
+            )
+        ) {
+
+            message =
+                "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।";
+
+        } else if (
+            errorMessage.includes(
+                "email not confirmed"
+            )
+        ) {
+
+            message =
+                "এই ইমেইল এখনো যাচাই করা হয়নি।";
+
+        } else if (error?.message) {
+
+            message =
+                error.message;
+        }
+
+
+        showLoginError(message);
+
+
+    } finally {
+
+        if (loginButton) {
+
+            loginButton.disabled = false;
+
+            loginButton.textContent =
+                loginButton.dataset.originalText ||
+                "লগইন করুন";
+        }
+    }
+}
+
+
+/* =========================================================
+   07. LOGIN SCREEN
+   ========================================================= */
+
+function showLoginScreen() {
+
+    const loginScreen =
+        document.getElementById(
+            "adminLoginScreen"
+        );
+
+
+    if (loginScreen) {
+
+        loginScreen.style.display =
+            "flex";
+    }
+
+
+    const adminApp =
+        document.getElementById("adminApp");
+
+
+    if (adminApp) {
+
+        adminApp.style.display =
+            "none";
+    }
+}
+
+
+/* =========================================================
+   08. SHOW ADMIN PANEL
+   ========================================================= */
+
+async function showAdminPanel() {
+
+    const loginScreen =
+        document.getElementById(
+            "adminLoginScreen"
+        );
+
+    const adminApp =
+        document.getElementById("adminApp");
+
+
+    if (loginScreen) {
+
+        loginScreen.style.display =
+            "none";
+    }
+
+
+    if (adminApp) {
+
+        adminApp.style.display =
+            "flex";
+    }
+
+
+    setupLogoutButton();
+
+
+    if (!adminInitialized) {
+
+        adminInitialized = true;
+
+        initializeAdmin();
+
+    } else {
+
+        loadAdminServices();
+
+        renderAdminServiceManagement();
+
+        updateAdminStatistics();
+    }
+}
+
+
+/* =========================================================
+   09. LOGIN ERROR
+   ========================================================= */
+
+function showLoginError(message) {
+
+    const errorElement =
+        document.getElementById(
+            "adminLoginError"
+        );
+
+
+    if (!errorElement) {
+        return;
+    }
+
+
+    errorElement.textContent =
+        String(message || "একটি সমস্যা হয়েছে।");
+
+
+    errorElement.style.display =
+        "block";
+
+
+    errorElement.classList.add(
+        "show"
+    );
+}
+
+
+function clearLoginError() {
+
+    const errorElement =
+        document.getElementById(
+            "adminLoginError"
+        );
+
+
+    if (!errorElement) {
+        return;
+    }
+
+
+    errorElement.textContent = "";
+
+    errorElement.style.display =
+        "none";
+
+    errorElement.classList.remove(
+        "show"
+    );
+}
+
+
+/* =========================================================
+   10. ADMIN INITIALIZATION
+   ========================================================= */
+
+function initializeAdmin() {
+
+    setupNavigation();
+
+    setupServiceFoundation();
+
+    initializeAdminServiceUI();
+
+    loadAdminServices();
+
+    renderAdminServiceManagement();
+
+    updateAdminStatistics();
+
+    switchSection("overview");
+}
+
+
+/* =========================================================
+   11. NAVIGATION
+   ========================================================= */
+
+function setupNavigation() {
+
+    if (navigationInitialized) {
+        return;
+    }
+
+
+    navigationInitialized = true;
+
+
+    /* -----------------------------------------
+       Sidebar Navigation
+    ----------------------------------------- */
+
+    document
         .querySelectorAll(
-            ".edit-report-btn"
+            ".admin-nav-link[data-section]"
+        )
+        .forEach(link => {
+
+            link.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    const section =
+                        link.dataset.section;
+
+                    if (section) {
+                        switchSection(section);
+                    }
+                }
+            );
+        });
+
+
+    /* -----------------------------------------
+       Other Section Buttons
+    ----------------------------------------- */
+
+    document
+        .querySelectorAll(
+            "[data-section-target]"
         )
         .forEach(button => {
+
             button.addEventListener(
                 "click",
-                () => {
-                    const report =
-                        allReports.find(
-                            item =>
-                                String(
-                                    item.ID
-                                ) ===
-                                String(
-                                    button.dataset
-                                        .id
-                                )
-                        );
+                event => {
 
-                    if (report) {
-                        openReportEditModal(
-                            report
-                        );
+                    event.preventDefault();
+
+                    const section =
+                        button.dataset.sectionTarget;
+
+                    if (section) {
+                        switchSection(section);
                     }
                 }
             );
         });
 }
 
-/* =========================
-   RECENT REPORTS
-========================= */
 
-function displayRecentReports() {
-    const container =
-        document.getElementById(
-            "recentReports"
-        );
+/* =========================================================
+   12. SWITCH SECTION
+   ========================================================= */
 
-    if (!container) return;
+function switchSection(section) {
 
-    const reports =
-        [...allReports]
-            .reverse()
-            .slice(0, 5);
-
-    if (!reports.length) {
-        container.innerHTML =
-            '<div class="admin-empty">কোনো রিপোর্ট নেই।</div>';
-
+    if (!section) {
         return;
     }
 
-    container.innerHTML =
-        reports
-            .map(
-                report => `
-            <div class="recent-report-item">
-                <div class="recent-report-info">
-                    <strong>${safe(
-                        report.Category ||
-                        "রিপোর্ট"
-                    )}</strong>
 
-                    <small>
-                        ${safe(
-                            report.Area ||
-                            "লোকেশন নেই"
-                        )}
-                        ${
-                            report.District
-                                ? " • " +
-                                  safe(
-                                      report.District
-                                  )
-                                : ""
-                        }
-                    </small>
-                </div>
+    const normalizedSection =
+        String(section).trim();
 
-                <span class="status-badge ${statusClass(
-                    report.Status
-                )}">
-                    ${safe(
-                        statusLabel(
-                            report.Status
-                        )
-                    )}
-                </span>
-            </div>
-        `
-            )
-            .join("");
-}
 
-/* =========================
-   REPORT EDIT
-========================= */
+    /* -----------------------------------------
+       Navigation Active State
+    ----------------------------------------- */
 
-function openReportEditModal(report) {
-    editingReport = report;
-
-    const modal =
-        document.getElementById(
-            "reportEditModal"
-        );
-
-    if (!modal) return;
-
-    document.getElementById(
-        "editReportId"
-    ).value =
-        report.ID || "";
-
-    document.getElementById(
-        "editId"
-    ).value =
-        report.ID || "";
-
-    const statusType =
-        normalizeStatus(
-            report.Status
-        );
-
-    document.getElementById(
-        "editStatus"
-    ).value =
-        statusType === "progress"
-            ? "কাজ চলছে"
-            : statusType === "solved"
-            ? "সমাধান হয়েছে"
-            : "Pending";
-
-    document.getElementById(
-        "editDivision"
-    ).value =
-        report.Division || "";
-
-    document.getElementById(
-        "editDistrict"
-    ).value =
-        report.District || "";
-
-    document.getElementById(
-        "editUpazila"
-    ).value =
-        report.Upazila || "";
-
-    document.getElementById(
-        "editArea"
-    ).value =
-        report.Area || "";
-
-    document.getElementById(
-        "editWard"
-    ).value =
-        report.Ward || "";
-
-    document.getElementById(
-        "editDescription"
-    ).value =
-        report.Description || "";
-
-    document.getElementById(
-        "editAdminNote"
-    ).value =
-        report.AdminNote || "";
-
-    populateEditCategory(
-        report.Category
-    );
-
-    modal.classList.add("active");
-    document.body.style.overflow =
-        "hidden";
-}
-
-function populateEditCategory(selected) {
-    const select =
-        document.getElementById(
-            "editCategory"
-        );
-
-    if (!select) return;
-
-    select.innerHTML = "";
-
-    categories.forEach(category => {
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value =
-            category.Name;
-
-        option.textContent =
-            `${category.Icon || "📌"} ${category.Name}`;
-
-        if (
-            category.Name ===
-            selected
-        ) {
-            option.selected = true;
-        }
-
-        select.appendChild(
-            option
-        );
-    });
-
-    if (
-        selected &&
-        !categories.some(
-            category =>
-                category.Name ===
-                selected
+    document
+        .querySelectorAll(
+            ".admin-nav-link[data-section]"
         )
-    ) {
-        const oldOption =
-            document.createElement(
-                "option"
+        .forEach(link => {
+
+            link.classList.toggle(
+                "active",
+                link.dataset.section ===
+                    normalizedSection
             );
+        });
 
-        oldOption.value =
-            selected;
 
-        oldOption.textContent =
-            selected;
+    /* -----------------------------------------
+       Sections
+    ----------------------------------------- */
 
-        oldOption.selected =
-            true;
+    document
+        .querySelectorAll(
+            ".admin-section"
+        )
+        .forEach(element => {
 
-        select.appendChild(
-            oldOption
-        );
-    }
-}
+            element.classList.remove(
+                "active"
+            );
+        });
 
-function setupEditModal() {
-    const modal =
+
+    const target =
         document.getElementById(
-            "reportEditModal"
+            `${normalizedSection}Section`
         );
 
-    const close =
-        document.getElementById(
-            "closeReportModal"
-        );
 
-    const cancel =
-        document.getElementById(
-            "cancelReportEdit"
-        );
+    if (target) {
 
-    const overlay =
-        modal?.querySelector(
-            ".admin-modal-overlay"
-        );
-
-    if (close) {
-        close.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    if (cancel) {
-        cancel.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    if (overlay) {
-        overlay.addEventListener(
-            "click",
-            closeReportEditModal
-        );
-    }
-
-    const form =
-        document.getElementById(
-            "reportEditForm"
-        );
-
-    if (form) {
-        form.addEventListener(
-            "submit",
-            saveReportChanges
-        );
-    }
-}
-
-async function saveReportChanges(event) {
-    event.preventDefault();
-
-    if (!editingReport) return;
-
-    const button =
-        document.getElementById(
-            "saveReportBtn"
-        );
-
-    if (button) {
-        button.disabled = true;
-        button.textContent =
-            "সংরক্ষণ হচ্ছে...";
-    }
-
-    const id =
-        editingReport.ID;
-
-    const updatedData = {
-        Division:
-            document
-                .getElementById(
-                    "editDivision"
-                )
-                .value
-                .trim(),
-
-        District:
-            document
-                .getElementById(
-                    "editDistrict"
-                )
-                .value
-                .trim(),
-
-        Upazila:
-            document
-                .getElementById(
-                    "editUpazila"
-                )
-                .value
-                .trim(),
-
-        Area:
-            document
-                .getElementById(
-                    "editArea"
-                )
-                .value
-                .trim(),
-
-        Ward:
-            document
-                .getElementById(
-                    "editWard"
-                )
-                .value
-                .trim(),
-
-        Category:
-            document.getElementById(
-                "editCategory"
-            ).value,
-
-        Description:
-            document
-                .getElementById(
-                    "editDescription"
-                )
-                .value
-                .trim(),
-
-        Status:
-            document.getElementById(
-                "editStatus"
-            ).value,
-
-        AdminNote:
-            document
-                .getElementById(
-                    "editAdminNote"
-                )
-                .value
-                .trim()
-    };
-
-    try {
-        const { error } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .update(updatedData)
-                .eq("ID", id);
-
-        if (error) {
-            throw error;
-        }
-
-        clearReportCache();
-
-        closeReportEditModal();
-
-        showAdminMessage(
-            "সফল হয়েছে",
-            "রিপোর্টের পরিবর্তন সংরক্ষণ হয়েছে।",
-            "success"
-        );
-
-        await loadReports(true);
-
-    } catch (error) {
-        console.error(
-            "Report update error:",
-            error
-        );
-
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "রিপোর্ট আপডেট করা যায়নি।",
-            "error"
-        );
-
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                "পরিবর্তন সংরক্ষণ";
-        }
-    }
-}
-
-function closeReportEditModal() {
-    const modal =
-        document.getElementById(
-            "reportEditModal"
-        );
-
-    if (modal) {
-        modal.classList.remove(
+        target.classList.add(
             "active"
         );
     }
 
-    editingReport = null;
 
-    document.body.style.overflow =
-        "";
+    updateAdminPageHeader(
+        normalizedSection
+    );
 }
 
-/* =========================
-   CATEGORIES
-========================= */
 
-async function loadCategories(
-    forceRefresh = false
-) {
-    if (!forceRefresh) {
-        const cachedCategories =
-            getCachedCategories();
+/* =========================================================
+   13. PAGE HEADER
+   ========================================================= */
 
-        if (
-            Array.isArray(
-                cachedCategories
-            ) &&
-            cachedCategories.length > 0
-        ) {
-            categories =
-                cachedCategories;
-
-            renderCategories();
-            createFilterOptions();
-
-            return;
-        }
-    }
-
-    try {
-        const { data, error } =
-            await supabaseClient
-                .from(CATEGORY_TABLE)
-                .select(
-                    "ID, Name, Icon, Active"
-                )
-                .eq("Active", true)
-                .order("ID", {
-                    ascending: true
-                });
-
-        if (error) {
-            throw error;
-        }
-
-        categories =
-            Array.isArray(data)
-                ? data
-                : [];
-
-        saveCachedCategories(
-            categories
-        );
-
-        renderCategories();
-        createFilterOptions();
-
-    } catch (error) {
-        console.error(
-            "Category loading error:",
-            error
-        );
-
-        const oldCategories =
-            getCachedCategories(
-                true
-            );
-
-        if (
-            Array.isArray(
-                oldCategories
-            ) &&
-            oldCategories.length > 0
-        ) {
-            categories =
-                oldCategories;
-
-            renderCategories();
-            createFilterOptions();
-
-            return;
-        }
-
-        categories = [];
-
-        renderCategories();
-
-        showAdminMessage(
-            "সমস্যা",
-            "Categories লোড করা যায়নি।",
-            "error"
-        );
-    }
-}
-
-/* =========================
-   CATEGORY DISPLAY
-========================= */
-
-function renderCategories() {
-    const container =
-        document.getElementById(
-            "categoriesList"
-        );
-
-    if (!container) return;
-
-    if (!categories.length) {
-        container.innerHTML = `
-            <div class="admin-empty">
-                <div class="admin-empty-icon">🏷️</div>
-                কোনো category পাওয়া যায়নি।
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        categories
-            .map(
-                (category, index) => `
-            <div class="category-admin-item">
-                <div class="category-admin-left">
-                    <div class="category-admin-icon">
-                        ${safe(
-                            category.Icon ||
-                            "📌"
-                        )}
-                    </div>
-
-                    <div>
-                        <strong>${safe(
-                            category.Name
-                        )}</strong>
-                    </div>
-                </div>
-
-                <div class="category-admin-actions">
-                    <button
-                        class="admin-btn admin-btn-secondary edit-category-btn"
-                        data-index="${index}"
-                    >
-                        ✏️ Edit
-                    </button>
-
-                    <button
-                        class="admin-btn admin-btn-danger delete-category-btn"
-                        data-index="${index}"
-                    >
-                        🗑️ Delete
-                    </button>
-                </div>
-            </div>
-        `
-            )
-            .join("");
-
-    container
-        .querySelectorAll(
-            ".edit-category-btn"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    openCategoryModal(
-                        Number(
-                            button.dataset
-                                .index
-                        )
-                    );
-                }
-            );
-        });
-
-    container
-        .querySelectorAll(
-            ".delete-category-btn"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    deleteCategory(
-                        Number(
-                            button.dataset
-                                .index
-                        )
-                    );
-                }
-            );
-        });
-}
-
-/* =========================
-   CATEGORY EVENTS
-========================= */
-
-function setupCategoryEvents() {
-    const add =
-        document.getElementById(
-            "addCategoryBtn"
-        );
-
-    const form =
-        document.getElementById(
-            "categoryForm"
-        );
-
-    const close =
-        document.getElementById(
-            "closeCategoryModal"
-        );
-
-    const cancel =
-        document.getElementById(
-            "cancelCategory"
-        );
-
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
-
-    const overlay =
-        modal?.querySelector(
-            ".admin-modal-overlay"
-        );
-
-    if (add) {
-        add.addEventListener(
-            "click",
-            () =>
-                openCategoryModal()
-        );
-    }
-
-    if (form) {
-        form.addEventListener(
-            "submit",
-            saveCategory
-        );
-    }
-
-    if (close) {
-        close.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    if (cancel) {
-        cancel.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    if (overlay) {
-        overlay.addEventListener(
-            "click",
-            closeCategoryModal
-        );
-    }
-
-    setupEditModal();
-}
-
-/* =========================
-   CATEGORY MODAL
-========================= */
-
-function openCategoryModal(
-    index = null
-) {
-    editingCategoryIndex =
-        index;
-
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
+function updateAdminPageHeader(section) {
 
     const title =
         document.getElementById(
-            "categoryModalTitle"
+            "pageTitle"
         );
 
-    const name =
+    const subtitle =
         document.getElementById(
-            "categoryName"
+            "pageSubtitle"
         );
 
-    const icon =
-        document.getElementById(
-            "categoryIcon"
-        );
 
-    if (!modal) return;
-
-    if (index === null) {
-        title.textContent =
-            "নতুন ক্যাটাগরি";
-
-        name.value = "";
-        icon.value = "";
-
-    } else {
-        const category =
-            categories[index];
-
-        if (!category) return;
-
-        title.textContent =
-            "ক্যাটাগরি সম্পাদনা";
-
-        name.value =
-            category.Name || "";
-
-        icon.value =
-            category.Icon || "";
-    }
-
-    modal.classList.add(
-        "active"
-    );
-
-    document.body.style.overflow =
-        "hidden";
-
-    setTimeout(() => {
-        name.focus();
-    }, 100);
-}
-
-function closeCategoryModal() {
-    const modal =
-        document.getElementById(
-            "categoryModal"
-        );
-
-    if (modal) {
-        modal.classList.remove(
-            "active"
-        );
-    }
-
-    editingCategoryIndex =
-        null;
-
-    document.body.style.overflow =
-        "";
-}
-
-/* =========================
-   ADD / EDIT CATEGORY
-========================= */
-
-async function saveCategory(event) {
-    event.preventDefault();
-
-    const name =
-        document
-            .getElementById(
-                "categoryName"
-            )
-            .value
-            .trim();
-
-    const icon =
-        document
-            .getElementById(
-                "categoryIcon"
-            )
-            .value
-            .trim() ||
-        "📌";
-
-    if (!name) {
-        showAdminMessage(
-            "তথ্য প্রয়োজন",
-            "ক্যাটাগরির নাম লিখুন।",
-            "error"
-        );
-
+    if (!title || !subtitle) {
         return;
     }
 
-    const duplicate =
-        categories.some(
-            (category, index) =>
-                String(
-                    category.Name ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase() ===
-                    name.toLowerCase() &&
-                index !==
-                    editingCategoryIndex
-        );
 
-    if (duplicate) {
-        showAdminMessage(
-            "ইতিমধ্যে আছে",
-            "এই ক্যাটাগরিটি আগে থেকেই আছে।",
-            "error"
-        );
+    const headers = {
 
-        return;
+        overview: {
+            title: "ড্যাশবোর্ড",
+            subtitle:
+                "Dashboard service management overview"
+        },
+
+        services: {
+            title: "সেবা ব্যবস্থাপনা",
+            subtitle:
+                "Dashboard-এর সেবা ও বাটন পরিচালনা করুন"
+        }
+    };
+
+
+    const data =
+        headers[section] ||
+        headers.overview;
+
+
+    title.textContent =
+        data.title;
+
+    subtitle.textContent =
+        data.subtitle;
+}
+
+
+/* =========================================================
+   14. SERVICE FOUNDATION
+   ========================================================= */
+
+function setupServiceFoundation() {
+
+    if (!Array.isArray(adminServices)) {
+
+        adminServices = [];
     }
+
+
+    adminServices =
+        adminServices
+            .map(normalizeAdminService)
+            .filter(Boolean);
+}
+
+
+/* =========================================================
+   15. NORMALIZE SERVICE
+   ========================================================= */
+
+function normalizeAdminService(service, index = 0) {
+
+    if (!service || typeof service !== "object") {
+        return null;
+    }
+
+
+    const id =
+        String(
+            service.id ||
+            service.serviceId ||
+            `service-${Date.now()}-${index}`
+        )
+        .trim();
+
+
+    const title =
+        String(
+            service.title ||
+            service.name ||
+            ""
+        )
+        .trim();
+
+
+    if (!title) {
+        return null;
+    }
+
+
+    const description =
+        String(
+            service.description ||
+            ""
+        )
+        .trim();
+
+
+    const icon =
+        String(
+            service.icon ||
+            "🔗"
+        )
+        .trim();
+
+
+    const url =
+        String(
+            service.url ||
+            "#"
+        )
+        .trim();
+
+
+    let order =
+        Number(service.order);
+
+
+    if (!Number.isFinite(order)) {
+
+        order =
+            index + 1;
+    }
+
+
+    return {
+
+        id,
+
+        title,
+
+        description,
+
+        icon,
+
+        url,
+
+        active:
+            service.active !== false,
+
+        order
+    };
+}
+
+
+/* =========================================================
+   16. LOAD SERVICES FROM LOCAL STORAGE
+   ========================================================= */
+
+function loadAdminServices() {
+
+    let loadedServices = null;
+
 
     try {
-        if (
-            editingCategoryIndex ===
-            null
-        ) {
-            await createCategory(
-                name,
-                icon
+
+        const raw =
+            localStorage.getItem(
+                ADMIN_SERVICES_STORAGE_KEY
             );
-        } else {
-            await updateCategory(
-                editingCategoryIndex,
-                name,
-                icon
-            );
-        }
 
-        closeCategoryModal();
 
-        clearCategoryCache();
+        if (raw) {
 
-        await loadCategories(
-            true
-        );
+            const parsed =
+                JSON.parse(raw);
 
-        await loadReports(
-            true
-        );
 
-        showAdminMessage(
-            "সফল হয়েছে",
-            "ক্যাটাগরি স্থায়ীভাবে সংরক্ষণ হয়েছে।",
-            "success"
-        );
+            if (
+                parsed &&
+                Array.isArray(parsed.services)
+            ) {
 
-    } catch (error) {
-        console.error(error);
-
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "ক্যাটাগরি সংরক্ষণ করা যায়নি।",
-            "error"
-        );
-    }
-}
-
-/* =========================
-   CREATE CATEGORY
-========================= */
-
-async function createCategory(
-    name,
-    icon
-) {
-    const id =
-        generateCategoryID();
-
-    const { error } =
-        await supabaseClient
-            .from(CATEGORY_TABLE)
-            .insert({
-                ID: id,
-                Name: name,
-                Icon: icon,
-                Active: true
-            });
-
-    if (error) {
-        throw new Error(
-            error.message ||
-                "নতুন category Supabase-এ save করা যায়নি।"
-        );
-    }
-}
-
-/* =========================
-   GENERATE CATEGORY ID
-========================= */
-
-function generateCategoryID() {
-    let maxNumber = 0;
-
-    categories.forEach(
-        category => {
-            const id =
-                String(
-                    category.ID ||
-                    ""
-                ).trim();
-
-            const match =
-                id.match(
-                    /^CAT-(\d+)$/i
-                );
-
-            if (match) {
-                const number =
-                    Number(
-                        match[1]
-                    );
-
-                if (
-                    number >
-                    maxNumber
-                ) {
-                    maxNumber =
-                        number;
-                }
+                loadedServices =
+                    parsed.services;
             }
         }
-    );
 
-    const nextNumber =
-        maxNumber + 1;
+    } catch (error) {
 
-    return `CAT-${String(
-        nextNumber
-    ).padStart(3, "0")}`;
+        console.error(
+            "Admin services storage read error:",
+            error
+        );
+    }
+
+
+    /* -----------------------------------------
+       First Run
+    ----------------------------------------- */
+
+    if (!Array.isArray(loadedServices)) {
+
+        loadedServices =
+            DEFAULT_ADMIN_SERVICES.map(
+                service => ({
+                    ...service
+                })
+            );
+
+
+        saveAdminServices(
+            loadedServices
+        );
+    }
+
+
+    adminServices =
+        loadedServices
+            .map(normalizeAdminService)
+            .filter(Boolean);
+
+
+    adminServices =
+        sortAdminServices(
+            adminServices
+        );
+
+
+    return adminServices;
 }
 
-/* =========================
-   UPDATE CATEGORY
-========================= */
 
-async function updateCategory(
-    index,
-    newName,
-    newIcon
+/* =========================================================
+   17. SAVE SERVICES
+   ========================================================= */
+
+function saveAdminServices(
+    services = adminServices
 ) {
-    const category =
-        categories[index];
 
-    if (!category) {
-        throw new Error(
-            "Category পাওয়া যায়নি।"
-        );
-    }
+    try {
 
-    const oldName =
-        category.Name;
+        const normalized =
+            (Array.isArray(services)
+                ? services
+                : []
+            )
+                .map(normalizeAdminService)
+                .filter(Boolean);
 
-    const id =
-        category.ID;
 
-    const { error } =
-        await supabaseClient
-            .from(CATEGORY_TABLE)
-            .update({
-                Name: newName,
-                Icon: newIcon,
-                Active: true
+        localStorage.setItem(
+            ADMIN_SERVICES_STORAGE_KEY,
+            JSON.stringify({
+                version:
+                    ADMIN_SERVICE_VERSION,
+
+                updatedAt:
+                    Date.now(),
+
+                services:
+                    normalized
             })
-            .eq("ID", id);
-
-    if (error) {
-        throw new Error(
-            error.message ||
-                "Category update করা যায়নি।"
         );
+
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Admin services storage save error:",
+            error
+        );
+
+        return false;
     }
+}
+
+
+/* =========================================================
+   18. GET SERVICES
+   ========================================================= */
+
+function getAdminServices() {
+
+    return adminServices.map(
+        service => ({
+            ...service
+        })
+    );
+}
+
+
+/* =========================================================
+   19. GET ACTIVE SERVICES
+   ========================================================= */
+
+function getActiveAdminServices() {
+
+    return adminServices
+        .filter(
+            service =>
+                service.active === true
+        )
+        .map(
+            service => ({
+                ...service
+            })
+        );
+}
+
+
+/* =========================================================
+   20. CREATE SERVICE DATA
+   ========================================================= */
+
+function createServiceData(data = {}) {
+
+    const service = {
+
+        id:
+            String(
+                data.id ||
+                generateServiceId()
+            ).trim(),
+
+        title:
+            String(
+                data.title ||
+                ""
+            ).trim(),
+
+        description:
+            String(
+                data.description ||
+                ""
+            ).trim(),
+
+        icon:
+            String(
+                data.icon ||
+                "🔗"
+            ).trim(),
+
+        url:
+            String(
+                data.url ||
+                "#"
+            ).trim(),
+
+        active:
+            data.active !== false,
+
+        order:
+            Number(
+                data.order
+            )
+    };
+
+
+    if (!Number.isFinite(service.order)) {
+
+        service.order =
+            getNextServiceOrder();
+    }
+
+
+    return service;
+}
+
+
+/* =========================================================
+   21. VALIDATE SERVICE
+   ========================================================= */
+
+function validateService(service) {
+
+    if (!service) {
+
+        return {
+            valid: false,
+            message:
+                "সেবার তথ্য পাওয়া যায়নি।"
+        };
+    }
+
+
+    if (!service.title) {
+
+        return {
+            valid: false,
+            message:
+                "সেবার নাম লিখুন।"
+        };
+    }
+
+
+    if (service.title.length > 100) {
+
+        return {
+            valid: false,
+            message:
+                "সেবার নাম সর্বোচ্চ ১০০ অক্ষরের হতে পারে।"
+        };
+    }
+
+
+    if (service.description.length > 300) {
+
+        return {
+            valid: false,
+            message:
+                "বিবরণ সর্বোচ্চ ৩০০ অক্ষরের হতে পারে।"
+        };
+    }
+
+
+    if (!service.url) {
+
+        return {
+            valid: false,
+            message:
+                "সেবার লিংক দিন।"
+        };
+    }
+
 
     if (
-        oldName !==
-        newName
+        !isValidServiceUrl(
+            service.url
+        )
     ) {
-        const {
-            error: reportError
-        } =
-            await supabaseClient
-                .from(REPORT_TABLE)
-                .update({
-                    Category:
-                        newName
-                })
-                .eq(
-                    "Category",
-                    oldName
-                );
 
-        if (reportError) {
-            throw new Error(
-                reportError.message ||
-                    "Category নাম বদলেছে, কিন্তু পুরোনো report-গুলো update করা যায়নি।"
-            );
-        }
-
-        clearReportCache();
+        return {
+            valid: false,
+            message:
+                "সঠিক URL বা local page link দিন।"
+        };
     }
 
-    clearCategoryCache();
+
+    if (
+        !Number.isFinite(
+            Number(service.order)
+        )
+    ) {
+
+        return {
+            valid: false,
+            message:
+                "Service order সঠিক নয়।"
+        };
+    }
+
+
+    return {
+        valid: true,
+        message: ""
+    };
 }
 
-/* =========================
-   DELETE CATEGORY
-========================= */
 
-async function deleteCategory(
-    index
-) {
-    const category =
-        categories[index];
+/* =========================================================
+   22. URL VALIDATION
+   ========================================================= */
 
-    if (!category) return;
+function isValidServiceUrl(url) {
 
-    const used =
-        allReports.some(
-            report =>
-                String(
-                    report.Category ||
-                    ""
-                ).trim() ===
-                String(
-                    category.Name ||
-                    ""
-                ).trim()
+    const value =
+        String(url || "")
+            .trim();
+
+
+    if (!value) {
+        return false;
+    }
+
+
+    /* -----------------------------------------
+       Anchor
+    ----------------------------------------- */
+
+    if (value.startsWith("#")) {
+        return true;
+    }
+
+
+    /* -----------------------------------------
+       Relative URL
+    ----------------------------------------- */
+
+    if (
+        value.startsWith("./") ||
+        value.startsWith("../") ||
+        value.startsWith("/")
+    ) {
+        return true;
+    }
+
+
+    /* -----------------------------------------
+       Local HTML / PHP / etc.
+    ----------------------------------------- */
+
+    if (
+        /^[a-zA-Z0-9_\-./]+(\?[^\s]*)?$/.test(
+            value
+        )
+    ) {
+        return true;
+    }
+
+
+    /* -----------------------------------------
+       Absolute URL
+    ----------------------------------------- */
+
+    try {
+
+        const parsed =
+            new URL(value);
+
+
+        return (
+            parsed.protocol === "http:" ||
+            parsed.protocol === "https:"
         );
 
-    if (used) {
+    } catch {
+
+        return false;
+    }
+}
+
+
+/* =========================================================
+   23. ADD SERVICE
+   ========================================================= */
+
+function addAdminService(data) {
+
+    const service =
+        createServiceData(data);
+
+
+    const validation =
+        validateService(service);
+
+
+    if (!validation.valid) {
+
         showAdminMessage(
-            "Category ব্যবহার হচ্ছে",
-            "এই category-তে report আছে। আগে সেই report-গুলোর category পরিবর্তন করুন।",
+            "তথ্য অসম্পূর্ণ",
+            validation.message,
+            "error"
+        );
+
+        return null;
+    }
+
+
+    /* -----------------------------------------
+       Unique ID
+    ----------------------------------------- */
+
+    if (
+        adminServices.some(
+            item =>
+                item.id === service.id
+        )
+    ) {
+
+        service.id =
+            generateServiceId();
+    }
+
+
+    adminServices.push(
+        service
+    );
+
+
+    adminServices =
+        sortAdminServices(
+            adminServices
+        );
+
+
+    saveAdminServices();
+
+
+    renderAdminServiceManagement();
+
+    updateAdminStatistics();
+
+    syncServicesToDashboard();
+
+
+    showAdminMessage(
+        "সেবা যোগ হয়েছে",
+        `"${service.title}" সফলভাবে যোগ করা হয়েছে।`,
+        "success"
+    );
+
+
+    return {
+        ...service
+    };
+}
+
+
+/* =========================================================
+   24. UPDATE SERVICE
+   ========================================================= */
+
+function updateAdminService(
+    serviceId,
+    data
+) {
+
+    const id =
+        String(serviceId || "")
+            .trim();
+
+
+    const index =
+        adminServices.findIndex(
+            service =>
+                service.id === id
+        );
+
+
+    if (index === -1) {
+
+        showAdminMessage(
+            "সেবা পাওয়া যায়নি",
+            "যে সেবাটি edit করতে চাচ্ছেন সেটি পাওয়া যায়নি।",
+            "error"
+        );
+
+        return null;
+    }
+
+
+    const updated =
+        createServiceData({
+            ...adminServices[index],
+            ...data,
+            id
+        });
+
+
+    const validation =
+        validateService(updated);
+
+
+    if (!validation.valid) {
+
+        showAdminMessage(
+            "তথ্য সঠিক নয়",
+            validation.message,
+            "error"
+        );
+
+        return null;
+    }
+
+
+    adminServices[index] =
+        updated;
+
+
+    adminServices =
+        sortAdminServices(
+            adminServices
+        );
+
+
+    saveAdminServices();
+
+
+    renderAdminServiceManagement();
+
+    updateAdminStatistics();
+
+    syncServicesToDashboard();
+
+
+    showAdminMessage(
+        "সেবা আপডেট হয়েছে",
+        `"${updated.title}" সফলভাবে আপডেট করা হয়েছে।`,
+        "success"
+    );
+
+
+    return {
+        ...updated
+    };
+}
+
+
+/* =========================================================
+   25. DELETE SERVICE
+   ========================================================= */
+
+function deleteAdminService(
+    serviceId
+) {
+
+    const id =
+        String(serviceId || "")
+            .trim();
+
+
+    const index =
+        adminServices.findIndex(
+            service =>
+                service.id === id
+        );
+
+
+    if (index === -1) {
+
+        showAdminMessage(
+            "সেবা পাওয়া যায়নি",
+            "সেবাটি পাওয়া যায়নি।",
+            "error"
+        );
+
+        return false;
+    }
+
+
+    const service =
+        adminServices[index];
+
+
+    const confirmed =
+        window.confirm(
+            `"${service.title}" সেবাটি কি মুছে ফেলতে চান?`
+        );
+
+
+    if (!confirmed) {
+        return false;
+    }
+
+
+    adminServices.splice(
+        index,
+        1
+    );
+
+
+    normalizeServiceOrders();
+
+
+    saveAdminServices();
+
+
+    renderAdminServiceManagement();
+
+    updateAdminStatistics();
+
+    syncServicesToDashboard();
+
+
+    showAdminMessage(
+        "সেবা মুছে ফেলা হয়েছে",
+        `"${service.title}" আর Dashboard-এ থাকবে না।`,
+        "success"
+    );
+
+
+    return true;
+}
+
+
+/* =========================================================
+   26. TOGGLE SERVICE
+   ========================================================= */
+
+function toggleAdminService(
+    serviceId
+) {
+
+    const id =
+        String(serviceId || "")
+            .trim();
+
+
+    const service =
+        adminServices.find(
+            item =>
+                item.id === id
+        );
+
+
+    if (!service) {
+
+        showAdminMessage(
+            "সেবা পাওয়া যায়নি",
+            "সেবাটি পাওয়া যায়নি।",
+            "error"
+        );
+
+        return null;
+    }
+
+
+    service.active =
+        !service.active;
+
+
+    saveAdminServices();
+
+
+    renderAdminServiceManagement();
+
+    updateAdminStatistics();
+
+    syncServicesToDashboard();
+
+
+    showAdminMessage(
+        service.active
+            ? "সেবা সক্রিয় হয়েছে"
+            : "সেবা নিষ্ক্রিয় হয়েছে",
+
+        service.active
+            ? `"${service.title}" এখন Dashboard-এ দেখা যাবে।`
+            : `"${service.title}" এখন Dashboard-এ দেখা যাবে না।`,
+
+        "success"
+    );
+
+
+    return {
+        ...service
+    };
+}
+
+
+/* =========================================================
+   27. SORT SERVICES
+   ========================================================= */
+
+function sortAdminServices(
+    services
+) {
+
+    return (
+        Array.isArray(services)
+            ? [...services]
+            : []
+    ).sort(
+        (a, b) => {
+
+            const orderA =
+                Number(a?.order) || 0;
+
+            const orderB =
+                Number(b?.order) || 0;
+
+
+            if (orderA !== orderB) {
+
+                return orderA - orderB;
+            }
+
+
+            return String(
+                a?.title || ""
+            ).localeCompare(
+                String(
+                    b?.title || ""
+                ),
+                "bn"
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   28. NORMALIZE SERVICE ORDERS
+   ========================================================= */
+
+function normalizeServiceOrders() {
+
+    adminServices =
+        sortAdminServices(
+            adminServices
+        );
+
+
+    adminServices.forEach(
+        (service, index) => {
+
+            service.order =
+                index + 1;
+        }
+    );
+}
+
+
+/* =========================================================
+   29. NEXT ORDER
+   ========================================================= */
+
+function getNextServiceOrder() {
+
+    if (!adminServices.length) {
+        return 1;
+    }
+
+
+    const orders =
+        adminServices
+            .map(
+                service =>
+                    Number(service.order)
+            )
+            .filter(
+                Number.isFinite
+            );
+
+
+    if (!orders.length) {
+        return 1;
+    }
+
+
+    return (
+        Math.max(...orders) + 1
+    );
+}
+
+
+/* =========================================================
+   30. GENERATE SERVICE ID
+   ========================================================= */
+
+function generateServiceId() {
+
+    const timestamp =
+        Date.now()
+            .toString(36);
+
+
+    const random =
+        Math.random()
+            .toString(36)
+            .slice(2, 8);
+
+
+    return (
+        `service-${timestamp}-${random}`
+    );
+}
+
+
+/* =========================================================
+   31. GET SINGLE SERVICE
+   ========================================================= */
+
+function getAdminService(
+    serviceId
+) {
+
+    const id =
+        String(serviceId || "")
+            .trim();
+
+
+    const service =
+        adminServices.find(
+            item =>
+                item.id === id
+        );
+
+
+    return service
+        ? {
+            ...service
+        }
+        : null;
+}
+
+
+/* =========================================================
+   32. READ SERVICE FORM
+   ========================================================= */
+
+function readServiceForm() {
+
+    const title =
+        document.getElementById(
+            "serviceTitle"
+        );
+
+    const description =
+        document.getElementById(
+            "serviceDescription"
+        );
+
+    const icon =
+        document.getElementById(
+            "serviceIcon"
+        );
+
+    const url =
+        document.getElementById(
+            "serviceUrl"
+        );
+
+    const active =
+        document.getElementById(
+            "serviceActive"
+        );
+
+    const order =
+        document.getElementById(
+            "serviceOrder"
+        );
+
+    const serviceId =
+        document.getElementById(
+            "serviceId"
+        );
+
+
+    return {
+
+        id:
+            String(
+                serviceId?.value || ""
+            ).trim(),
+
+        title:
+            String(
+                title?.value || ""
+            ).trim(),
+
+        description:
+            String(
+                description?.value || ""
+            ).trim(),
+
+        icon:
+            String(
+                icon?.value || ""
+            ).trim(),
+
+        url:
+            String(
+                url?.value || ""
+            ).trim(),
+
+        active:
+            active
+                ? Boolean(active.checked)
+                : true,
+
+        order:
+            Number(
+                order?.value
+            )
+    };
+}
+
+
+/* =========================================================
+   33. RESET SERVICE FORM
+   ========================================================= */
+
+function resetServiceForm() {
+
+    const form =
+        document.getElementById(
+            "serviceForm"
+        );
+
+
+    if (form) {
+        form.reset();
+    }
+
+
+    const serviceId =
+        document.getElementById(
+            "serviceId"
+        );
+
+
+    if (serviceId) {
+        serviceId.value = "";
+    }
+
+
+    const active =
+        document.getElementById(
+            "serviceActive"
+        );
+
+
+    if (active) {
+        active.checked = true;
+    }
+
+
+    const order =
+        document.getElementById(
+            "serviceOrder"
+        );
+
+
+    if (order) {
+
+        order.value =
+            getNextServiceOrder();
+    }
+
+
+    editingServiceId = null;
+
+
+    if (form) {
+
+        form.classList.remove(
+            "is-editing"
+        );
+    }
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelServiceEdit"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.style.display =
+            "none";
+
+        cancelButton.classList.remove(
+            "is-visible"
+        );
+    }
+
+
+    const saveButton =
+        document.getElementById(
+            "saveServiceButton"
+        );
+
+
+    if (saveButton) {
+
+        saveButton.textContent =
+            "সেবা যোগ করুন";
+    }
+}
+
+
+/* =========================================================
+   34. EDIT SERVICE
+   ========================================================= */
+
+function editAdminService(
+    serviceId
+) {
+
+    const service =
+        getAdminService(
+            serviceId
+        );
+
+
+    if (!service) {
+
+        showAdminMessage(
+            "সেবা পাওয়া যায়নি",
+            "সেবাটি পাওয়া যায়নি।",
             "error"
         );
 
         return;
     }
 
-    const confirmed =
-        confirm(
-            `"${category.Name}" category-টি permanently delete করতে চান?`
+
+    const form =
+        document.getElementById(
+            "serviceForm"
         );
 
-    if (!confirmed) return;
 
-    try {
-        const { error } =
-            await supabaseClient
-                .from(CATEGORY_TABLE)
-                .delete()
-                .eq(
-                    "ID",
-                    category.ID
-                );
-
-        if (error) {
-            throw new Error(
-                error.message ||
-                    "Category delete করা যায়নি।"
-            );
-        }
-
-        clearCategoryCache();
-
-        await loadCategories(
-            true
+    const idInput =
+        document.getElementById(
+            "serviceId"
         );
 
-        await loadReports(
-            true
+    const titleInput =
+        document.getElementById(
+            "serviceTitle"
         );
 
-        showAdminMessage(
-            "সফল হয়েছে",
-            "Category permanently delete হয়েছে।",
-            "success"
+    const descriptionInput =
+        document.getElementById(
+            "serviceDescription"
         );
 
-    } catch (error) {
-        console.error(error);
+    const iconInput =
+        document.getElementById(
+            "serviceIcon"
+        );
 
-        showAdminMessage(
-            "সমস্যা হয়েছে",
-            error.message ||
-                "Category delete করা যায়নি।",
-            "error"
+    const urlInput =
+        document.getElementById(
+            "serviceUrl"
+        );
+
+    const activeInput =
+        document.getElementById(
+            "serviceActive"
+        );
+
+    const orderInput =
+        document.getElementById(
+            "serviceOrder"
+        );
+
+
+    if (idInput) {
+        idInput.value =
+            service.id;
+    }
+
+    if (titleInput) {
+        titleInput.value =
+            service.title;
+    }
+
+    if (descriptionInput) {
+        descriptionInput.value =
+            service.description;
+    }
+
+    if (iconInput) {
+        iconInput.value =
+            service.icon;
+    }
+
+    if (urlInput) {
+        urlInput.value =
+            service.url;
+    }
+
+    if (activeInput) {
+        activeInput.checked =
+            service.active;
+    }
+
+    if (orderInput) {
+        orderInput.value =
+            service.order;
+    }
+
+
+    editingServiceId =
+        service.id;
+
+
+    if (form) {
+
+        form.classList.add(
+            "is-editing"
         );
     }
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelServiceEdit"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.style.display =
+            "inline-flex";
+
+        cancelButton.classList.add(
+            "is-visible"
+        );
+    }
+
+
+    const saveButton =
+        document.getElementById(
+            "saveServiceButton"
+        );
+
+
+    if (saveButton) {
+
+        saveButton.textContent =
+            "সেবা আপডেট করুন";
+    }
+
+
+    switchSection("services");
+
+
+    window.setTimeout(
+        () => {
+
+            titleInput?.focus();
+
+        },
+        50
+    );
 }
 
-/* =========================
-   MESSAGE
-========================= */
 
-function showAdminMessage(
-    title,
-    message,
-    type
+/* =========================================================
+   35. CANCEL EDIT
+   ========================================================= */
+
+function cancelAdminServiceEdit() {
+
+    resetServiceForm();
+
+    showAdminMessage(
+        "Edit বাতিল",
+        "Service edit mode বন্ধ করা হয়েছে।",
+        "info"
+    );
+}
+
+
+/* =========================================================
+   36. SERVICE FORM SUBMIT
+   ========================================================= */
+
+function handleServiceFormSubmit(
+    event
 ) {
-    const old =
-        document.querySelector(
-            ".admin-toast"
+
+    event.preventDefault();
+
+
+    const data =
+        readServiceForm();
+
+
+    if (editingServiceId) {
+
+        updateAdminService(
+            editingServiceId,
+            data
         );
 
-    if (old) {
-        old.remove();
+    } else {
+
+        addAdminService(
+            data
+        );
     }
 
-    const toast =
-        document.createElement(
-            "div"
+
+    resetServiceForm();
+}
+
+
+/* =========================================================
+   37. SERVICE FORM SETUP
+   ========================================================= */
+
+function setupServiceManagement() {
+
+    if (serviceManagementInitialized) {
+        return;
+    }
+
+
+    serviceManagementInitialized = true;
+
+
+    const form =
+        document.getElementById(
+            "serviceForm"
         );
 
-    toast.className =
-        "admin-toast";
 
-    toast.innerHTML = `
-        <strong>${safe(
-            title
-        )}</strong>
-        <span>${safe(
-            message
-        )}</span>
+    if (
+        form &&
+        !serviceFormEventsInitialized
+    ) {
+
+        form.addEventListener(
+            "submit",
+            handleServiceFormSubmit
+        );
+
+
+        serviceFormEventsInitialized =
+            true;
+    }
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelServiceEdit"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            event => {
+
+                event.preventDefault();
+
+                cancelAdminServiceEdit();
+            }
+        );
+    }
+
+
+    const servicesContainer =
+        document.getElementById(
+            "adminServicesManagement"
+        );
+
+
+    if (servicesContainer) {
+
+        servicesContainer.addEventListener(
+            "click",
+            handleAdminServiceGridClick
+        );
+    }
+
+
+    const overviewContainer =
+        document.getElementById(
+            "adminOverviewServices"
+        );
+
+
+    if (overviewContainer) {
+
+        overviewContainer.addEventListener(
+            "click",
+            handleAdminServiceGridClick
+        );
+    }
+}
+
+
+/* =========================================================
+   38. SERVICE UI INITIALIZATION
+   ========================================================= */
+
+function initializeAdminServiceUI() {
+
+    setupServiceManagement();
+
+    setupServiceFormStateWatcher();
+
+    resetServiceForm();
+}
+
+
+/* =========================================================
+   39. SERVICE FORM STATE WATCHER
+   ========================================================= */
+
+function setupServiceFormStateWatcher() {
+
+    const title =
+        document.getElementById(
+            "serviceTitle"
+        );
+
+    const description =
+        document.getElementById(
+            "serviceDescription"
+        );
+
+    const icon =
+        document.getElementById(
+            "serviceIcon"
+        );
+
+    const url =
+        document.getElementById(
+            "serviceUrl"
+        );
+
+    const active =
+        document.getElementById(
+            "serviceActive"
+        );
+
+    const order =
+        document.getElementById(
+            "serviceOrder"
+        );
+
+
+    [
+        title,
+        description,
+        icon,
+        url,
+        active,
+        order
+    ]
+        .filter(Boolean)
+        .forEach(element => {
+
+            if (
+                element.dataset.stateWatcher
+            ) {
+                return;
+            }
+
+
+            element.dataset.stateWatcher =
+                "true";
+
+
+            element.addEventListener(
+                "input",
+                updateServiceFormState
+            );
+
+
+            element.addEventListener(
+                "change",
+                updateServiceFormState
+            );
+        });
+}
+
+
+/* =========================================================
+   40. SERVICE FORM STATE
+   ========================================================= */
+
+function updateServiceFormState() {
+
+    const form =
+        document.getElementById(
+            "serviceForm"
+        );
+
+
+    if (!form) {
+        return;
+    }
+
+
+    if (editingServiceId) {
+
+        form.classList.add(
+            "is-editing"
+        );
+
+    } else {
+
+        form.classList.remove(
+            "is-editing"
+        );
+    }
+}
+
+
+/* =========================================================
+   41. CREATE SERVICE CARD
+   ========================================================= */
+
+function createAdminServiceManagementCard(
+    service,
+    options = {}
+) {
+
+    if (!service) {
+        return "";
+    }
+
+
+    const escape =
+        escapeAdminHTML;
+
+
+    const isOverview =
+        options.overview === true;
+
+
+    const statusClass =
+        service.active
+            ? "active"
+            : "inactive";
+
+
+    const statusText =
+        service.active
+            ? "সক্রিয়"
+            : "নিষ্ক্রিয়";
+
+
+    const actionButtons =
+        isOverview
+            ? ""
+            : `
+                <div class="admin-service-actions">
+
+                    <button
+                        type="button"
+                        class="admin-service-action"
+                        data-action="edit"
+                        data-service-id="${escape(service.id)}"
+                    >
+                        ✏️ এডিট
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-service-action"
+                        data-action="toggle"
+                        data-service-id="${escape(service.id)}"
+                    >
+                        ${service.active ? "⏸️ নিষ্ক্রিয়" : "▶️ সক্রিয়"}
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-service-action"
+                        data-action="delete"
+                        data-service-id="${escape(service.id)}"
+                    >
+                        🗑️ ডিলিট
+                    </button>
+
+                </div>
+            `;
+
+
+    return `
+
+        <article
+            class="admin-service-card"
+            data-service-id="${escape(service.id)}"
+        >
+
+            <div class="admin-service-card-header">
+
+                <div class="admin-service-icon">
+                    ${escape(service.icon)}
+                </div>
+
+                <div class="admin-service-info">
+
+                    <div class="admin-service-title">
+                        ${escape(service.title)}
+                    </div>
+
+                    <div class="admin-service-description">
+                        ${escape(
+                            service.description ||
+                            "কোনো বিবরণ দেওয়া হয়নি।"
+                        )}
+                    </div>
+
+                </div>
+
+                <span
+                    class="admin-service-status ${statusClass}"
+                >
+                    ${statusText}
+                </span>
+
+            </div>
+
+
+            <div class="admin-service-meta">
+
+                <span class="admin-service-meta-item">
+                    🔢 Order: ${escape(service.order)}
+                </span>
+
+                <span class="admin-service-meta-item">
+                    🔗 ${escape(service.url)}
+                </span>
+
+            </div>
+
+
+            ${actionButtons}
+
+        </article>
+
     `;
-
-    toast.style.position =
-        "fixed";
-
-    toast.style.right =
-        "20px";
-
-    toast.style.bottom =
-        "20px";
-
-    toast.style.zIndex =
-        "5000";
-
-    toast.style.background =
-        "#fff";
-
-    toast.style.border =
-        "1px solid #dfe5e1";
-
-    toast.style.borderLeft =
-        type === "success"
-            ? "4px solid #166534"
-            : "4px solid #b91c1c";
-
-    toast.style.borderRadius =
-        "10px";
-
-    toast.style.padding =
-        "14px 17px";
-
-    toast.style.boxShadow =
-        "0 15px 40px rgba(0,0,0,.12)";
-
-    toast.style.display =
-        "flex";
-
-    toast.style.flexDirection =
-        "column";
-
-    toast.style.gap =
-        "2px";
-
-    toast.style.minWidth =
-        "250px";
-
-    document.body.appendChild(
-        toast
-    );
-
-    setTimeout(() => {
-        toast.style.opacity =
-            "0";
-
-        toast.style.transform =
-            "translateY(8px)";
-
-        toast.style.transition =
-            ".3s ease";
-
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-
-    }, 3000);
 }
 
-/* =========================
-   HELPERS
-========================= */
 
-function safe(value) {
-    return escapeHTML(
-        String(value ?? "")
-    );
-}
+/* =========================================================
+   42. ESCAPE HTML
+   ========================================================= */
 
-function escapeHTML(value) {
-    return value
+function escapeAdminHTML(value) {
+
+    return String(value ?? "")
         .replace(
             /&/g,
             "&amp;"
@@ -2400,8 +2435,752 @@ function escapeHTML(value) {
         );
 }
 
-function escapeAttribute(value) {
-    return escapeHTML(
-        String(value ?? "")
+
+/* =========================================================
+   43. RENDER SERVICE MANAGEMENT
+   ========================================================= */
+
+function renderAdminServiceManagement() {
+
+    const container =
+        document.getElementById(
+            "adminServicesManagement"
+        );
+
+
+    const emptyState =
+        document.getElementById(
+            "adminServicesEmpty"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const sortedServices =
+        sortAdminServices(
+            adminServices
+        );
+
+
+    if (!sortedServices.length) {
+
+        container.innerHTML = "";
+
+
+        if (emptyState) {
+
+            emptyState.style.display =
+                "block";
+
+            emptyState.classList.add(
+                "is-visible"
+            );
+        }
+
+
+        return;
+    }
+
+
+    if (emptyState) {
+
+        emptyState.style.display =
+            "none";
+
+        emptyState.classList.remove(
+            "is-visible"
+        );
+    }
+
+
+    container.innerHTML =
+        sortedServices
+            .map(
+                service =>
+                    createAdminServiceManagementCard(
+                        service
+                    )
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   44. RENDER OVERVIEW SERVICES
+   ========================================================= */
+
+function renderAdminOverviewServices() {
+
+    const container =
+        document.getElementById(
+            "adminOverviewServices"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const activeServices =
+        getActiveAdminServices();
+
+
+    if (!activeServices.length) {
+
+        container.innerHTML = `
+
+            <div class="admin-empty-state">
+
+                <div class="admin-empty-icon">
+                    🔗
+                </div>
+
+                <h3>
+                    কোনো সক্রিয় সেবা নেই
+                </h3>
+
+                <p>
+                    Service Management থেকে
+                    নতুন সেবা যোগ করুন।
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        activeServices
+            .map(
+                service =>
+                    createAdminServiceManagementCard(
+                        service,
+                        {
+                            overview: true
+                        }
+                    )
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   45. RENDER ALL ADMIN SERVICE UI
+   ========================================================= */
+
+function refreshAdminServiceUI() {
+
+    loadAdminServices();
+
+    renderAdminServiceManagement();
+
+    renderAdminOverviewServices();
+
+    updateAdminStatistics();
+}
+
+
+/* =========================================================
+   46. SERVICE GRID CLICK
+   ========================================================= */
+
+function handleAdminServiceGridClick(
+    event
+) {
+
+    const button =
+        event.target.closest(
+            "[data-action]"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    const action =
+        button.dataset.action;
+
+
+    const serviceId =
+        button.dataset.serviceId;
+
+
+    if (!serviceId) {
+        return;
+    }
+
+
+    if (action === "edit") {
+
+        editAdminService(
+            serviceId
+        );
+
+        return;
+    }
+
+
+    if (action === "toggle") {
+
+        toggleAdminService(
+            serviceId
+        );
+
+        return;
+    }
+
+
+    if (action === "delete") {
+
+        deleteAdminService(
+            serviceId
+        );
+    }
+}
+
+
+/* =========================================================
+   47. STATISTICS
+   ========================================================= */
+
+function updateAdminStatistics() {
+
+    const total =
+        adminServices.length;
+
+
+    const active =
+        adminServices.filter(
+            service =>
+                service.active === true
+        ).length;
+
+
+    const inactive =
+        adminServices.filter(
+            service =>
+                service.active !== true
+        ).length;
+
+
+    const totalElement =
+        document.getElementById(
+            "adminTotalServices"
+        );
+
+    const activeElement =
+        document.getElementById(
+            "adminActiveServices"
+        );
+
+    const inactiveElement =
+        document.getElementById(
+            "adminInactiveServices"
+        );
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            total;
+    }
+
+
+    if (activeElement) {
+
+        activeElement.textContent =
+            active;
+    }
+
+
+    if (inactiveElement) {
+
+        inactiveElement.textContent =
+            inactive;
+    }
+
+
+    renderAdminOverviewServices();
+}
+
+
+/* =========================================================
+   48. SYNC SERVICES TO DASHBOARD
+   ========================================================= */
+
+function syncServicesToDashboard() {
+
+    const activeServices =
+        getActiveAdminServices();
+
+
+    /*
+     * Global variable
+     * Dashboard JavaScript can read this.
+     */
+
+    window.AMADER_ELAKA_SERVICES =
+        activeServices.map(
+            service => ({
+                ...service
+            })
+        );
+
+
+    /*
+     * Public event
+     * Dashboard can listen for live updates.
+     */
+
+    try {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "amaderElakaServicesUpdated",
+                {
+                    detail: {
+                        services:
+                            activeServices
+                    }
+                }
+            )
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Dashboard service event could not be dispatched:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   49. LOGOUT
+   ========================================================= */
+
+function setupLogoutButton() {
+
+    const userBox =
+        document.querySelector(
+            ".admin-user"
+        );
+
+
+    if (!userBox) {
+        return;
+    }
+
+
+    let logoutButton =
+        document.getElementById(
+            "adminLogoutBtn"
+        );
+
+
+    if (logoutButton) {
+        return;
+    }
+
+
+    logoutButton =
+        document.createElement(
+            "button"
+        );
+
+
+    logoutButton.id =
+        "adminLogoutBtn";
+
+    logoutButton.type =
+        "button";
+
+    logoutButton.className =
+        "admin-btn admin-btn-secondary";
+
+    logoutButton.textContent =
+        "Logout";
+
+
+    logoutButton.addEventListener(
+        "click",
+        handleAdminLogout
     );
-                            }
+
+
+    userBox.appendChild(
+        logoutButton
+    );
+}
+
+
+/* =========================================================
+   50. LOGOUT ACTION
+   ========================================================= */
+
+async function handleAdminLogout() {
+
+    const logoutButton =
+        document.getElementById(
+            "adminLogoutBtn"
+        );
+
+
+    if (logoutButton) {
+
+        logoutButton.disabled =
+            true;
+
+        logoutButton.textContent =
+            "Logout হচ্ছে...";
+    }
+
+
+    try {
+
+        if (
+            typeof supabaseClient === "undefined" ||
+            !supabaseClient?.auth
+        ) {
+
+            throw new Error(
+                "Authentication system unavailable."
+            );
+        }
+
+
+        const {
+            error
+        } =
+            await supabaseClient.auth
+                .signOut();
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        adminInitialized =
+            false;
+
+        editingServiceId =
+            null;
+
+
+        showLoginScreen();
+
+
+    } catch (error) {
+
+        console.error(
+            "Admin logout error:",
+            error
+        );
+
+
+        showAdminMessage(
+            "Logout সমস্যা",
+            error?.message ||
+                "Logout করা যায়নি।",
+            "error"
+        );
+
+
+    } finally {
+
+        if (logoutButton) {
+
+            logoutButton.disabled =
+                false;
+
+            logoutButton.textContent =
+                "Logout";
+        }
+    }
+}
+
+
+/* =========================================================
+   51. ADMIN MESSAGE
+   ========================================================= */
+
+function showAdminMessage(
+    title,
+    text,
+    type = "info"
+) {
+
+    const message =
+        document.getElementById(
+            "adminMessage"
+        );
+
+
+    const icon =
+        document.getElementById(
+            "adminMessageIcon"
+        );
+
+    const titleElement =
+        document.getElementById(
+            "adminMessageTitle"
+        );
+
+    const textElement =
+        document.getElementById(
+            "adminMessageText"
+        );
+
+
+    if (!message) {
+        return;
+    }
+
+
+    if (titleElement) {
+
+        titleElement.textContent =
+            title || "Message";
+    }
+
+
+    if (textElement) {
+
+        textElement.textContent =
+            text || "";
+    }
+
+
+    if (icon) {
+
+        const icons = {
+
+            success: "✓",
+
+            error: "!",
+
+            warning: "⚠",
+
+            info: "i"
+        };
+
+
+        icon.textContent =
+            icons[type] ||
+            icons.info;
+    }
+
+
+    message.dataset.type =
+        type;
+
+
+    message.classList.add(
+        "show"
+    );
+
+
+    if (
+        message._hideTimer
+    ) {
+
+        clearTimeout(
+            message._hideTimer
+        );
+    }
+
+
+    message._hideTimer =
+        setTimeout(
+            () => {
+
+                message.classList.remove(
+                    "show"
+                );
+
+            },
+            3500
+        );
+}
+
+
+/* =========================================================
+   52. PUBLIC ADMIN API
+   ========================================================= */
+
+window.AmaderElakaAdmin = {
+
+    getServices() {
+
+        return getAdminServices();
+    },
+
+
+    getActiveServices() {
+
+        return getActiveAdminServices();
+    },
+
+
+    setServices(services) {
+
+        if (!Array.isArray(services)) {
+            return false;
+        }
+
+
+        adminServices =
+            services
+                .map(normalizeAdminService)
+                .filter(Boolean);
+
+
+        normalizeServiceOrders();
+
+        saveAdminServices();
+
+        renderAdminServiceManagement();
+
+        updateAdminStatistics();
+
+        syncServicesToDashboard();
+
+
+        return true;
+    },
+
+
+    refresh() {
+
+        refreshAdminServiceUI();
+
+        syncServicesToDashboard();
+    }
+};
+
+
+/* =========================================================
+   53. PUBLIC SERVICE MANAGEMENT API
+   ========================================================= */
+
+window.AmaderElakaAdminServices = {
+
+    add(data) {
+
+        return addAdminService(
+            data
+        );
+    },
+
+
+    update(id, data) {
+
+        return updateAdminService(
+            id,
+            data
+        );
+    },
+
+
+    remove(id) {
+
+        return deleteAdminService(
+            id
+        );
+    },
+
+
+    toggle(id) {
+
+        return toggleAdminService(
+            id
+        );
+    },
+
+
+    get(id) {
+
+        return getAdminService(
+            id
+        );
+    },
+
+
+    getAll() {
+
+        return getAdminServices();
+    },
+
+
+    getActive() {
+
+        return getActiveAdminServices();
+    },
+
+
+    refresh() {
+
+        refreshAdminServiceUI();
+
+        syncServicesToDashboard();
+    }
+};
+
+
+/* =========================================================
+   54. INITIAL DASHBOARD SYNC
+   ========================================================= */
+
+function initializeDashboardServiceSync() {
+
+    loadAdminServices();
+
+    syncServicesToDashboard();
+}
+
+
+/* =========================================================
+   55. FINAL INITIALIZATION HOOK
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        /*
+         * This runs after the main initialization
+         * and makes sure the Dashboard global
+         * service data is available.
+         */
+
+        window.setTimeout(
+            () => {
+
+                if (
+                    adminServices.length
+                ) {
+
+                    syncServicesToDashboard();
+                }
+
+            },
+            100
+        );
+    }
+);
+
+
+/* =========================================================
+   END OF ADMIN.JS
+   ========================================================= */
