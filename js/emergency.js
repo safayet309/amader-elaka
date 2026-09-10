@@ -1,118 +1,197 @@
 // =====================================
-// Emergency Hotline Popup
-// Shared across pages (index.html has
-// its own inline copy of this same logic)
+// Amader Elaka - Emergency JavaScript
 // =====================================
 
-const emergencyNumbers = [
-    { name: "জাতীয় জরুরি সেবা", number: "999", icon: "🚨", important: true },
-    { name: "সরকারি তথ্য ও সেবা", number: "333", icon: "📞" },
-    { name: "ফায়ার সার্ভিস", number: "102", icon: "🚒" },
-    { name: "নারী ও শিশু সহায়তা", number: "109", icon: "👩" },
-    { name: "শিশু সহায়তা", number: "1098", icon: "👶" },
-    { name: "স্বাস্থ্য বাতায়ন", number: "16263", icon: "🏥" },
-    { name: "কৃষি কল সেন্টার", number: "16123", icon: "🌾" },
-    { name: "সরকারি আইনি সহায়তা", number: "16699", icon: "⚖️" },
-    { name: "দুর্নীতি দমন কমিশন", number: "106", icon: "🔍" },
-    { name: "দুর্যোগ পূর্বাভাস", number: "1090", icon: "🌪️" },
-    { name: "বাংলাদেশ রেলওয়ে", number: "131", icon: "🚂" },
-    { name: "ঢাকা ওয়াসা", number: "16162", icon: "💧" }
-];
+(() => {
+    "use strict";
 
-const emergencyButton = document.getElementById("emergencyButton");
-const emergencyOverlay = document.getElementById("emergencyOverlay");
-const emergencyClose = document.getElementById("emergencyClose");
-const emergencyList = document.getElementById("emergencyList");
+    // -------------------------------------
+    // DOM Elements
+    // -------------------------------------
 
-function renderEmergencyNumbers() {
-    if (!emergencyList) return;
+    const emergencyButton = document.querySelector(
+        "#emergencyButton, .emergency-button"
+    );
 
-    emergencyList.innerHTML = emergencyNumbers
-        .map(function (s) {
-            return `<div class="emergency-card ${s.important ? "important" : ""}">
-                <div class="emergency-card-info">
-                    <div class="emergency-card-icon">${s.icon}</div>
-                    <div>
-                        <h3>${s.name}</h3>
-                        <strong>${s.number}</strong>
-                    </div>
-                </div>
-                <div class="emergency-card-actions">
-                    <a href="tel:${s.number}" class="emergency-call">📞 কল করুন</a>
-                    <button type="button" class="emergency-copy" data-number="${s.number}">📋 কপি</button>
-                </div>
-            </div>`;
-        })
-        .join("");
-}
+    const emergencyModal = document.getElementById("emergencyModal");
 
-function openEmergencyPopup() {
-    if (!emergencyOverlay) return;
-    emergencyOverlay.classList.add("show");
-    emergencyOverlay.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-}
+    const emergencyCloseButtons = document.querySelectorAll(
+        "#emergencyModal .modal-close, " +
+        "#emergencyModal .close-modal, " +
+        "#emergencyModal [data-close-modal]"
+    );
 
-function closeEmergencyPopup() {
-    if (!emergencyOverlay) return;
-    emergencyOverlay.classList.remove("show");
-    emergencyOverlay.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-}
 
-async function copyEmergencyNumber(number, button) {
-    try {
-        await navigator.clipboard.writeText(number);
-    } catch (e) {
-        const ta = document.createElement("textarea");
-        ta.value = number;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
+    // -------------------------------------
+    // Open Emergency Modal
+    // -------------------------------------
 
-        try {
-            document.execCommand("copy");
-        } catch (x) {
-            console.error("Copy Error:", x);
-        }
+    function openEmergencyModal() {
+        if (!emergencyModal) return;
 
-        ta.remove();
+        emergencyModal.classList.add("active");
+        emergencyModal.classList.add("show");
+
+        emergencyModal.setAttribute("aria-hidden", "false");
+
+        document.body.classList.add("modal-open");
+
+        // Prevent background scrolling
+        document.body.style.overflow = "hidden";
     }
 
-    const old = button.textContent;
-    button.textContent = "✓ কপি হয়েছে";
-    setTimeout(function () {
-        button.textContent = old;
-    }, 1500);
-}
 
-if (emergencyButton) {
-    emergencyButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        openEmergencyPopup();
-    });
-}
+    // -------------------------------------
+    // Close Emergency Modal
+    // -------------------------------------
 
-if (emergencyClose) {
-    emergencyClose.addEventListener("click", closeEmergencyPopup);
-}
+    function closeEmergencyModal() {
+        if (!emergencyModal) return;
 
-if (emergencyOverlay) {
-    emergencyOverlay.addEventListener("click", function (e) {
-        if (e.target === emergencyOverlay) closeEmergencyPopup();
-    });
-}
+        emergencyModal.classList.remove("active");
+        emergencyModal.classList.remove("show");
 
-if (emergencyList) {
-    emergencyList.addEventListener("click", function (e) {
-        const b = e.target.closest(".emergency-copy");
-        if (b) copyEmergencyNumber(b.dataset.number, b);
-    });
-}
+        emergencyModal.setAttribute("aria-hidden", "true");
 
-document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeEmergencyPopup();
-});
+        document.body.classList.remove("modal-open");
 
-renderEmergencyNumbers();
+        // Restore scrolling
+        document.body.style.overflow = "";
+    }
+
+
+    // -------------------------------------
+    // Emergency Button
+    // -------------------------------------
+
+    function initEmergencyButton() {
+        if (!emergencyButton) return;
+
+        emergencyButton.setAttribute("role", "button");
+
+        emergencyButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            openEmergencyModal();
+        });
+    }
+
+
+    // -------------------------------------
+    // Close Buttons
+    // -------------------------------------
+
+    function initCloseButtons() {
+        if (!emergencyCloseButtons.length) return;
+
+        emergencyCloseButtons.forEach((button) => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                closeEmergencyModal();
+            });
+        });
+    }
+
+
+    // -------------------------------------
+    // Close When Clicking Outside
+    // -------------------------------------
+
+    function initOutsideClick() {
+        if (!emergencyModal) return;
+
+        emergencyModal.addEventListener("click", (event) => {
+            if (event.target === emergencyModal) {
+                closeEmergencyModal();
+            }
+        });
+    }
+
+
+    // -------------------------------------
+    // Close With Escape Key
+    // -------------------------------------
+
+    function initEscapeKey() {
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeEmergencyModal();
+            }
+        });
+    }
+
+
+    // -------------------------------------
+    // Emergency Phone Links
+    // -------------------------------------
+
+    function initPhoneLinks() {
+        const phoneLinks = document.querySelectorAll(
+            '#emergencyModal a[href^="tel:"]'
+        );
+
+        phoneLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                link.classList.add("phone-called");
+
+                setTimeout(() => {
+                    link.classList.remove("phone-called");
+                }, 500);
+            });
+        });
+    }
+
+
+    // -------------------------------------
+    // Accessibility
+    // -------------------------------------
+
+    function initAccessibility() {
+        if (!emergencyModal) return;
+
+        if (!emergencyModal.hasAttribute("aria-hidden")) {
+            emergencyModal.setAttribute("aria-hidden", "true");
+        }
+
+        if (emergencyButton) {
+            emergencyButton.setAttribute(
+                "aria-haspopup",
+                "dialog"
+            );
+        }
+
+        const modalRole = emergencyModal.getAttribute("role");
+
+        if (!modalRole) {
+            emergencyModal.setAttribute("role", "dialog");
+        }
+    }
+
+
+    // -------------------------------------
+    // Initialize
+    // -------------------------------------
+
+    function initEmergency() {
+        initAccessibility();
+        initEmergencyButton();
+        initCloseButtons();
+        initOutsideClick();
+        initEscapeKey();
+        initPhoneLinks();
+    }
+
+
+    // -------------------------------------
+    // Start
+    // -------------------------------------
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initEmergency
+        );
+    } else {
+        initEmergency();
+    }
+
+})();
