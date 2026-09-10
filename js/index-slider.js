@@ -1,4 +1,4 @@
-/* ==========================
+ /* ==========================
    home-slider.js
    Auto image slider (homepage)
    Checks only slide1.webp to slide15.webp
