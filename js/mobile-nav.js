@@ -6,187 +6,441 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    const menuToggle =
+    const standardToggle =
         document.querySelector(".mobile-menu-toggle");
 
-    const nav =
-        document.querySelector(".nav");
+    const standardNav =
+        document.querySelector(".header .nav");
 
-    if (!menuToggle || !nav) {
-        return;
+    const governmentToggle =
+        document.getElementById("mobileMenu");
+
+    const governmentNav =
+        document.getElementById("govNav");
+
+    const bottomMenu =
+        document.getElementById("mobileBottomMenu");
+
+    const bottomSearch =
+        document.getElementById("mobileBottomSearch");
+
+
+    // =====================================================
+    // CLOSE NAVIGATION
+    // =====================================================
+
+    function closeNav(nav, toggle) {
+
+        if (nav) {
+
+            nav.classList.remove(
+                "mobile-nav-open",
+                "menu-open",
+                "open"
+            );
+        }
+
+        if (toggle) {
+
+            toggle.classList.remove("menu-open");
+
+            toggle.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        }
     }
 
 
     // =====================================================
-    // 01. MOBILE MENU TOGGLE
+    // TOGGLE NAVIGATION
     // =====================================================
 
-    menuToggle.addEventListener("click", event => {
+    function toggleNav(nav, toggle) {
 
-        event.stopPropagation();
+        if (!nav) {
+            return false;
+        }
 
         const isOpen =
             nav.classList.toggle("mobile-nav-open");
 
-        menuToggle.classList.toggle(
-            "menu-open",
-            isOpen
-        );
+        if (toggle) {
 
-        menuToggle.setAttribute(
-            "aria-expanded",
-            String(isOpen)
-        );
-
-        document.body.classList.toggle(
-            "nav-open",
-            isOpen
-        );
-
-    });
-
-
-    // =====================================================
-    // 02. CLOSE MENU AFTER NAVIGATION
-    // =====================================================
-
-    const navLinks =
-        nav.querySelectorAll("a");
-
-    navLinks.forEach(link => {
-
-        link.addEventListener("click", () => {
-
-            nav.classList.remove(
-                "mobile-nav-open"
+            toggle.classList.toggle(
+                "menu-open",
+                isOpen
             );
 
-            menuToggle.classList.remove(
-                "menu-open"
-            );
-
-            menuToggle.setAttribute(
+            toggle.setAttribute(
                 "aria-expanded",
-                "false"
+                String(isOpen)
             );
-
-            document.body.classList.remove(
-                "nav-open"
-            );
-
-        });
-
-    });
-
-
-    // =====================================================
-    // 03. CLOSE WHEN CLICKING OUTSIDE
-    // =====================================================
-
-    document.addEventListener("click", event => {
-
-        if (
-            !nav.contains(event.target) &&
-            !menuToggle.contains(event.target)
-        ) {
-
-            nav.classList.remove(
-                "mobile-nav-open"
-            );
-
-            menuToggle.classList.remove(
-                "menu-open"
-            );
-
-            menuToggle.setAttribute(
-                "aria-expanded",
-                "false"
-            );
-
-            document.body.classList.remove(
-                "nav-open"
-            );
-
         }
 
+        return isOpen;
+    }
+
+
+    // =====================================================
+    // NORMAL MOBILE MENU
+    // =====================================================
+
+    if (standardToggle && standardNav) {
+
+        standardToggle.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                toggleNav(
+                    standardNav,
+                    standardToggle
+                );
+            }
+        );
+    }
+
+
+    // =====================================================
+    // GOVERNMENT MOBILE MENU
+    // =====================================================
+
+    if (governmentToggle && governmentNav) {
+
+        governmentToggle.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                toggleNav(
+                    governmentNav,
+                    governmentToggle
+                );
+            }
+        );
+    }
+
+
+    // =====================================================
+    // BOTTOM MENU BUTTON
+    // =====================================================
+
+    if (bottomMenu) {
+
+        bottomMenu.addEventListener(
+            "click",
+            event => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const nav =
+                    standardNav || governmentNav;
+
+                if (!nav) {
+                    return;
+                }
+
+                const isOpen =
+                    toggleNav(
+                        nav,
+                        bottomMenu
+                    );
+
+                bottomMenu.setAttribute(
+                    "aria-expanded",
+                    String(isOpen)
+                );
+
+                bottomMenu.setAttribute(
+                    "aria-label",
+                    isOpen
+                        ? "মেনু বন্ধ করুন"
+                        : "মেনু খুলুন"
+                );
+            }
+        );
+    }
+
+
+    // =====================================================
+    // BOTTOM SEARCH BUTTON
+    // =====================================================
+
+    if (bottomSearch) {
+
+        bottomSearch.addEventListener(
+            "click",
+            event => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const searchInput =
+                    document.getElementById(
+                        "serviceSearch"
+                    ) ||
+                    document.getElementById(
+                        "serviceSearchInput"
+                    );
+
+                if (searchInput) {
+
+                    searchInput.focus({
+                        preventScroll: true
+                    });
+
+                    searchInput.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                } else {
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+                }
+            }
+        );
+    }
+
+
+    // =====================================================
+    // CLOSE MENU AFTER NAVIGATION
+    // =====================================================
+
+    [
+        standardNav,
+        governmentNav
+    ]
+    .filter(Boolean)
+    .forEach(nav => {
+
+        nav.querySelectorAll("a")
+            .forEach(link => {
+
+                link.addEventListener(
+                    "click",
+                    () => {
+
+                        closeNav(
+                            nav,
+                            standardNav === nav
+                                ? standardToggle
+                                : governmentToggle
+                        );
+
+                        if (bottomMenu) {
+
+                            bottomMenu.setAttribute(
+                                "aria-expanded",
+                                "false"
+                            );
+                        }
+                    }
+                );
+            });
     });
 
 
     // =====================================================
-    // 04. ESCAPE KEY
+    // CLOSE WHEN CLICKING OUTSIDE
     // =====================================================
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener(
+        "click",
+        event => {
 
-        if (event.key !== "Escape") {
-            return;
+            const navs =
+                [
+                    standardNav,
+                    governmentNav
+                ].filter(Boolean);
+
+            const insideNav =
+                navs.some(
+                    nav =>
+                        nav.contains(event.target)
+                );
+
+            const insideToggle =
+
+                (
+                    standardToggle &&
+                    standardToggle.contains(
+                        event.target
+                    )
+                )
+
+                ||
+
+                (
+                    governmentToggle &&
+                    governmentToggle.contains(
+                        event.target
+                    )
+                )
+
+                ||
+
+                (
+                    bottomMenu &&
+                    bottomMenu.contains(
+                        event.target
+                    )
+                );
+
+
+            if (!insideNav && !insideToggle) {
+
+                navs.forEach(nav => {
+
+                    closeNav(
+                        nav,
+                        standardNav === nav
+                            ? standardToggle
+                            : governmentToggle
+                    );
+                });
+
+                if (bottomMenu) {
+
+                    bottomMenu.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+                }
+            }
         }
-
-        nav.classList.remove(
-            "mobile-nav-open"
-        );
-
-        menuToggle.classList.remove(
-            "menu-open"
-        );
-
-        menuToggle.setAttribute(
-            "aria-expanded",
-            "false"
-        );
-
-        document.body.classList.remove(
-            "nav-open"
-        );
-
-    });
+    );
 
 
     // =====================================================
-    // 05. RESET ON DESKTOP
+    // ESCAPE KEY
+    // =====================================================
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            [
+                standardNav,
+                governmentNav
+            ]
+            .filter(Boolean)
+            .forEach(nav => {
+
+                closeNav(
+                    nav,
+                    standardNav === nav
+                        ? standardToggle
+                        : governmentToggle
+                );
+            });
+
+            if (bottomMenu) {
+
+                bottomMenu.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+            }
+        }
+    );
+
+
+    // =====================================================
+    // RESET ON DESKTOP
     // =====================================================
 
     const desktopQuery =
-        window.matchMedia("(min-width: 801px)");
-
-    function handleDesktopMode(event) {
-
-        if (!event.matches) {
-            return;
-        }
-
-        nav.classList.remove(
-            "mobile-nav-open"
+        window.matchMedia(
+            "(min-width: 801px)"
         );
 
-        menuToggle.classList.remove(
-            "menu-open"
+
+    const resetDesktop =
+        event => {
+
+            if (!event.matches) {
+                return;
+            }
+
+            [
+                standardNav,
+                governmentNav
+            ]
+            .filter(Boolean)
+            .forEach(nav => {
+
+                closeNav(
+                    nav,
+                    standardNav === nav
+                        ? standardToggle
+                        : governmentToggle
+                );
+            });
+
+            if (bottomMenu) {
+
+                bottomMenu.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+            }
+        };
+
+
+    if (desktopQuery.addEventListener) {
+
+        desktopQuery.addEventListener(
+            "change",
+            resetDesktop
         );
 
-        menuToggle.setAttribute(
+    } else {
+
+        desktopQuery.addListener(
+            resetDesktop
+        );
+    }
+
+
+    // =====================================================
+    // INITIAL STATE
+    // =====================================================
+
+    if (standardToggle) {
+
+        standardToggle.setAttribute(
             "aria-expanded",
             "false"
         );
-
-        document.body.classList.remove(
-            "nav-open"
-        );
-
     }
 
-    desktopQuery.addEventListener(
-        "change",
-        handleDesktopMode
-    );
+    if (governmentToggle) {
 
+        governmentToggle.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
 
-    // =====================================================
-    // 06. INITIAL STATE
-    // =====================================================
+    if (bottomMenu) {
 
-    menuToggle.setAttribute(
-        "aria-expanded",
-        "false"
-    );
+        bottomMenu.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
 
 });
